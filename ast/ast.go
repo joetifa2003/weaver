@@ -23,7 +23,7 @@ type Prop struct {
 
 type Output struct {
 	Name string `"output" @String`
-	Expr Expr   `@@`
+	Expr *Expr  `@@`
 }
 
 func (t *Output) stmt() {}
@@ -31,20 +31,67 @@ func (t *Output) stmt() {}
 type Let struct {
 	Name     string   `"let" @Ident `
 	TypeNode TypeNode `[":" @Ident]?`
-	Expr     Expr     `"=" @@`
+	Expr     *Expr    `"=" @@`
 }
 
 func (t *Let) stmt() {}
 
 type Assign struct {
 	Name string "@Ident"
-	Expr Expr   `"=" @@`
+	Expr *Expr  `"=" @@`
 }
 
 func (t *Assign) stmt() {}
 
-type Expr interface {
-	expr()
+type Block struct {
+	Statements []Stmt `"{" @@* "}"`
+}
+
+func (t *Block) stmt() {}
+
+type If struct {
+	Expr       *Expr `"if" "(" @@ ")"`
+	Statements Stmt  `@@`
+}
+
+func (t *If) stmt() {}
+
+type Expr struct {
+	Equality *Equality `@@`
+}
+
+type Equality struct {
+	Left  *Comparison `@@`
+	Op    string      `( @( "!" "=" | "=" "=" )`
+	Right *Equality   `  @@ )*`
+}
+
+type Comparison struct {
+	Left  *Addition   `@@`
+	Op    string      `( @( ">" | ">" "=" | "<" | "<" "=" )`
+	Right *Comparison `  @@ )*`
+}
+
+type Addition struct {
+	Left  *Multiplication `@@`
+	Op    string          `( @( "-" | "+" )`
+	Right *Addition       `  @@ )*`
+}
+
+type Multiplication struct {
+	Left  *Unary          `@@`
+	Op    string          `( @( "/" | "*" )`
+	Right *Multiplication `  @@ )*`
+}
+
+type Unary struct {
+	Op    string `  ( @( "!" | "-" )`
+	Unary *Unary `    @@ )`
+	Atom  Atom   `| @@`
+}
+
+type Atom interface {
+	atom()
 }
 
 type Object struct {
@@ -52,28 +99,28 @@ type Object struct {
 	Fields []*Field `"{" (@@ ("," @@)* )? "}"`
 }
 
-func (t *Object) expr() {}
+func (t *Object) atom() {}
 
 type Field struct {
 	Name string `@Ident [":"`
-	Expr Expr   `@@]?`
+	Expr *Expr  `@@]?`
 }
 
 type String struct {
 	Value string `@String`
 }
 
-func (t *String) expr() {}
+func (t *String) atom() {}
 
 // TODO: implement int and float
 type Number struct {
 	Value int `@Number`
 }
 
-func (t *Number) expr() {}
+func (t *Number) atom() {}
 
 type Ident struct {
 	Name string "@Ident"
 }
 
-func (t *Ident) expr() {}
+func (t *Ident) atom() {}

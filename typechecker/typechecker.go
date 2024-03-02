@@ -6,15 +6,20 @@ import (
 	"config-lang/ast"
 )
 
+type Binding struct {
+	Name string
+	Type ast.Type
+}
+
 type TypeChecker struct {
 	defs     map[string]*ast.Def
-	bindings map[string]ast.Type
+	bindings [][]Binding
 }
 
 func New() *TypeChecker {
 	return &TypeChecker{
 		defs:     map[string]*ast.Def{},
-		bindings: map[string]ast.Type{},
+		bindings: [][]Binding{{}},
 	}
 }
 
@@ -37,40 +42,150 @@ func (t *TypeChecker) checkStmt(n ast.Stmt) error {
 	case *ast.Let:
 		// infer
 		if n.TypeNode.Type == nil {
-			n.TypeNode.Type = t.exprType(n.Expr)
+			var err error
+			n.TypeNode.Type, err = t.exprType(n.Expr)
+			if err != nil {
+				return err
+			}
 		}
 
 		letType := n.TypeNode.Type
-		exprType := t.exprType(n.Expr)
-		err := t.matchTypes(letType, exprType)
+		exprType, err := t.exprType(n.Expr)
 		if err != nil {
 			return err
 		}
 
-		t.bindings[n.Name] = letType
+		err = t.matchTypes(letType, exprType)
+		if err != nil {
+			return err
+		}
+
+		t.bind(n.Name, letType)
 
 	case *ast.Assign:
-		ty, ok := t.bindings[n.Name]
-		if !ok {
-			return fmt.Errorf("unknown variable %s", n.Name)
-		}
-		exprType := t.exprType(n.Expr)
-		err := t.matchTypes(ty, exprType)
+		ty, err := t.get(n.Name)
 		if err != nil {
 			return err
 		}
+
+		exprType, err := t.exprType(n.Expr)
+		if err != nil {
+			return err
+		}
+		err = t.matchTypes(ty, exprType)
+		if err != nil {
+			return err
+		}
+
+	case *ast.Block:
+		t.push()
+		for _, stmt := range n.Statements {
+			err := t.checkStmt(stmt)
+			if err != nil {
+				return err
+			}
+		}
+		t.pop()
+
+	default:
+		panic(fmt.Sprintf("TypeChecker.checkStmt: unimplemented %T", n))
 	}
 
 	return nil
 }
 
-func (t *TypeChecker) exprType(n ast.Expr) ast.Type {
+func (t *TypeChecker) exprType(n interface{}) (ast.Type, error) {
 	switch n := n.(type) {
-	case *ast.Number:
-		return ast.IntType{}
+	case *ast.Expr:
+		return t.exprType(n.Equality)
+
+	case *ast.Equality:
+		lhs, err := t.exprType(n.Left)
+		if n.Right == nil {
+			return lhs, nil
+		}
+
+		rhs, err := t.exprType(n.Right)
+		if err != nil {
+			return nil, err
+		}
+
+		err = t.matchTypes(lhs, rhs)
+		if err != nil {
+			return nil, err
+		}
+
+		// TODO: BOOLEAN TYPE
+		return ast.IntType{}, nil
+
+	case *ast.Comparison:
+		lhs, err := t.exprType(n.Left)
+		if n.Right == nil {
+			return lhs, nil
+		}
+
+		rhs, err := t.exprType(n.Right)
+		if err != nil {
+			return nil, err
+		}
+
+		err = t.matchTypes(lhs, rhs)
+		if err != nil {
+			return nil, err
+		}
+
+		// TODO: BOOLEAN TYPE
+		return ast.IntType{}, nil
+
+	case *ast.Addition:
+		lhs, err := t.exprType(n.Left)
+		if n.Right == nil {
+			return lhs, nil
+		}
+
+		rhs, err := t.exprType(n.Right)
+		if err != nil {
+			return nil, err
+		}
+
+		err = t.matchTypes(lhs, rhs)
+		if err != nil {
+			return nil, err
+		}
+
+		return ast.IntType{}, nil
+
+	case *ast.Multiplication:
+		lhs, err := t.exprType(n.Left)
+		if n.Right == nil {
+			return lhs, nil
+		}
+
+		rhs, err := t.exprType(n.Right)
+		if err != nil {
+			return nil, err
+		}
+
+		err = t.matchTypes(lhs, rhs)
+		if err != nil {
+			return nil, err
+		}
+
+		return ast.IntType{}, nil
+
+	case *ast.Unary:
+		if n.Unary == nil {
+			return t.exprType(n.Atom)
+		}
+
+		panic("handle unary")
+		return ast.IntType{}, nil
 
 	case *ast.String:
-		return ast.StringType{}
+		return ast.StringType{}, nil
+
+	case *ast.Number:
+		return ast.IntType{}, nil
 
 	default:
 		panic(fmt.Sprintf("TypeChecker.exprType: unimplemented %T", n))
@@ -86,4 +201,32 @@ func (t *TypeChecker) matchTypes(t1 ast.Type, t2 ast.Type) error {
 		return fmt.Errorf("type mismatch")
 	}
 	return nil
+}
+
+func (t *TypeChecker) bind(name string, typ ast.Type) {
+	idx := len(t.bindings) - 1
+	t.bindings[idx] = append(t.bindings[idx], Binding{
+		Name: name,
+		Type: typ,
+	})
+}
+
+func (t *TypeChecker) get(name string) (ast.Type, error) {
+	for i := len(t.bindings) - 1; i >= 0; i-- {
+		for _, b := range t.bindings[i] {
+			if b.Name == name {
+				return b.Type, nil
+			}
+		}
+	}
+
+	return nil, fmt.Errorf("unknown variable %s", name)
+}
+
+func (t *TypeChecker) push() {
+	t.bindings = append(t.bindings, []Binding{})
+}
+
+func (t *TypeChecker) pop() {
+	t.bindings = t.bindings[:len(t.bindings)-1]
 }

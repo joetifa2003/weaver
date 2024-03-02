@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/alecthomas/participle/v2"
@@ -30,16 +32,18 @@ func main() {
 		participle.Lexer(lex),
 		participle.Elide("whitespace"),
 		participle.Unquote("String"),
-		participle.Union[ast.Stmt](&ast.Def{}, &ast.Output{}, &ast.Let{}, &ast.Assign{}),
-		participle.Union[ast.Expr](&ast.Object{}, &ast.String{}, &ast.Number{}, &ast.Ident{}),
+		participle.Union[ast.Stmt](&ast.Def{}, &ast.Output{}, &ast.Let{}, &ast.Assign{}, &ast.Block{}, &ast.If{}),
+		participle.Union[ast.Atom](&ast.Object{}, &ast.String{}, &ast.Number{}, &ast.Ident{}),
 	)
 	if err != nil {
 		panic(err)
 	}
 
 	p, err := parser.ParseString("main.tf", `
-    let x = "hi"
-    x = 1
+    let x = 0
+    {
+      x = 0 + 1 + "hi" 
+    }
 	  `)
 	if err != nil {
 		panic(err)
@@ -59,7 +63,21 @@ func main() {
 	// 	panic(err)
 	// }
 
-	_ = p
+	parserOut, err := json.Marshal(p)
+	if err != nil {
+		panic(err)
+	}
+
+	f, err := os.Create("ast.json")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	_, err = f.Write(parserOut)
+	if err != nil {
+		panic(err)
+	}
 
 	fmt.Println(parser.String())
 }

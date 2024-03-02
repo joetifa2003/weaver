@@ -94,6 +94,7 @@ func (t *TypeChecker) checkStmt(n ast.Stmt) error {
 	return nil
 }
 
+// TODO: Don't allow things like true + true
 func (t *TypeChecker) exprType(n interface{}) (ast.Type, error) {
 	switch n := n.(type) {
 	case *ast.Expr:
@@ -115,8 +116,7 @@ func (t *TypeChecker) exprType(n interface{}) (ast.Type, error) {
 			return nil, err
 		}
 
-		// TODO: BOOLEAN TYPE
-		return ast.IntType{}, nil
+		return ast.BoolType{}, nil
 
 	case *ast.Comparison:
 		lhs, err := t.exprType(n.Left)
@@ -134,8 +134,7 @@ func (t *TypeChecker) exprType(n interface{}) (ast.Type, error) {
 			return nil, err
 		}
 
-		// TODO: BOOLEAN TYPE
-		return ast.IntType{}, nil
+		return ast.BoolType{}, nil
 
 	case *ast.Addition:
 		lhs, err := t.exprType(n.Left)
@@ -186,6 +185,9 @@ func (t *TypeChecker) exprType(n interface{}) (ast.Type, error) {
 
 	case *ast.Number:
 		return ast.IntType{}, nil
+
+	case *ast.Bool:
+		return ast.BoolType{}, nil
 
 	default:
 		panic(fmt.Sprintf("TypeChecker.exprType: unimplemented %T", n))

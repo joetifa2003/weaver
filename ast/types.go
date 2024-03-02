@@ -22,6 +22,10 @@ type ObjectType struct{}
 
 func (t ObjectType) typ() {}
 
+type BoolType struct{}
+
+func (t BoolType) typ() {}
+
 type CustomType struct{}
 
 func (t CustomType) typ() {}
@@ -44,6 +48,8 @@ func (t *TypeNode) Capture(values []string) error {
 		t.Type = IntType{}
 	case "any":
 		t.Type = AnyType{}
+	case "bool":
+		t.Type = BoolType{}
 	default:
 		return fmt.Errorf("unknown type %s", ident)
 	}

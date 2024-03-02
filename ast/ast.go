@@ -124,3 +124,19 @@ type Ident struct {
 }
 
 func (t *Ident) atom() {}
+
+type _Bool bool
+
+func (t *_Bool) Capture(values []string) {
+	if values[0] == "true" {
+		*t = true
+	} else if values[0] == "false" {
+		*t = false
+	}
+}
+
+type Bool struct {
+	Value _Bool `@("true" | "false")`
+}
+
+func (t *Bool) atom() {}

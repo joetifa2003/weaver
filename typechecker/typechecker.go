@@ -1,6 +1,7 @@
 package typechecker
 
 import (
+	"errors"
 	"fmt"
 
 	"config-lang/ast"
@@ -55,7 +56,7 @@ func (t *TypeChecker) checkStmt(n ast.Stmt) error {
 			return err
 		}
 
-		err = t.matchTypes(letType, exprType)
+		err = t.matchTypes(letType, exprType, nil)
 		if err != nil {
 			return err
 		}
@@ -72,7 +73,7 @@ func (t *TypeChecker) checkStmt(n ast.Stmt) error {
 		if err != nil {
 			return err
 		}
-		err = t.matchTypes(ty, exprType)
+		err = t.matchTypes(ty, exprType, nil)
 		if err != nil {
 			return err
 		}
@@ -86,6 +87,20 @@ func (t *TypeChecker) checkStmt(n ast.Stmt) error {
 			}
 		}
 		t.pop()
+
+	case *ast.If:
+		exprType, err := t.exprType(n.Expr)
+		if err != nil {
+			return err
+		}
+		err = t.matchTypes(exprType, ast.BoolType{}, nil)
+		if err != nil {
+			return err
+		}
+		err = t.checkStmt(n.Statement)
+		if err != nil {
+			return err
+		}
 
 	default:
 		panic(fmt.Sprintf("TypeChecker.checkStmt: unimplemented %T", n))
@@ -102,6 +117,10 @@ func (t *TypeChecker) exprType(n interface{}) (ast.Type, error) {
 
 	case *ast.Equality:
 		lhs, err := t.exprType(n.Left)
+		if err != nil {
+			return nil, err
+		}
+
 		if n.Right == nil {
 			return lhs, nil
 		}
@@ -111,7 +130,7 @@ func (t *TypeChecker) exprType(n interface{}) (ast.Type, error) {
 			return nil, err
 		}
 
-		err = t.matchTypes(lhs, rhs)
+		err = t.matchTypes(lhs, rhs, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -120,6 +139,10 @@ func (t *TypeChecker) exprType(n interface{}) (ast.Type, error) {
 
 	case *ast.Comparison:
 		lhs, err := t.exprType(n.Left)
+		if err != nil {
+			return nil, err
+		}
+
 		if n.Right == nil {
 			return lhs, nil
 		}
@@ -129,7 +152,7 @@ func (t *TypeChecker) exprType(n interface{}) (ast.Type, error) {
 			return nil, err
 		}
 
-		err = t.matchTypes(lhs, rhs)
+		err = t.matchTypes(lhs, rhs, ast.IntType{})
 		if err != nil {
 			return nil, err
 		}
@@ -138,6 +161,10 @@ func (t *TypeChecker) exprType(n interface{}) (ast.Type, error) {
 
 	case *ast.Addition:
 		lhs, err := t.exprType(n.Left)
+		if err != nil {
+			return nil, err
+		}
+
 		if n.Right == nil {
 			return lhs, nil
 		}
@@ -147,7 +174,7 @@ func (t *TypeChecker) exprType(n interface{}) (ast.Type, error) {
 			return nil, err
 		}
 
-		err = t.matchTypes(lhs, rhs)
+		err = t.matchTypes(lhs, rhs, ast.IntType{})
 		if err != nil {
 			return nil, err
 		}
@@ -156,6 +183,10 @@ func (t *TypeChecker) exprType(n interface{}) (ast.Type, error) {
 
 	case *ast.Multiplication:
 		lhs, err := t.exprType(n.Left)
+		if err != nil {
+			return nil, err
+		}
+
 		if n.Right == nil {
 			return lhs, nil
 		}
@@ -165,7 +196,7 @@ func (t *TypeChecker) exprType(n interface{}) (ast.Type, error) {
 			return nil, err
 		}
 
-		err = t.matchTypes(lhs, rhs)
+		err = t.matchTypes(lhs, rhs, ast.IntType{})
 		if err != nil {
 			return nil, err
 		}
@@ -189,19 +220,37 @@ func (t *TypeChecker) exprType(n interface{}) (ast.Type, error) {
 	case *ast.Bool:
 		return ast.BoolType{}, nil
 
+	case *ast.Ident:
+		identType, err := t.get(n.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		return identType, nil
+
 	default:
 		panic(fmt.Sprintf("TypeChecker.exprType: unimplemented %T", n))
 	}
 }
 
-func (t *TypeChecker) matchTypes(t1 ast.Type, t2 ast.Type) error {
+var (
+	ErrMismatch = errors.New("Type mismatch")
+)
+
+func (t *TypeChecker) matchTypes(t1 ast.Type, t2 ast.Type, eq ast.Type) error {
 	if (t1 == ast.AnyType{} || t2 == ast.AnyType{}) {
 		return nil
 	}
-
 	if t1 != t2 {
-		return fmt.Errorf("type mismatch")
+		return fmt.Errorf("%w: expected %T to be %T", ErrMismatch, t2, t1)
 	}
+
+	if eq != nil {
+		if t1 != eq {
+			return fmt.Errorf("%w: expected %T to be %T", ErrMismatch, t1, eq)
+		}
+	}
+
 	return nil
 }
 

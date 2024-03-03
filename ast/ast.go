@@ -50,8 +50,8 @@ type Block struct {
 func (t *Block) stmt() {}
 
 type If struct {
-	Expr       *Expr `"if" "(" @@ ")"`
-	Statements Stmt  `@@`
+	Expr      *Expr `"if" "(" @@ ")"`
+	Statement Stmt  `@@`
 }
 
 func (t *If) stmt() {}

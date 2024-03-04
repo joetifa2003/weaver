@@ -1,5 +1,7 @@
 package ast
 
+import "github.com/alecthomas/participle/v2/lexer"
+
 type Program struct {
 	Statements []Stmt `@@*`
 }
@@ -61,33 +63,43 @@ type Expr struct {
 }
 
 type Equality struct {
-	Left  *Comparison `@@`
-	Op    string      `( @( "!" "=" | "=" "=" )`
-	Right *Equality   `  @@ )*`
+	Pos    lexer.Position
+	Left   *Comparison `@@`
+	Op     string      `( @( "!" "=" | "=" "=" )`
+	Right  *Equality   `  @@ )*`
+	EndPos lexer.Position
 }
 
 type Comparison struct {
-	Left  *Addition   `@@`
-	Op    string      `( @( ">" | ">" "=" | "<" | "<" "=" )`
-	Right *Comparison `  @@ )*`
+	Pos    lexer.Position
+	Left   *Addition   `@@`
+	Op     string      `( @( ">" | ">" "=" | "<" | "<" "=" )`
+	Right  *Comparison `  @@ )*`
+	EndPos lexer.Position
 }
 
 type Addition struct {
-	Left  *Multiplication `@@`
-	Op    string          `( @( "-" | "+" )`
-	Right *Addition       `  @@ )*`
+	Pos    lexer.Position
+	Left   *Multiplication `@@`
+	Op     string          `( @( "-" | "+" )`
+	Right  *Addition       `  @@ )*`
+	EndPos lexer.Position
 }
 
 type Multiplication struct {
-	Left  *Unary          `@@`
-	Op    string          `( @( "/" | "*" )`
-	Right *Multiplication `  @@ )*`
+	Pos    lexer.Position
+	Left   *Unary          `@@`
+	Op     string          `( @( "/" | "*" )`
+	Right  *Multiplication `  @@ )*`
+	EndPos lexer.Position
 }
 
 type Unary struct {
-	Op    string `  ( @( "!" | "-" )`
-	Unary *Unary `    @@ )`
-	Atom  Atom   `| @@`
+	Pos    lexer.Position
+	Op     string `  ( @( "!" | "-" )`
+	Unary  *Unary `    @@ )`
+	Atom   Atom   `| @@`
+	EndPos lexer.Position
 }
 
 type Atom interface {
@@ -95,38 +107,61 @@ type Atom interface {
 }
 
 type Object struct {
+	Pos lexer.Position
+
 	Type   Type     `@@`
 	Fields []*Field `"{" (@@ ("," @@)* )? "}"`
+
+	EndPos lexer.Position
 }
 
 func (t *Object) atom() {}
 
 type Field struct {
+	Pos lexer.Position
+
 	Name string `@Ident [":"`
 	Expr *Expr  `@@]?`
+
+	EndPos lexer.Position
 }
 
 type String struct {
+	Pos lexer.Position
+
 	Value string `@String`
+
+	EndPos lexer.Position
 }
 
 func (t *String) atom() {}
 
-// TODO: implement int and float
 type Number struct {
+	Pos lexer.Position
+
 	Value int `@Number`
+
+	EndPos lexer.Position
 }
 
 func (t *Number) atom() {}
 
 type Ident struct {
+	Pos lexer.Position
+
 	Name string "@Ident"
+
+	EndPos lexer.Position
 }
 
 func (t *Ident) atom() {}
 
 type Bool struct {
+	Pos lexer.Position
+
 	Value _Bool `@("true" | "false")`
+
+	EndPos lexer.Position
 }
 
 type _Bool bool

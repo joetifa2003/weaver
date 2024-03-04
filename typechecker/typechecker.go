@@ -1,7 +1,6 @@
 package typechecker
 
 import (
-	"errors"
 	"fmt"
 
 	"config-lang/ast"
@@ -15,12 +14,14 @@ type Binding struct {
 type TypeChecker struct {
 	defs     map[string]*ast.Def
 	bindings [][]Binding
+	src      string
 }
 
-func New() *TypeChecker {
+func New(src string) *TypeChecker {
 	return &TypeChecker{
 		defs:     map[string]*ast.Def{},
 		bindings: [][]Binding{{}},
+		src:      src,
 	}
 }
 
@@ -135,7 +136,10 @@ func (t *TypeChecker) exprType(n interface{}) (Type, error) {
 			return nil, err
 		}
 
-		return BoolType{}, nil
+		return BoolType{
+			pos:    n.Pos,
+			endPos: n.EndPos,
+		}, nil
 
 	case *ast.Comparison:
 		lhs, err := t.exprType(n.Left)
@@ -161,7 +165,10 @@ func (t *TypeChecker) exprType(n interface{}) (Type, error) {
 			return nil, err
 		}
 
-		return BoolType{}, nil
+		return BoolType{
+			pos:    n.Pos,
+			endPos: n.EndPos,
+		}, nil
 
 	case *ast.Addition:
 		lhs, err := t.exprType(n.Left)
@@ -187,7 +194,10 @@ func (t *TypeChecker) exprType(n interface{}) (Type, error) {
 			return nil, err
 		}
 
-		return NumberType{}, nil
+		return NumberType{
+			pos:    n.Pos,
+			endPos: n.EndPos,
+		}, nil
 
 	case *ast.Multiplication:
 		lhs, err := t.exprType(n.Left)
@@ -213,7 +223,10 @@ func (t *TypeChecker) exprType(n interface{}) (Type, error) {
 			return nil, err
 		}
 
-		return NumberType{}, nil
+		return NumberType{
+			pos:    n.Pos,
+			endPos: n.EndPos,
+		}, nil
 
 	case *ast.Unary:
 		if n.Unary == nil {
@@ -224,13 +237,22 @@ func (t *TypeChecker) exprType(n interface{}) (Type, error) {
 		return BoolType{}, nil
 
 	case *ast.String:
-		return StringType{}, nil
+		return StringType{
+			pos:    n.Pos,
+			endPos: n.EndPos,
+		}, nil
 
 	case *ast.Number:
-		return NumberType{}, nil
+		return NumberType{
+			pos:    n.Pos,
+			endPos: n.EndPos,
+		}, nil
 
 	case *ast.Bool:
-		return BoolType{}, nil
+		return BoolType{
+			pos:    n.Pos,
+			endPos: n.EndPos,
+		}, nil
 
 	case *ast.Ident:
 		identType, err := t.get(n.Name)
@@ -245,16 +267,12 @@ func (t *TypeChecker) exprType(n interface{}) (Type, error) {
 	}
 }
 
-var (
-	ErrMismatch = errors.New("Type mismatch")
-)
-
 func (t *TypeChecker) expectType(expected Type, typ Type) error {
-	if (typ == AnyType{} || expected == AnyType{}) {
+	if (typ.Is(AnyType{})) {
 		return nil
 	}
-	if typ != expected {
-		return fmt.Errorf("%w: expected %T to be %T", ErrMismatch, typ, expected)
+	if !typ.Is(expected) {
+		return NewTypeError(t.src, expected, typ)
 	}
 
 	return nil

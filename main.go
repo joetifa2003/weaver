@@ -40,29 +40,16 @@ func main() {
 		panic(err)
 	}
 
-	p, err := parser.ParseString("main.tf", `
-    let x: string = "hi" 
-    if (x) {
+	src := `
+  let x: string = 1 + 1
+  `
 
-    }
-	  `)
+	p, err := parser.ParseString("main.tf", src)
 	if err != nil {
 		panic(err)
 	}
 	parseDuration := time.Now().Sub(parseStart).Milliseconds()
 	log.Printf("parsing took [%dms]", parseDuration)
-
-	checker := typechecker.New()
-	err = checker.Check(p)
-	if err != nil {
-		panic(err)
-	}
-
-	// c := compiler.New()
-	// _, err = c.Compile(p)
-	// if err != nil {
-	// 	panic(err)
-	// }
 
 	parserOut, err := json.Marshal(p)
 	if err != nil {
@@ -79,6 +66,19 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	checker := typechecker.New(src)
+	err = checker.Check(p)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	// c := compiler.New()
+	// _, err = c.Compile(p)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	fmt.Println(parser.String())
 }

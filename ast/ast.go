@@ -17,8 +17,8 @@ type Def struct {
 func (t *Def) stmt() {}
 
 type Prop struct {
-	Name string   `@Ident ":"`
-	Type TypeNode `@Ident`
+	Name string `@Ident ":"`
+	Type Type   `@@`
 }
 
 type Output struct {
@@ -29,9 +29,9 @@ type Output struct {
 func (t *Output) stmt() {}
 
 type Let struct {
-	Name     string   `"let" @Ident `
-	TypeNode TypeNode `[":" @Ident]?`
-	Expr     *Expr    `"=" @@`
+	Name string `"let" @Ident `
+	Type Type   `[":" @@]?`
+	Expr *Expr  `"=" @@`
 }
 
 func (t *Let) stmt() {}
@@ -95,7 +95,7 @@ type Atom interface {
 }
 
 type Object struct {
-	Type   TypeNode `@Ident`
+	Type   Type     `@@`
 	Fields []*Field `"{" (@@ ("," @@)* )? "}"`
 }
 
@@ -125,6 +125,10 @@ type Ident struct {
 
 func (t *Ident) atom() {}
 
+type Bool struct {
+	Value _Bool `@("true" | "false")`
+}
+
 type _Bool bool
 
 func (t *_Bool) Capture(values []string) {
@@ -133,10 +137,6 @@ func (t *_Bool) Capture(values []string) {
 	} else if values[0] == "false" {
 		*t = false
 	}
-}
-
-type Bool struct {
-	Value _Bool `@("true" | "false")`
 }
 
 func (t *Bool) atom() {}

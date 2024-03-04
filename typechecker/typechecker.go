@@ -9,7 +9,7 @@ import (
 
 type Binding struct {
 	Name string
-	Type ast.Type
+	Type Type
 }
 
 type TypeChecker struct {
@@ -42,21 +42,21 @@ func (t *TypeChecker) checkStmt(n ast.Stmt) error {
 
 	case *ast.Let:
 		// infer
-		if n.TypeNode.Type == nil {
+		letType := t.astToType(n.Type)
+		if letType == nil {
 			var err error
-			n.TypeNode.Type, err = t.exprType(n.Expr)
+			letType, err = t.exprType(n.Expr)
 			if err != nil {
 				return err
 			}
 		}
 
-		letType := n.TypeNode.Type
 		exprType, err := t.exprType(n.Expr)
 		if err != nil {
 			return err
 		}
 
-		err = t.matchTypes(letType, exprType, nil)
+		err = t.expectType(letType, exprType)
 		if err != nil {
 			return err
 		}
@@ -73,7 +73,7 @@ func (t *TypeChecker) checkStmt(n ast.Stmt) error {
 		if err != nil {
 			return err
 		}
-		err = t.matchTypes(ty, exprType, nil)
+		err = t.expectType(ty, exprType)
 		if err != nil {
 			return err
 		}
@@ -93,7 +93,7 @@ func (t *TypeChecker) checkStmt(n ast.Stmt) error {
 		if err != nil {
 			return err
 		}
-		err = t.matchTypes(exprType, ast.BoolType{}, nil)
+		err = t.expectType(BoolType{}, exprType)
 		if err != nil {
 			return err
 		}
@@ -110,7 +110,7 @@ func (t *TypeChecker) checkStmt(n ast.Stmt) error {
 }
 
 // TODO: Don't allow things like true + true
-func (t *TypeChecker) exprType(n interface{}) (ast.Type, error) {
+func (t *TypeChecker) exprType(n interface{}) (Type, error) {
 	switch n := n.(type) {
 	case *ast.Expr:
 		return t.exprType(n.Equality)
@@ -130,12 +130,12 @@ func (t *TypeChecker) exprType(n interface{}) (ast.Type, error) {
 			return nil, err
 		}
 
-		err = t.matchTypes(lhs, rhs, nil)
+		err = t.expectType(lhs, rhs)
 		if err != nil {
 			return nil, err
 		}
 
-		return ast.BoolType{}, nil
+		return BoolType{}, nil
 
 	case *ast.Comparison:
 		lhs, err := t.exprType(n.Left)
@@ -152,12 +152,16 @@ func (t *TypeChecker) exprType(n interface{}) (ast.Type, error) {
 			return nil, err
 		}
 
-		err = t.matchTypes(lhs, rhs, ast.IntType{})
+		err = t.expectType(NumberType{}, lhs)
+		if err != nil {
+			return nil, err
+		}
+		err = t.expectType(NumberType{}, rhs)
 		if err != nil {
 			return nil, err
 		}
 
-		return ast.BoolType{}, nil
+		return BoolType{}, nil
 
 	case *ast.Addition:
 		lhs, err := t.exprType(n.Left)
@@ -174,12 +178,16 @@ func (t *TypeChecker) exprType(n interface{}) (ast.Type, error) {
 			return nil, err
 		}
 
-		err = t.matchTypes(lhs, rhs, ast.IntType{})
+		err = t.expectType(NumberType{}, lhs)
+		if err != nil {
+			return nil, err
+		}
+		err = t.expectType(NumberType{}, rhs)
 		if err != nil {
 			return nil, err
 		}
 
-		return ast.IntType{}, nil
+		return NumberType{}, nil
 
 	case *ast.Multiplication:
 		lhs, err := t.exprType(n.Left)
@@ -196,12 +204,16 @@ func (t *TypeChecker) exprType(n interface{}) (ast.Type, error) {
 			return nil, err
 		}
 
-		err = t.matchTypes(lhs, rhs, ast.IntType{})
+		err = t.expectType(NumberType{}, lhs)
+		if err != nil {
+			return nil, err
+		}
+		err = t.expectType(NumberType{}, rhs)
 		if err != nil {
 			return nil, err
 		}
 
-		return ast.IntType{}, nil
+		return NumberType{}, nil
 
 	case *ast.Unary:
 		if n.Unary == nil {
@@ -209,16 +221,16 @@ func (t *TypeChecker) exprType(n interface{}) (ast.Type, error) {
 		}
 
 		panic("handle unary")
-		return ast.IntType{}, nil
+		return BoolType{}, nil
 
 	case *ast.String:
-		return ast.StringType{}, nil
+		return StringType{}, nil
 
 	case *ast.Number:
-		return ast.IntType{}, nil
+		return NumberType{}, nil
 
 	case *ast.Bool:
-		return ast.BoolType{}, nil
+		return BoolType{}, nil
 
 	case *ast.Ident:
 		identType, err := t.get(n.Name)
@@ -237,24 +249,18 @@ var (
 	ErrMismatch = errors.New("Type mismatch")
 )
 
-func (t *TypeChecker) matchTypes(t1 ast.Type, t2 ast.Type, eq ast.Type) error {
-	if (t1 == ast.AnyType{} || t2 == ast.AnyType{}) {
+func (t *TypeChecker) expectType(expected Type, typ Type) error {
+	if (typ == AnyType{} || expected == AnyType{}) {
 		return nil
 	}
-	if t1 != t2 {
-		return fmt.Errorf("%w: expected %T to be %T", ErrMismatch, t2, t1)
-	}
-
-	if eq != nil {
-		if t1 != eq {
-			return fmt.Errorf("%w: expected %T to be %T", ErrMismatch, t1, eq)
-		}
+	if typ != expected {
+		return fmt.Errorf("%w: expected %T to be %T", ErrMismatch, typ, expected)
 	}
 
 	return nil
 }
 
-func (t *TypeChecker) bind(name string, typ ast.Type) {
+func (t *TypeChecker) bind(name string, typ Type) {
 	idx := len(t.bindings) - 1
 	t.bindings[idx] = append(t.bindings[idx], Binding{
 		Name: name,
@@ -262,7 +268,7 @@ func (t *TypeChecker) bind(name string, typ ast.Type) {
 	})
 }
 
-func (t *TypeChecker) get(name string) (ast.Type, error) {
+func (t *TypeChecker) get(name string) (Type, error) {
 	for i := len(t.bindings) - 1; i >= 0; i-- {
 		for _, b := range t.bindings[i] {
 			if b.Name == name {
@@ -280,4 +286,26 @@ func (t *TypeChecker) push() {
 
 func (t *TypeChecker) pop() {
 	t.bindings = t.bindings[:len(t.bindings)-1]
+}
+
+func (t *TypeChecker) astToType(astType ast.Type) Type {
+	if astType == nil {
+		return nil
+	}
+
+	switch n := astType.(type) {
+	case *ast.BuiltInType:
+		switch n.Name {
+		case "string":
+			return StringType{}
+		case "number":
+			return NumberType{}
+		case "bool":
+			return BoolType{}
+		case "any":
+			return AnyType{}
+		}
+	}
+
+	panic(fmt.Sprintf("unimplemented type %T", astType))
 }

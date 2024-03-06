@@ -41,7 +41,7 @@ func main() {
 	}
 
 	src := `
-  let x: { company: { name: string } } = { company: { name: "hi" } } 
+  let x: { name: string } = { age: 10, name: "hi" } 
   `
 
 	p, err := parser.ParseString("main.tf", src)

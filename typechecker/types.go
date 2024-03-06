@@ -61,6 +61,39 @@ func (t AnyType) EndPos() lexer.Position { return t.endPos }
 
 func (t AnyType) Is(other Type) bool { return true }
 
+type ObjectType struct {
+	pos    lexer.Position
+	Fields map[string]Type
+	endPos lexer.Position
+}
+
+func (t ObjectType) typ() {}
+
+func (t ObjectType) Pos() lexer.Position { return t.pos }
+
+func (t ObjectType) EndPos() lexer.Position { return t.endPos }
+
+func (t ObjectType) Is(other Type) bool {
+	if !isType[ObjectType](other) {
+		return false
+	}
+
+	otherObj := other.(ObjectType)
+
+	for k, v := range otherObj.Fields {
+		typ, ok := t.Fields[k]
+		if !ok {
+			continue
+		}
+
+		if !typ.Is(v) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func isType[T Type](t Type) bool {
 	_, ok := t.(T)
 	return ok

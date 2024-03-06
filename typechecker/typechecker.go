@@ -12,14 +12,14 @@ type Binding struct {
 }
 
 type TypeChecker struct {
-	defs     map[string]*ast.Def
+	defs     map[string]Type
 	bindings [][]Binding
 	src      string
 }
 
 func New(src string) *TypeChecker {
 	return &TypeChecker{
-		defs:     map[string]*ast.Def{},
+		defs:     map[string]Type{},
 		bindings: [][]Binding{{}},
 		src:      src,
 	}
@@ -39,7 +39,7 @@ func (t *TypeChecker) Check(p *ast.Program) error {
 func (t *TypeChecker) checkStmt(n ast.Stmt) error {
 	switch n := n.(type) {
 	case *ast.Def:
-		t.defs[n.Name] = n
+		t.defs[n.Name] = t.astToType(n.Type)
 
 	case *ast.Let:
 		// infer
@@ -262,6 +262,23 @@ func (t *TypeChecker) exprType(n interface{}) (Type, error) {
 
 		return identType, nil
 
+	case *ast.Object:
+		res := ObjectType{
+			pos:    n.Pos,
+			Fields: map[string]Type{},
+			endPos: n.EndPos,
+		}
+
+		for _, f := range n.Fields {
+			var err error
+			res.Fields[f.Name], err = t.exprType(f.Expr)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		return res, nil
+
 	default:
 		panic(fmt.Sprintf("TypeChecker.exprType: unimplemented %T", n))
 	}
@@ -323,6 +340,20 @@ func (t *TypeChecker) astToType(astType ast.Type) Type {
 		case "any":
 			return AnyType{}
 		}
+
+	case *ast.CustomType:
+		return t.defs[n.Name]
+
+	case *ast.ObjectType:
+		res := ObjectType{
+			Fields: map[string]Type{},
+		}
+
+		for _, f := range n.Fields {
+			res.Fields[f.Name] = t.astToType(f.Type)
+		}
+
+		return res
 	}
 
 	panic(fmt.Sprintf("unimplemented type %T", astType))

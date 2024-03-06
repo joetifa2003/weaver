@@ -12,8 +12,8 @@ type Stmt interface {
 
 // Def define type
 type Def struct {
-	Name  string  `"def" @Ident "{"`
-	Props []*Prop `(@@ ("," @@)* )? "}"`
+	Name string `"def" @Ident`
+	Type Type   `@@`
 }
 
 func (t *Def) stmt() {}
@@ -109,7 +109,6 @@ type Atom interface {
 type Object struct {
 	Pos lexer.Position
 
-	Type   Type     `@@`
 	Fields []*Field `"{" (@@ ("," @@)* )? "}"`
 
 	EndPos lexer.Position

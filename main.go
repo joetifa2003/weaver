@@ -34,14 +34,14 @@ func main() {
 		participle.Unquote("String"),
 		participle.Union[ast.Stmt](&ast.Def{}, &ast.Output{}, &ast.Let{}, &ast.Assign{}, &ast.Block{}, &ast.If{}),
 		participle.Union[ast.Atom](&ast.Object{}, &ast.String{}, &ast.Number{}, &ast.Bool{}, &ast.Ident{}),
-		participle.Union[ast.Type](&ast.BuiltInType{}, &ast.ObjectType{}),
+		participle.Union[ast.Type](&ast.BuiltInType{}, &ast.ObjectType{}, &ast.CustomType{}),
 	)
 	if err != nil {
 		panic(err)
 	}
 
 	src := `
-  let x: string = 1 + 1
+  let x: { company: { name: string } } = { company: { name: "hi" } } 
   `
 
 	p, err := parser.ParseString("main.tf", src)

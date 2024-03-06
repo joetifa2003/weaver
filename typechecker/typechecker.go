@@ -285,10 +285,11 @@ func (t *TypeChecker) exprType(n interface{}) (Type, error) {
 }
 
 func (t *TypeChecker) expectType(expected Type, typ Type) error {
-	if (typ.Is(AnyType{})) {
+	if (typ.IsAssignableTo(AnyType{})) {
 		return nil
 	}
-	if !typ.Is(expected) {
+
+	if !typ.IsAssignableTo(expected) {
 		return NewTypeError(t.src, expected, typ)
 	}
 

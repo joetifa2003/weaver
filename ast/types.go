@@ -5,13 +5,15 @@ type Type interface {
 }
 
 type BuiltInType struct {
-	Name string `@("string" | "bool" | "number" | "any")`
+	Name     string `@("string" | "bool" | "number" | "any")`
+	Nullable bool   `@("?")?`
 }
 
 func (t *BuiltInType) typ() {}
 
 type ObjectType struct {
-	Fields []*ObjectTypeField `"{" @@ ("," @@)* "}"`
+	Fields   []*ObjectTypeField `"{" @@ ("," @@)* "}"`
+	Nullable bool               `@("?")?`
 }
 
 type ObjectTypeField struct {
@@ -22,7 +24,8 @@ type ObjectTypeField struct {
 func (t *ObjectType) typ() {}
 
 type CustomType struct {
-	Name string `@Ident`
+	Name     string `@Ident`
+	Nullable bool   `@("?")?`
 }
 
 func (t *CustomType) typ() {}

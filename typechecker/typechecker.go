@@ -333,13 +333,13 @@ func (t *TypeChecker) astToType(astType ast.Type) Type {
 	case *ast.BuiltInType:
 		switch n.Name {
 		case "string":
-			return StringType{}
+			return StringType{nullable: n.Nullable}
 		case "number":
-			return NumberType{}
+			return NumberType{nullable: n.Nullable}
 		case "bool":
-			return BoolType{}
+			return BoolType{nullable: n.Nullable}
 		case "any":
-			return AnyType{}
+			return AnyType{nullable: n.Nullable}
 		}
 
 	case *ast.CustomType:
@@ -347,7 +347,8 @@ func (t *TypeChecker) astToType(astType ast.Type) Type {
 
 	case *ast.ObjectType:
 		res := ObjectType{
-			Fields: map[string]Type{},
+			Fields:   map[string]Type{},
+			nullable: n.Nullable,
 		}
 
 		for _, f := range n.Fields {

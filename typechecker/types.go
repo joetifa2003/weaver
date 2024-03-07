@@ -13,11 +13,13 @@ type Type interface {
 	EndPos() lexer.Position
 	IsAssignableTo(other Type) bool
 	String() string
+	Nullable() bool
 }
 
 type StringType struct {
-	pos    lexer.Position
-	endPos lexer.Position
+	pos      lexer.Position
+	endPos   lexer.Position
+	nullable bool
 }
 
 func (t StringType) typ() {}
@@ -30,9 +32,12 @@ func (t StringType) IsAssignableTo(other Type) bool { return isType[StringType](
 
 func (t StringType) String() string { return "string" }
 
+func (t StringType) Nullable() bool { return t.nullable }
+
 type NumberType struct {
-	pos    lexer.Position
-	endPos lexer.Position
+	pos      lexer.Position
+	endPos   lexer.Position
+	nullable bool
 }
 
 func (t NumberType) typ() {}
@@ -45,9 +50,12 @@ func (t NumberType) IsAssignableTo(other Type) bool { return isType[NumberType](
 
 func (t NumberType) String() string { return "number" }
 
+func (t NumberType) Nullable() bool { return t.nullable }
+
 type BoolType struct {
-	pos    lexer.Position
-	endPos lexer.Position
+	pos      lexer.Position
+	endPos   lexer.Position
+	nullable bool
 }
 
 func (t BoolType) typ() {}
@@ -60,9 +68,12 @@ func (t BoolType) IsAssignableTo(other Type) bool { return isType[BoolType](othe
 
 func (t BoolType) String() string { return "bool" }
 
+func (t BoolType) Nullable() bool { return t.nullable }
+
 type AnyType struct {
-	pos    lexer.Position
-	endPos lexer.Position
+	pos      lexer.Position
+	endPos   lexer.Position
+	nullable bool
 }
 
 func (t AnyType) typ() {}
@@ -75,10 +86,13 @@ func (t AnyType) IsAssignableTo(other Type) bool { return true }
 
 func (t AnyType) String() string { return "any" }
 
+func (t AnyType) Nullable() bool { return t.nullable }
+
 type ObjectType struct {
-	pos    lexer.Position
-	Fields map[string]Type
-	endPos lexer.Position
+	pos      lexer.Position
+	Fields   map[string]Type
+	endPos   lexer.Position
+	nullable bool
 }
 
 func (t ObjectType) typ() {}
@@ -107,6 +121,8 @@ func (t ObjectType) String() string {
 	return res.String()
 }
 
+func (t ObjectType) Nullable() bool { return t.nullable }
+
 func (t ObjectType) IsAssignableTo(other Type) bool {
 	if !isType[ObjectType](other) {
 		return false
@@ -117,6 +133,9 @@ func (t ObjectType) IsAssignableTo(other Type) bool {
 	for k, v := range otherObj.Fields {
 		typ, ok := t.Fields[k]
 		if !ok {
+			if v.Nullable() {
+				return true
+			}
 			return false
 		}
 

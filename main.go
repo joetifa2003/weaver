@@ -40,8 +40,14 @@ func main() {
 		panic(err)
 	}
 
+	fmt.Println(parser.String())
+
 	src := `
-  let x: { name: string } = { age: 10, name: "hi" } 
+  def Person {
+    name: string?
+  }
+
+  let x: Person = {  } 
   `
 
 	p, err := parser.ParseString("main.tf", src)
@@ -80,5 +86,4 @@ func main() {
 	// 	panic(err)
 	// }
 
-	fmt.Println(parser.String())
 }

@@ -10,6 +10,20 @@ type Stmt interface {
 	stmt()
 }
 
+type Fn struct {
+	Name       string `"fn" @Ident`
+	Args       []*Arg `"(" (@@ ("," @@)* )? ")"`
+	ReturnType Type   `":" @@`
+	Statements []Stmt `"{" @@* "}"`
+}
+
+func (t Fn) stmt() {}
+
+type Arg struct {
+	Name string `@Ident`
+	Type Type   `":" @@`
+}
+
 // Def define type
 type Def struct {
 	Name string `"def" @Ident`
@@ -154,6 +168,17 @@ type Ident struct {
 }
 
 func (t *Ident) atom() {}
+
+type Call struct {
+	Pos lexer.Position
+
+	Name string  "@Ident"
+	Args []*Expr `"(" (@@ ("," @@)* )? ")"`
+
+	EndPos lexer.Position
+}
+
+func (t *Call) atom() {}
 
 type Bool struct {
 	Pos lexer.Position

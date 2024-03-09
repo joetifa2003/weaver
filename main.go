@@ -17,7 +17,7 @@ import (
 // TODO: Maybe call it Weaver
 func main() {
 	lex := lexer.MustSimple([]lexer.SimpleRule{
-		{Name: "Keyword", Pattern: `def|output|let|true|false|string|number|any|bool`},
+		{Name: "Keyword", Pattern: `def|output|let|true|false|string|number|any|bool|fn`},
 		{Name: "Comment", Pattern: `(?i)rem[^\n]*`},
 		{Name: "String", Pattern: `"(\\"|[^"])*"`},
 		{Name: "Number", Pattern: `[-+]?(\d*\.)?\d+`},
@@ -32,8 +32,8 @@ func main() {
 		participle.Lexer(lex),
 		participle.Elide("whitespace"),
 		participle.Unquote("String"),
-		participle.Union[ast.Stmt](&ast.Def{}, &ast.Output{}, &ast.Let{}, &ast.Assign{}, &ast.Block{}, &ast.If{}),
-		participle.Union[ast.Atom](&ast.Object{}, &ast.String{}, &ast.Number{}, &ast.Bool{}, &ast.Ident{}),
+		participle.Union[ast.Stmt](&ast.Def{}, &ast.Output{}, &ast.Let{}, &ast.Assign{}, &ast.Block{}, &ast.If{}, &ast.Fn{}),
+		participle.Union[ast.Atom](&ast.Object{}, &ast.String{}, &ast.Number{}, &ast.Bool{}, &ast.Call{}, &ast.Ident{}),
 		participle.Union[ast.Type](&ast.BuiltInType{}, &ast.ObjectType{}, &ast.CustomType{}),
 	)
 	if err != nil {
@@ -47,7 +47,10 @@ func main() {
     name: string?
   }
 
-  let x: Person = {  } 
+  fn add(a: int, b: int): int {
+  }
+
+  let x: Person = { name: add(1, 2) } 
   `
 
 	p, err := parser.ParseString("main.tf", src)

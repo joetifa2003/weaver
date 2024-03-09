@@ -13,6 +13,7 @@ type Binding struct {
 
 type TypeChecker struct {
 	defs     map[string]Type
+	fns      map[string]*ast.Fn
 	bindings [][]Binding
 	src      string
 }
@@ -20,6 +21,7 @@ type TypeChecker struct {
 func New(src string) *TypeChecker {
 	return &TypeChecker{
 		defs:     map[string]Type{},
+		fns:      map[string]*ast.Fn{},
 		bindings: [][]Binding{{}},
 		src:      src,
 	}
@@ -102,6 +104,10 @@ func (t *TypeChecker) checkStmt(n ast.Stmt) error {
 		if err != nil {
 			return err
 		}
+
+	case *ast.Fn:
+		t.fns[n.Name] = n
+		// TODO: check child Statements and return statements
 
 	default:
 		panic(fmt.Sprintf("TypeChecker.checkStmt: unimplemented %T", n))

@@ -12,9 +12,9 @@ type TypeError struct {
 }
 
 func (e *TypeError) Error() string {
-	line := strings.Split(e.Src, "\n")[e.ActualType.Pos().Line-1]
-	sep := strings.Repeat("-", e.ActualType.Pos().Column-1) + "^"
-	return fmt.Sprintf("type error at %s: expected %s, got %s\n\n%s\n%s", e.ActualType.Pos().String(), e.ExpectedType, e.ActualType, line, sep)
+	line := strings.Split(e.Src, "\n")[e.ActualType.Pos().start.Line-1]
+	sep := strings.Repeat("-", e.ActualType.Pos().start.Column-1) + "^"
+	return fmt.Sprintf("type error at %s: expected %s, got %s\n\n%s\n%s", e.ActualType.Pos().start.String(), e.ExpectedType, e.ActualType, line, sep)
 }
 
 func NewTypeError(src string, expectedType Type, actualType Type) *TypeError {

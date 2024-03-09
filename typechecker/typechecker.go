@@ -156,8 +156,7 @@ func (t *TypeChecker) exprType(n interface{}) (Type, error) {
 		}
 
 		return BoolType{
-			pos:    n.Pos,
-			endPos: n.EndPos,
+			BaseType: NewBase(n.Pos, n.EndPos),
 		}, nil
 
 	case *ast.Comparison:
@@ -185,8 +184,7 @@ func (t *TypeChecker) exprType(n interface{}) (Type, error) {
 		}
 
 		return BoolType{
-			pos:    n.Pos,
-			endPos: n.EndPos,
+			BaseType: NewBase(n.Pos, n.EndPos),
 		}, nil
 
 	case *ast.Addition:
@@ -214,8 +212,7 @@ func (t *TypeChecker) exprType(n interface{}) (Type, error) {
 		}
 
 		return NumberType{
-			pos:    n.Pos,
-			endPos: n.EndPos,
+			BaseType: NewBase(n.Pos, n.EndPos),
 		}, nil
 
 	case *ast.Multiplication:
@@ -243,8 +240,7 @@ func (t *TypeChecker) exprType(n interface{}) (Type, error) {
 		}
 
 		return NumberType{
-			pos:    n.Pos,
-			endPos: n.EndPos,
+			BaseType: NewBase(n.Pos, n.EndPos),
 		}, nil
 
 	case *ast.Unary:
@@ -257,20 +253,17 @@ func (t *TypeChecker) exprType(n interface{}) (Type, error) {
 
 	case *ast.String:
 		return StringType{
-			pos:    n.Pos,
-			endPos: n.EndPos,
+			BaseType: NewBase(n.Pos, n.EndPos),
 		}, nil
 
 	case *ast.Number:
 		return NumberType{
-			pos:    n.Pos,
-			endPos: n.EndPos,
+			BaseType: NewBase(n.Pos, n.EndPos),
 		}, nil
 
 	case *ast.Bool:
 		return BoolType{
-			pos:    n.Pos,
-			endPos: n.EndPos,
+			BaseType: NewBase(n.Pos, n.EndPos),
 		}, nil
 
 	case *ast.Ident:
@@ -283,9 +276,8 @@ func (t *TypeChecker) exprType(n interface{}) (Type, error) {
 
 	case *ast.Object:
 		res := ObjectType{
-			pos:    n.Pos,
-			Fields: map[string]Type{},
-			endPos: n.EndPos,
+			BaseType: NewBase(n.Pos, n.EndPos),
+			Fields:   map[string]Type{},
 		}
 
 		for _, f := range n.Fields {
@@ -375,6 +367,7 @@ func (t *TypeChecker) pop() {
 	t.bindings = t.bindings[:len(t.bindings)-1]
 }
 
+// TODO: Handle nullable types
 func (t *TypeChecker) astToType(astType ast.Type) Type {
 	if astType == nil {
 		return nil
@@ -384,13 +377,13 @@ func (t *TypeChecker) astToType(astType ast.Type) Type {
 	case *ast.BuiltInType:
 		switch n.Name {
 		case "string":
-			return StringType{nullable: n.Nullable}
+			return StringType{}
 		case "number":
-			return NumberType{nullable: n.Nullable}
+			return NumberType{}
 		case "bool":
-			return BoolType{nullable: n.Nullable}
+			return BoolType{}
 		case "any":
-			return AnyType{nullable: n.Nullable}
+			return AnyType{}
 		}
 
 	case *ast.CustomType:
@@ -399,8 +392,7 @@ func (t *TypeChecker) astToType(astType ast.Type) Type {
 
 	case *ast.ObjectType:
 		res := ObjectType{
-			Fields:   map[string]Type{},
-			nullable: n.Nullable,
+			Fields: map[string]Type{},
 		}
 
 		for _, f := range n.Fields {

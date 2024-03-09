@@ -9,97 +9,69 @@ import (
 
 type Type interface {
 	typ()
-	Pos() lexer.Position
-	EndPos() lexer.Position
+	Pos() TypePos
+	SetPos(TypePos)
+	Nullable() bool
+
 	IsAssignableTo(other Type) bool
 	String() string
-	Nullable() bool
 }
 
-type StringType struct {
-	pos      lexer.Position
-	endPos   lexer.Position
+type TypePos struct {
+	start lexer.Position
+	end   lexer.Position
+}
+
+type BaseType struct {
+	pos      TypePos
 	nullable bool
 }
 
-func (t StringType) typ() {}
+func NewBase(start lexer.Position, end lexer.Position) BaseType {
+	return BaseType{
+		pos: TypePos{
+			start: start,
+			end:   end,
+		},
+	}
+}
 
-func (t StringType) Pos() lexer.Position { return t.pos }
+func (t BaseType) typ() {}
 
-func (t StringType) EndPos() lexer.Position { return t.endPos }
+func (t BaseType) Nullable() bool { return t.nullable }
+
+func (t BaseType) Pos() TypePos { return t.pos }
+
+func (t BaseType) SetPos(pos TypePos) { t.pos = pos }
+
+type StringType struct{ BaseType }
 
 func (t StringType) IsAssignableTo(other Type) bool { return isType[StringType](other) }
 
 func (t StringType) String() string { return "string" }
 
-func (t StringType) Nullable() bool { return t.nullable }
-
-type NumberType struct {
-	pos      lexer.Position
-	endPos   lexer.Position
-	nullable bool
-}
-
-func (t NumberType) typ() {}
-
-func (t NumberType) Pos() lexer.Position { return t.pos }
-
-func (t NumberType) EndPos() lexer.Position { return t.endPos }
+type NumberType struct{ BaseType }
 
 func (t NumberType) IsAssignableTo(other Type) bool { return isType[NumberType](other) }
 
 func (t NumberType) String() string { return "number" }
 
-func (t NumberType) Nullable() bool { return t.nullable }
-
-type BoolType struct {
-	pos      lexer.Position
-	endPos   lexer.Position
-	nullable bool
-}
-
-func (t BoolType) typ() {}
-
-func (t BoolType) Pos() lexer.Position { return t.pos }
-
-func (t BoolType) EndPos() lexer.Position { return t.endPos }
+type BoolType struct{ BaseType }
 
 func (t BoolType) IsAssignableTo(other Type) bool { return isType[BoolType](other) }
 
 func (t BoolType) String() string { return "bool" }
 
-func (t BoolType) Nullable() bool { return t.nullable }
-
-type AnyType struct {
-	pos      lexer.Position
-	endPos   lexer.Position
-	nullable bool
-}
-
-func (t AnyType) typ() {}
-
-func (t AnyType) Pos() lexer.Position { return t.pos }
-
-func (t AnyType) EndPos() lexer.Position { return t.endPos }
+type AnyType struct{ BaseType }
 
 func (t AnyType) IsAssignableTo(other Type) bool { return true }
 
 func (t AnyType) String() string { return "any" }
 
-func (t AnyType) Nullable() bool { return t.nullable }
-
 type ObjectType struct {
-	pos      lexer.Position
-	Fields   map[string]Type
-	endPos   lexer.Position
-	nullable bool
+	BaseType
+	Fields map[string]Type
 }
-
-func (t ObjectType) typ() {}
-
-func (t ObjectType) Pos() lexer.Position { return t.pos }
-
-func (t ObjectType) EndPos() lexer.Position { return t.endPos }
 
 func (t ObjectType) String() string {
 	var res strings.Builder
@@ -120,8 +92,6 @@ func (t ObjectType) String() string {
 
 	return res.String()
 }
-
-func (t ObjectType) Nullable() bool { return t.nullable }
 
 func (t ObjectType) IsAssignableTo(other Type) bool {
 	if !isType[ObjectType](other) {
@@ -148,27 +118,16 @@ func (t ObjectType) IsAssignableTo(other Type) bool {
 }
 
 type FnType struct {
+	BaseType
+
 	Args       []Type
 	ReturnType Type
-
-	// TODO: Add base type that has all of that plus the methods
-	pos      lexer.Position
-	endPos   lexer.Position
-	nullable bool
 }
-
-func (t FnType) typ() {}
-
-func (t FnType) Pos() lexer.Position { return t.pos }
-
-func (t FnType) EndPos() lexer.Position { return t.endPos }
 
 func (t FnType) String() string {
 	// TODO: proper Fn type string repr
 	return "<fn>"
 }
-
-func (t FnType) Nullable() bool { return t.nullable }
 
 func (t FnType) IsAssignableTo(other Type) bool {
 	if !isType[FnType](other) {

@@ -147,6 +147,53 @@ func (t ObjectType) IsAssignableTo(other Type) bool {
 	return true
 }
 
+type FnType struct {
+	Args       []Type
+	ReturnType Type
+
+	// TODO: Add base type that has all of that plus the methods
+	pos      lexer.Position
+	endPos   lexer.Position
+	nullable bool
+}
+
+func (t FnType) typ() {}
+
+func (t FnType) Pos() lexer.Position { return t.pos }
+
+func (t FnType) EndPos() lexer.Position { return t.endPos }
+
+func (t FnType) String() string {
+	// TODO: proper Fn type string repr
+	return "<fn>"
+}
+
+func (t FnType) Nullable() bool { return t.nullable }
+
+func (t FnType) IsAssignableTo(other Type) bool {
+	if !isType[FnType](other) {
+		return false
+	}
+
+	otherObj := other.(FnType)
+
+	if len(t.Args) != len(otherObj.Args) {
+		return false
+	}
+
+	if !t.ReturnType.IsAssignableTo(otherObj.ReturnType) {
+		return false
+	}
+
+	for i, arg := range t.Args {
+		if !arg.IsAssignableTo(otherObj.Args[i]) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func isType[T Type](t Type) bool {
 	_, ok := t.(T)
 	return ok

@@ -32,7 +32,7 @@ func main() {
 		participle.Lexer(lex),
 		participle.Elide("whitespace"),
 		participle.Unquote("String"),
-		participle.Union[ast.Stmt](&ast.Def{}, &ast.Output{}, &ast.Let{}, &ast.Assign{}, &ast.Block{}, &ast.If{}, &ast.Fn{}),
+		participle.Union[ast.Stmt](&ast.Def{}, &ast.Output{}, &ast.Let{}, &ast.Assign{}, &ast.Block{}, &ast.If{}, &ast.Fn{}, &ast.Return{}),
 		participle.Union[ast.Atom](&ast.Paren{}, &ast.Object{}, &ast.String{}, &ast.Number{}, &ast.Bool{}, &ast.Call{}, &ast.Ident{}),
 		participle.Union[ast.Type](&ast.BuiltInType{}, &ast.ObjectType{}, &ast.CustomType{}),
 	)
@@ -47,9 +47,11 @@ func main() {
     name: string?
   }
 
-  fn add(a: int, b: int): int {
-    let x: Person = { name: 1 + 2 } 
+  fn add(a: number, b: number): number {
+    
   }
+
+  let a: number = add(1, 2)
   `
 
 	p, err := parser.ParseString("main.tf", src)

@@ -72,6 +72,12 @@ type If struct {
 
 func (t *If) stmt() {}
 
+type Return struct {
+	Expr *Expr `"return" @@`
+}
+
+func (t *Return) stmt() {}
+
 type Expr struct {
 	Equality *Equality `@@`
 }
@@ -180,7 +186,7 @@ func (t *Ident) atom() {}
 type Call struct {
 	Pos lexer.Position
 
-	Name string  "@Ident"
+	Name *Ident  "@@"
 	Args []*Expr `"(" (@@ ("," @@)* )? ")"`
 
 	EndPos lexer.Position

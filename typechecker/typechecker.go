@@ -13,7 +13,6 @@ type Binding struct {
 
 type TypeChecker struct {
 	defs     map[string]Type
-	fns      map[string]*ast.Fn
 	bindings [][]Binding
 	src      string
 }
@@ -21,7 +20,6 @@ type TypeChecker struct {
 func New(src string) *TypeChecker {
 	return &TypeChecker{
 		defs:     map[string]Type{},
-		fns:      map[string]*ast.Fn{},
 		bindings: [][]Binding{{}},
 		src:      src,
 	}
@@ -106,14 +104,23 @@ func (t *TypeChecker) checkStmt(n ast.Stmt) error {
 		}
 
 	case *ast.Fn:
-		t.fns[n.Name] = n
 		for _, s := range n.Statements {
 			err := t.checkStmt(s)
 			if err != nil {
 				return err
 			}
 		}
-		// TODO: check child Statements and return statements
+
+		args := make([]Type, len(n.Args))
+		for i, arg := range n.Args {
+			args[i] = t.astToType(arg.Type)
+		}
+		returnType := t.astToType(n.ReturnType)
+
+		t.bind(n.Name, FnType{
+			Args:       args,
+			ReturnType: returnType,
+		})
 
 	default:
 		panic(fmt.Sprintf("TypeChecker.checkStmt: unimplemented %T", n))
@@ -294,6 +301,21 @@ func (t *TypeChecker) exprType(n interface{}) (Type, error) {
 	case *ast.Paren:
 		return t.exprType(n.Expr)
 
+	case *ast.Call:
+		identTyp, err := t.exprType(n.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		err = softExpect[FnType](t, identTyp)
+		if err != nil {
+			return nil, err
+		}
+
+		fn := identTyp.(FnType)
+
+		return fn.ReturnType, nil
+
 	default:
 		panic(fmt.Sprintf("TypeChecker.exprType: unimplemented %T", n))
 	}
@@ -304,8 +326,22 @@ func (t *TypeChecker) expectType(expected Type, typ Type) error {
 		return nil
 	}
 
+	if _, ok := typ.(AnyType); ok {
+		return nil
+	}
+
 	if !typ.IsAssignableTo(expected) {
 		return NewTypeError(t.src, expected, typ)
+	}
+
+	return nil
+}
+
+func softExpect[E Type](t *TypeChecker, typ Type) error {
+	_, ok := typ.(E)
+	if !ok {
+		var zero E
+		return NewTypeError(t.src, zero, typ)
 	}
 
 	return nil
@@ -358,6 +394,7 @@ func (t *TypeChecker) astToType(astType ast.Type) Type {
 		}
 
 	case *ast.CustomType:
+		// TODO: return a proper error here if things are not defined
 		return t.defs[n.Name]
 
 	case *ast.ObjectType:

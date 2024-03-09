@@ -120,6 +120,14 @@ type Atom interface {
 	atom()
 }
 
+type Paren struct {
+	Pos    lexer.Position
+	Expr   *Expr `  "(" @@ ")"`
+	EndPos lexer.Position
+}
+
+func (t Paren) atom() {}
+
 type Object struct {
 	Pos lexer.Position
 

@@ -107,6 +107,12 @@ func (t *TypeChecker) checkStmt(n ast.Stmt) error {
 
 	case *ast.Fn:
 		t.fns[n.Name] = n
+		for _, s := range n.Statements {
+			err := t.checkStmt(s)
+			if err != nil {
+				return err
+			}
+		}
 		// TODO: check child Statements and return statements
 
 	default:
@@ -285,13 +291,16 @@ func (t *TypeChecker) exprType(n interface{}) (Type, error) {
 
 		return res, nil
 
+	case *ast.Paren:
+		return t.exprType(n.Expr)
+
 	default:
 		panic(fmt.Sprintf("TypeChecker.exprType: unimplemented %T", n))
 	}
 }
 
 func (t *TypeChecker) expectType(expected Type, typ Type) error {
-	if (typ.IsAssignableTo(AnyType{})) {
+	if _, ok := expected.(AnyType); ok {
 		return nil
 	}
 

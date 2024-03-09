@@ -51,7 +51,7 @@ func main() {
     
   }
 
-  let a: number = add(1, 2)
+  let a: string = add("", "")
   `
 
 	p, err := parser.ParseString("main.tf", src)

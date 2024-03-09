@@ -11,10 +11,12 @@ type Stmt interface {
 }
 
 type Fn struct {
+	Pos        lexer.Position
 	Name       string `"fn" @Ident`
 	Args       []*Arg `"(" (@@ ("," @@)* )? ")"`
 	ReturnType Type   `":" @@`
 	Statements []Stmt `"{" @@* "}"`
+	EndPos     lexer.Position
 }
 
 func (t Fn) stmt() {}

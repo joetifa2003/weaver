@@ -3,46 +3,23 @@ package typechecker
 import (
 	"fmt"
 	"strings"
-
-	"github.com/alecthomas/participle/v2/lexer"
 )
 
 type Type interface {
 	typ()
-	Pos() TypePos
-	SetPos(TypePos)
 	Nullable() bool
 
 	IsAssignableTo(other Type) bool
 	String() string
 }
 
-type TypePos struct {
-	start lexer.Position
-	end   lexer.Position
-}
-
 type BaseType struct {
-	pos      TypePos
 	nullable bool
-}
-
-func NewBase(start lexer.Position, end lexer.Position) BaseType {
-	return BaseType{
-		pos: TypePos{
-			start: start,
-			end:   end,
-		},
-	}
 }
 
 func (t BaseType) typ() {}
 
 func (t BaseType) Nullable() bool { return t.nullable }
-
-func (t BaseType) Pos() TypePos { return t.pos }
-
-func (t BaseType) SetPos(pos TypePos) { t.pos = pos }
 
 type StringType struct{ BaseType }
 

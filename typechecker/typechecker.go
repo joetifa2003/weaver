@@ -3,6 +3,8 @@ package typechecker
 import (
 	"fmt"
 
+	"github.com/alecthomas/participle/v2/lexer"
+
 	"config-lang/ast"
 )
 
@@ -46,18 +48,18 @@ func (t *TypeChecker) checkStmt(n ast.Stmt) error {
 		letType := t.astToType(n.Type)
 		if letType == nil {
 			var err error
-			letType, err = t.exprType(n.Expr)
+			letType, _, err = t.exprType(n.Expr)
 			if err != nil {
 				return err
 			}
 		}
 
-		exprType, err := t.exprType(n.Expr)
+		exprType, exprPos, err := t.exprType(n.Expr)
 		if err != nil {
 			return err
 		}
 
-		err = t.expectType(letType, exprType)
+		err = t.expectType(letType, exprType, exprPos)
 		if err != nil {
 			return err
 		}
@@ -70,11 +72,11 @@ func (t *TypeChecker) checkStmt(n ast.Stmt) error {
 			return err
 		}
 
-		exprType, err := t.exprType(n.Expr)
+		exprType, exprPos, err := t.exprType(n.Expr)
 		if err != nil {
 			return err
 		}
-		err = t.expectType(ty, exprType)
+		err = t.expectType(ty, exprType, exprPos)
 		if err != nil {
 			return err
 		}
@@ -90,11 +92,11 @@ func (t *TypeChecker) checkStmt(n ast.Stmt) error {
 		t.pop()
 
 	case *ast.If:
-		exprType, err := t.exprType(n.Expr)
+		exprType, exprPos, err := t.exprType(n.Expr)
 		if err != nil {
 			return err
 		}
-		err = t.expectType(BoolType{}, exprType)
+		err = t.expectType(BoolType{}, exprType, exprPos)
 		if err != nil {
 			return err
 		}
@@ -130,118 +132,110 @@ func (t *TypeChecker) checkStmt(n ast.Stmt) error {
 }
 
 // TODO: Don't allow things like true + true
-func (t *TypeChecker) exprType(n interface{}) (Type, error) {
+func (t *TypeChecker) exprType(n interface{}) (Type, lexer.Position, error) {
 	switch n := n.(type) {
 	case *ast.Expr:
 		return t.exprType(n.Equality)
 
 	case *ast.Equality:
-		lhs, err := t.exprType(n.Left)
+		lhs, lhsPos, err := t.exprType(n.Left)
 		if err != nil {
-			return nil, err
+			return nil, lexer.Position{}, err
 		}
 
 		if n.Right == nil {
-			return lhs, nil
+			return lhs, lhsPos, nil
 		}
 
-		rhs, err := t.exprType(n.Right)
+		rhs, rhsPos, err := t.exprType(n.Right)
 		if err != nil {
-			return nil, err
+			return nil, lexer.Position{}, err
 		}
 
-		err = t.expectType(lhs, rhs)
+		err = t.expectType(lhs, rhs, rhsPos)
 		if err != nil {
-			return nil, err
+			return nil, lexer.Position{}, err
 		}
 
-		return BoolType{
-			BaseType: NewBase(n.Pos, n.EndPos),
-		}, nil
+		return BoolType{}, n.Pos, nil
 
 	case *ast.Comparison:
-		lhs, err := t.exprType(n.Left)
+		lhs, lhsPos, err := t.exprType(n.Left)
 		if err != nil {
-			return nil, err
+			return nil, lexer.Position{}, err
 		}
 
 		if n.Right == nil {
-			return lhs, nil
+			return lhs, lhsPos, nil
 		}
 
-		rhs, err := t.exprType(n.Right)
+		rhs, rhsPos, err := t.exprType(n.Right)
 		if err != nil {
-			return nil, err
+			return nil, lexer.Position{}, err
 		}
 
-		err = t.expectType(NumberType{}, lhs)
+		err = t.expectType(NumberType{}, lhs, lhsPos)
 		if err != nil {
-			return nil, err
+			return nil, lexer.Position{}, err
 		}
-		err = t.expectType(NumberType{}, rhs)
+		err = t.expectType(NumberType{}, rhs, rhsPos)
 		if err != nil {
-			return nil, err
+			return nil, lexer.Position{}, err
 		}
 
-		return BoolType{
-			BaseType: NewBase(n.Pos, n.EndPos),
-		}, nil
+		return BoolType{}, n.Pos, nil
 
 	case *ast.Addition:
-		lhs, err := t.exprType(n.Left)
+		lhs, lhsPos, err := t.exprType(n.Left)
 		if err != nil {
-			return nil, err
+			return nil, lexer.Position{}, err
 		}
 
 		if n.Right == nil {
-			return lhs, nil
+			return lhs, lhsPos, nil
 		}
 
-		rhs, err := t.exprType(n.Right)
+		rhs, rhsPos, err := t.exprType(n.Right)
 		if err != nil {
-			return nil, err
+			return nil, lexer.Position{}, err
 		}
 
-		err = t.expectType(NumberType{}, lhs)
+		err = t.expectType(NumberType{}, lhs, lhsPos)
 		if err != nil {
-			return nil, err
+			return nil, lexer.Position{}, err
 		}
-		err = t.expectType(NumberType{}, rhs)
+		err = t.expectType(NumberType{}, rhs, rhsPos)
 		if err != nil {
-			return nil, err
+			return nil, lexer.Position{}, err
 		}
 
-		return NumberType{
-			BaseType: NewBase(n.Pos, n.EndPos),
-		}, nil
+		return BoolType{}, n.Pos, nil
 
 	case *ast.Multiplication:
-		lhs, err := t.exprType(n.Left)
+		lhs, lhsPos, err := t.exprType(n.Left)
 		if err != nil {
-			return nil, err
+			return nil, lexer.Position{}, err
 		}
 
 		if n.Right == nil {
-			return lhs, nil
+			return lhs, lhsPos, nil
 		}
 
-		rhs, err := t.exprType(n.Right)
+		rhs, rhsPos, err := t.exprType(n.Right)
 		if err != nil {
-			return nil, err
+			return nil, lexer.Position{}, err
 		}
 
-		err = t.expectType(NumberType{}, lhs)
+		err = t.expectType(NumberType{}, lhs, lhsPos)
 		if err != nil {
-			return nil, err
+			return nil, lexer.Position{}, err
 		}
-		err = t.expectType(NumberType{}, rhs)
+		err = t.expectType(NumberType{}, rhs, rhsPos)
 		if err != nil {
-			return nil, err
+			return nil, lexer.Position{}, err
 		}
 
-		return NumberType{
-			BaseType: NewBase(n.Pos, n.EndPos),
-		}, nil
+		return BoolType{}, n.Pos, nil
 
 	case *ast.Unary:
 		if n.Unary == nil {
@@ -249,71 +243,67 @@ func (t *TypeChecker) exprType(n interface{}) (Type, error) {
 		}
 
 		panic("handle unary")
-		return BoolType{}, nil
+		return BoolType{}, n.Pos, nil
 
 	case *ast.String:
-		return StringType{
-			BaseType: NewBase(n.Pos, n.EndPos),
-		}, nil
+		return StringType{}, n.Pos, nil
 
 	case *ast.Number:
-		return NumberType{
-			BaseType: NewBase(n.Pos, n.EndPos),
-		}, nil
+		return NumberType{}, n.Pos, nil
 
 	case *ast.Bool:
-		return BoolType{
-			BaseType: NewBase(n.Pos, n.EndPos),
-		}, nil
+		return BoolType{}, n.Pos, nil
 
 	case *ast.Ident:
 		identType, err := t.get(n.Name)
 		if err != nil {
-			return nil, err
+			return nil, lexer.Position{}, err
 		}
 
-		return identType, nil
+		return identType, n.Pos, nil
 
 	case *ast.Object:
 		res := ObjectType{
-			BaseType: NewBase(n.Pos, n.EndPos),
-			Fields:   map[string]Type{},
+			Fields: map[string]Type{},
 		}
 
 		for _, f := range n.Fields {
 			var err error
-			res.Fields[f.Name], err = t.exprType(f.Expr)
+			res.Fields[f.Name], _, err = t.exprType(f.Expr)
 			if err != nil {
-				return nil, err
+				return nil, lexer.Position{}, err
 			}
 		}
 
-		return res, nil
+		return res, lexer.Position{}, nil
 
 	case *ast.Paren:
 		return t.exprType(n.Expr)
 
 	case *ast.Call:
-		identTyp, err := t.exprType(n.Name)
+		// TODO: CHECK ARGS TYPES
+		identTyp, identPos, err := t.exprType(n.Name)
 		if err != nil {
-			return nil, err
+			return nil, lexer.Position{}, nil
 		}
 
-		err = softExpect[FnType](t, identTyp)
+		err = softExpect[FnType](t, identTyp, identPos)
 		if err != nil {
-			return nil, err
+			return nil, lexer.Position{}, err
 		}
 
 		fn := identTyp.(FnType)
 
-		return fn.ReturnType, nil
+		rt := fn.ReturnType
+
+		return rt, identPos, nil
 
 	default:
 		panic(fmt.Sprintf("TypeChecker.exprType: unimplemented %T", n))
 	}
 }
 
-func (t *TypeChecker) expectType(expected Type, typ Type) error {
+func (t *TypeChecker) expectType(expected Type, typ Type, pos lexer.Position) error {
 	if _, ok := expected.(AnyType); ok {
 		return nil
 	}
@@ -323,17 +313,17 @@ func (t *TypeChecker) expectType(expected Type, typ Type) error {
 	}
 
 	if !typ.IsAssignableTo(expected) {
-		return NewTypeError(t.src, expected, typ)
+		return NewTypeError(t.src, expected, typ, pos)
 	}
 
 	return nil
 }
 
-func softExpect[E Type](t *TypeChecker, typ Type) error {
+func softExpect[E Type](t *TypeChecker, typ Type, pos lexer.Position) error {
 	_, ok := typ.(E)
 	if !ok {
 		var zero E
-		return NewTypeError(t.src, zero, typ)
+		return NewTypeError(t.src, zero, typ, pos)
 	}
 
 	return nil

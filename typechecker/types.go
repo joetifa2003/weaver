@@ -81,7 +81,7 @@ func (t ObjectType) IsAssignableTo(other Type) bool {
 		typ, ok := t.Fields[k]
 		if !ok {
 			if v.Nullable() {
-				return true
+				continue
 			}
 			return false
 		}

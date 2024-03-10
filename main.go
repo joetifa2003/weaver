@@ -44,11 +44,14 @@ func main() {
 
 	src := `
   def Person {
-    name: string?
+    name: string?,
+    company: {
+      name: string,
+      salary: number?
+    }
   }
 
-  let a: Person = {  }
-
+  let a: Person = { company: { name: "hi" } }
   `
 
 	p, err := parser.ParseString("main.tf", src)

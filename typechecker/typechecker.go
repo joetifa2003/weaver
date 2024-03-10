@@ -1,6 +1,7 @@
 package typechecker
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/alecthomas/participle/v2/lexer"
@@ -284,18 +285,33 @@ func (t *TypeChecker) exprType(n interface{}) (Type, lexer.Position, error) {
 		// TODO: CHECK ARGS TYPES
 		identTyp, identPos, err := t.exprType(n.Name)
 		if err != nil {
-			return nil, lexer.Position{}, nil
+			return nil, lexer.Position{}, err
 		}
-
 		err = softExpect[FnType](t, identTyp, identPos)
 		if err != nil {
 			return nil, lexer.Position{}, err
 		}
 
 		fn := identTyp.(FnType)
+		if len(fn.Args) != len(n.Args) {
+			// TODO: Create an error type called, PositionalError
+			// to be a more generic type errror
+			return nil, identPos, errors.New("Invalid number of args")
+		}
+
+		for i, arg := range n.Args {
+			typ, pos, err := t.exprType(arg)
+			if err != nil {
+				return typ, pos, err
+			}
+
+			err = t.expectType(fn.Args[i], typ, pos)
+			if err != nil {
+				return typ, pos, err
+			}
+		}
 
 		rt := fn.ReturnType
-
 		return rt, identPos, nil
 
 	default:

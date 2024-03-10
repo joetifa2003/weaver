@@ -25,25 +25,45 @@ type StringType struct{ BaseType }
 
 func (t StringType) IsAssignableTo(other Type) bool { return isType[StringType](other) }
 
-func (t StringType) String() string { return "string" }
+func (t StringType) String() string {
+	if t.nullable {
+		return "string?"
+	}
+	return "string"
+}
 
 type NumberType struct{ BaseType }
 
 func (t NumberType) IsAssignableTo(other Type) bool { return isType[NumberType](other) }
 
-func (t NumberType) String() string { return "number" }
+func (t NumberType) String() string {
+	if t.nullable {
+		return "number?"
+	}
+	return "number"
+}
 
 type BoolType struct{ BaseType }
 
 func (t BoolType) IsAssignableTo(other Type) bool { return isType[BoolType](other) }
 
-func (t BoolType) String() string { return "bool" }
+func (t BoolType) String() string {
+	if t.nullable {
+		return "bool?"
+	}
+	return "bool"
+}
 
 type AnyType struct{ BaseType }
 
 func (t AnyType) IsAssignableTo(other Type) bool { return true }
 
-func (t AnyType) String() string { return "any" }
+func (t AnyType) String() string {
+	if t.nullable {
+		return "any?"
+	}
+	return "any"
+}
 
 type ObjectType struct {
 	BaseType
@@ -66,6 +86,10 @@ func (t ObjectType) String() string {
 		idx++
 	}
 	res.WriteString(" }")
+
+	if t.nullable {
+		res.WriteString("?")
+	}
 
 	return res.String()
 }

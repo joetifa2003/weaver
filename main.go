@@ -48,10 +48,10 @@ func main() {
     company: {
       name: string,
       salary: number?
-    }
+    }?
   }
 
-  let a: Person = { company: { name: "hi" } }
+  let a: Person = {  }
   `
 
 	p, err := parser.ParseString("main.tf", src)

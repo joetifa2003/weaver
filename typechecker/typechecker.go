@@ -276,7 +276,7 @@ func (t *TypeChecker) exprType(n interface{}) (Type, lexer.Position, error) {
 			}
 		}
 
-		return res, lexer.Position{}, nil
+		return res, n.Pos, nil
 
 	case *ast.Paren:
 		return t.exprType(n.Expr)
@@ -383,13 +383,13 @@ func (t *TypeChecker) astToType(astType ast.Type) Type {
 	case *ast.BuiltInType:
 		switch n.Name {
 		case "string":
-			return StringType{}
+			return StringType{BaseType: BaseType{nullable: n.Nullable}}
 		case "number":
-			return NumberType{}
+			return NumberType{BaseType: BaseType{nullable: n.Nullable}}
 		case "bool":
-			return BoolType{}
+			return BoolType{BaseType: BaseType{nullable: n.Nullable}}
 		case "any":
-			return AnyType{}
+			return AnyType{BaseType: BaseType{nullable: n.Nullable}}
 		}
 
 	case *ast.CustomType:
@@ -404,6 +404,8 @@ func (t *TypeChecker) astToType(astType ast.Type) Type {
 		for _, f := range n.Fields {
 			res.Fields[f.Name] = t.astToType(f.Type)
 		}
+
+		res.nullable = n.Nullable
 
 		return res
 	}

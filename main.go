@@ -47,11 +47,8 @@ func main() {
     name: string?
   }
 
-  fn add(a: number, b: number): string {
-    
-  }
+  let a: Person = {  }
 
-  let a: number = add(1, 1)
   `
 
 	p, err := parser.ParseString("main.tf", src)

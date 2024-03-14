@@ -14,7 +14,7 @@ type Fn struct {
 	Pos        lexer.Position
 	Name       string `"fn" @Ident`
 	Args       []*Arg `"(" (@@ ("," @@)* )? ")"`
-	ReturnType Type   `":" @@`
+	ReturnType *Type  `":" @@`
 	Statements []Stmt `"{" @@* "}"`
 	EndPos     lexer.Position
 }
@@ -23,20 +23,20 @@ func (t Fn) stmt() {}
 
 type Arg struct {
 	Name string `@Ident`
-	Type Type   `":" @@`
+	Type *Type  `":" @@`
 }
 
 // Def define type
 type Def struct {
 	Name string `"def" @Ident`
-	Type Type   `@@`
+	Type *Type  `@@`
 }
 
 func (t *Def) stmt() {}
 
 type Prop struct {
 	Name string `@Ident ":"`
-	Type Type   `@@`
+	Type *Type  `@@`
 }
 
 type Output struct {
@@ -48,7 +48,7 @@ func (t *Output) stmt() {}
 
 type Let struct {
 	Name string `"let" @Ident `
-	Type Type   `[":" @@]?`
+	Type *Type  `[":" @@]?`
 	Expr *Expr  `"=" @@`
 }
 

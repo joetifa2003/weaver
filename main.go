@@ -34,7 +34,7 @@ func main() {
 		participle.Unquote("String"),
 		participle.Union[ast.Stmt](&ast.Def{}, &ast.Output{}, &ast.Let{}, &ast.Assign{}, &ast.Block{}, &ast.If{}, &ast.Fn{}, &ast.Return{}),
 		participle.Union[ast.Atom](&ast.Paren{}, &ast.Object{}, &ast.String{}, &ast.Number{}, &ast.Bool{}, &ast.Call{}, &ast.Ident{}),
-		participle.Union[ast.Type](&ast.BuiltInType{}, &ast.ObjectType{}, &ast.CustomType{}),
+		participle.Union[ast.TypeAtom](&ast.BuiltInType{}, &ast.ObjectType{}, &ast.CustomType{}),
 	)
 	if err != nil {
 		panic(err)
@@ -43,15 +43,7 @@ func main() {
 	fmt.Println(parser.String())
 
 	src := `
-  def Person {
-    name: string?,
-    company: {
-      name: string,
-      salary: number?
-    }?
-  }
-
-  let a: Person = {  }
+  let x: number | string = true 
   `
 
 	p, err := parser.ParseString("main.tf", src)

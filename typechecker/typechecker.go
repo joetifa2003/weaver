@@ -374,41 +374,50 @@ func (t *TypeChecker) pop() {
 }
 
 // TODO: Handle nullable types
-func (t *TypeChecker) astToType(astType ast.Type) Type {
+func (t *TypeChecker) astToType(astType *ast.Type) Type {
 	if astType == nil {
 		return nil
 	}
 
-	switch n := astType.(type) {
-	case *ast.BuiltInType:
-		switch n.Name {
-		case "string":
-			return StringType{BaseType: BaseType{nullable: n.Nullable}}
-		case "number":
-			return NumberType{BaseType: BaseType{nullable: n.Nullable}}
-		case "bool":
-			return BoolType{BaseType: BaseType{nullable: n.Nullable}}
-		case "any":
-			return AnyType{BaseType: BaseType{nullable: n.Nullable}}
+	res := make([]Type, len(astType.Variants))
+	for i, n := range astType.Variants {
+		switch n := n.(type) {
+		case *ast.BuiltInType:
+			switch n.Name {
+			case "string":
+				res[i] = StringType{BaseType: BaseType{nullable: n.Nullable}}
+			case "number":
+				res[i] = NumberType{BaseType: BaseType{nullable: n.Nullable}}
+			case "bool":
+				res[i] = BoolType{BaseType: BaseType{nullable: n.Nullable}}
+			case "any":
+				res[i] = AnyType{BaseType: BaseType{nullable: n.Nullable}}
+			}
+
+		case *ast.CustomType:
+			// TODO: return a proper error here if things are not defined
+			res[i] = t.defs[n.Name]
+
+		case *ast.ObjectType:
+			obj := ObjectType{
+				Fields: map[string]Type{},
+			}
+
+			for _, f := range n.Fields {
+				obj.Fields[f.Name] = t.astToType(f.Type)
+			}
+
+			obj.nullable = n.Nullable
+
+			res[i] = obj
 		}
-
-	case *ast.CustomType:
-		// TODO: return a proper error here if things are not defined
-		return t.defs[n.Name]
-
-	case *ast.ObjectType:
-		res := ObjectType{
-			Fields: map[string]Type{},
-		}
-
-		for _, f := range n.Fields {
-			res.Fields[f.Name] = t.astToType(f.Type)
-		}
-
-		res.nullable = n.Nullable
-
-		return res
 	}
 
-	panic(fmt.Sprintf("unimplemented type %T", astType))
+	if len(res) == 1 {
+		return res[0]
+	}
+
+	return Variant{
+		Variants: res,
+	}
 }

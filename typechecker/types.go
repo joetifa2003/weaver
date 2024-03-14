@@ -23,7 +23,11 @@ func (t BaseType) Nullable() bool { return t.nullable }
 
 type StringType struct{ BaseType }
 
-func (t StringType) IsAssignableTo(other Type) bool { return isType[StringType](other) }
+func (t StringType) IsAssignableTo(other Type) bool {
+	return checkVariants(other, func(t Type) bool {
+		return isType[StringType](t)
+	})
+}
 
 func (t StringType) String() string {
 	if t.nullable {
@@ -34,7 +38,11 @@ func (t StringType) String() string {
 
 type NumberType struct{ BaseType }
 
-func (t NumberType) IsAssignableTo(other Type) bool { return isType[NumberType](other) }
+func (t NumberType) IsAssignableTo(other Type) bool {
+	return checkVariants(other, func(t Type) bool {
+		return isType[NumberType](t)
+	})
+}
 
 func (t NumberType) String() string {
 	if t.nullable {
@@ -45,7 +53,11 @@ func (t NumberType) String() string {
 
 type BoolType struct{ BaseType }
 
-func (t BoolType) IsAssignableTo(other Type) bool { return isType[BoolType](other) }
+func (t BoolType) IsAssignableTo(other Type) bool {
+	return checkVariants(other, func(t Type) bool {
+		return isType[BoolType](t)
+	})
+}
 
 func (t BoolType) String() string {
 	if t.nullable {
@@ -154,7 +166,48 @@ func (t FnType) IsAssignableTo(other Type) bool {
 	return true
 }
 
+type Variant struct {
+	BaseType
+	Variants []Type
+}
+
+func (t Variant) String() string {
+	var res strings.Builder
+
+	for i, variant := range t.Variants {
+		res.WriteString(variant.String())
+		if i != len(t.Variants)-1 {
+			res.WriteString(" | ")
+		}
+	}
+
+	return res.String()
+}
+
+func (t Variant) IsAssignableTo(other Type) bool {
+	return false
+}
+
 func isType[T Type](t Type) bool {
 	_, ok := t.(T)
 	return ok
+}
+
+func checkVariants(t Type, f func(Type) bool) bool {
+	var variants []Type
+
+	switch t := t.(type) {
+	case Variant:
+		variants = t.Variants
+	default:
+		variants = []Type{t}
+	}
+
+	for _, v := range variants {
+		if f(v) {
+			return true
+		}
+	}
+
+	return false
 }

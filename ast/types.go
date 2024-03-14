@@ -1,6 +1,6 @@
 package ast
 
-type Type interface {
+type TypeAtom interface {
 	typ()
 }
 
@@ -18,7 +18,7 @@ type ObjectType struct {
 
 type ObjectTypeField struct {
 	Name string `@Ident ":"`
-	Type Type   `@@`
+	Type *Type  `@@`
 }
 
 func (t *ObjectType) typ() {}
@@ -29,3 +29,7 @@ type CustomType struct {
 }
 
 func (t *CustomType) typ() {}
+
+type Type struct {
+	Variants []TypeAtom `@@ ("|" @@)*`
+}

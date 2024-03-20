@@ -43,7 +43,11 @@ func main() {
 	fmt.Println(parser.String())
 
 	src := `
-  let x: number | string = true 
+  fn something(a: number, b: string): number | string {
+
+  }
+
+  let x: number | string | bool = something(1, "2") 
   `
 
 	p, err := parser.ParseString("main.tf", src)

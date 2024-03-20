@@ -185,7 +185,13 @@ func (t Variant) String() string {
 }
 
 func (t Variant) IsAssignableTo(other Type) bool {
-	return false
+	for _, variant := range t.Variants {
+		if !variant.IsAssignableTo(other) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func isType[T Type](t Type) bool {
@@ -193,7 +199,7 @@ func isType[T Type](t Type) bool {
 	return ok
 }
 
-func checkVariants(t Type, f func(Type) bool) bool {
+func getVariants(t Type) []Type {
 	var variants []Type
 
 	switch t := t.(type) {
@@ -202,6 +208,12 @@ func checkVariants(t Type, f func(Type) bool) bool {
 	default:
 		variants = []Type{t}
 	}
+
+	return variants
+}
+
+func checkVariants(t Type, f func(Type) bool) bool {
+	variants := getVariants(t)
 
 	for _, v := range variants {
 		if f(v) {

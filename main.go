@@ -43,11 +43,11 @@ func main() {
 	fmt.Println(parser.String())
 
 	src := `
-  fn something(a: number, b: string): number | string {
+  fn something(a: number, b: string): { a: number } | { a: string } {
 
   }
 
-  let x: number | string | bool = something(1, "2") 
+  let x: { a: number } | { a: string } = something(1, "2")
   `
 
 	p, err := parser.ParseString("main.tf", src)
@@ -61,7 +61,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
+	
 	f, err := os.Create("ast.json")
 	if err != nil {
 		panic(err)

@@ -39,12 +39,11 @@ type Prop struct {
 	Type *Type  `@@`
 }
 
-type Output struct {
-	Name string `"output" @String`
-	Expr *Expr  `@@`
+type Echo struct {
+	Expr *Expr `"echo" @@`
 }
 
-func (t *Output) stmt() {}
+func (t *Echo) stmt() {}
 
 type Let struct {
 	Name string `"let" @Ident `

@@ -125,6 +125,12 @@ func (t *TypeChecker) checkStmt(n ast.Stmt) error {
 			ReturnType: returnType,
 		})
 
+	case *ast.Echo:
+		_, _, err := t.exprType(n.Expr)
+		if err != nil {
+			return err
+		}
+
 	default:
 		panic(fmt.Sprintf("TypeChecker.checkStmt: unimplemented %T", n))
 	}

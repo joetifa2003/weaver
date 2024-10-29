@@ -16,3 +16,20 @@ func varDeclStmt() pargo.Parser[ast.Statement] {
 		},
 	)
 }
+
+func echoStmt() pargo.Parser[ast.Statement] {
+	return pargo.Sequence2(
+		pargo.Exactly("echo"),
+		expr(),
+		func(_ string, expr ast.Expr) ast.Statement {
+			return ast.EchoStmt{Expr: expr}
+		},
+	)
+}
+
+func stmt() pargo.Parser[ast.Statement] {
+	return pargo.OneOf(
+		echoStmt(),
+		varDeclStmt(),
+	)
+}

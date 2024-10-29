@@ -8,3 +8,9 @@ type LetStmt struct {
 }
 
 func (t LetStmt) stmt() {}
+
+type EchoStmt struct {
+	Expr Expr
+}
+
+func (t EchoStmt) stmt() {}

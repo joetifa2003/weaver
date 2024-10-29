@@ -65,7 +65,7 @@ func (c *Compiler) Compile(p *ast.Program) error {
 	return nil
 }
 
-func (c *Compiler) compileStmt(s ast.Stmt) ([]opcode.OpCode, error) {
+func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 	switch s := s.(type) {
 	case *ast.Echo:
 		expr, reg, err := c.compileExpr(s.Expr)

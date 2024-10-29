@@ -3,9 +3,9 @@ package compiler
 import (
 	"fmt"
 
-	"config-lang/ast"
-	"config-lang/opcode"
-	"config-lang/value"
+	"github.com/joetifa2003/weaver/ast"
+	"github.com/joetifa2003/weaver/opcode"
+	"github.com/joetifa2003/weaver/value"
 )
 
 type Compiler struct {

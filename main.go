@@ -10,10 +10,10 @@ import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
 
-	"config-lang/ast"
-	"config-lang/compiler"
-	"config-lang/opcode"
-	"config-lang/typechecker"
+	"github.com/joetifa2003/weaver/ast"
+	"github.com/joetifa2003/weaver/compiler"
+	"github.com/joetifa2003/weaver/opcode"
+	"github.com/joetifa2003/weaver/typechecker"
 )
 
 // TODO: Maybe call it Weaver

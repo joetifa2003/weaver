@@ -1,6 +1,6 @@
 package compiler
 
-import "config-lang/opcode"
+import "github.com/joetifa2003/weaver/opcode"
 
 type Frame struct {
 	Register     []*Reg

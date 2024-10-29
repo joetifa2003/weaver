@@ -6,7 +6,7 @@ import (
 
 	"github.com/alecthomas/participle/v2/lexer"
 
-	"config-lang/ast"
+	"github.com/joetifa2003/weaver/ast"
 )
 
 type Binding struct {

@@ -36,7 +36,7 @@ const (
 type SimpleLexer struct {
 }
 
-func NewSimple() *SimpleLexer {
+func New() *SimpleLexer {
 	return &SimpleLexer{}
 }
 

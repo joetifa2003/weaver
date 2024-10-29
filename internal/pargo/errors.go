@@ -1,6 +1,6 @@
 package pargo
 
-import "parser-comb/lexer"
+import "github.com/joetifa2003/weaver/internal/pargo/lexer"
 
 type ParseError struct {
 	Expected string

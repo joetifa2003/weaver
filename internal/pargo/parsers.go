@@ -3,8 +3,9 @@ package pargo
 import (
 	"fmt"
 	"io"
+	"strings"
 
-	"parser-comb/lexer"
+	"github.com/joetifa2003/weaver/internal/pargo/lexer"
 )
 
 type State struct {
@@ -180,6 +181,12 @@ func Lazy[T any](f func() Parser[T]) Parser[T] {
 
 		return p(state)
 	}
+}
+
+func Concat(ps Parser[[]string]) Parser[string] {
+	return Map(ps, func(ss []string) (string, error) {
+		return strings.Join(ss, ""), nil
+	})
 }
 
 func zero[T any]() T {

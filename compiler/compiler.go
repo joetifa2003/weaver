@@ -105,6 +105,7 @@ func (c *Compiler) compileExpr(e interface{}) ([]opcode.OpCode, *Reg, error) {
 	switch e := e.(type) {
 	case *ast.Expr:
 		return c.compileExpr(e.Equality)
+
 	case *ast.Equality:
 		lhs, reg, err := c.compileExpr(e.Left)
 		if err != nil {
@@ -113,6 +114,7 @@ func (c *Compiler) compileExpr(e interface{}) ([]opcode.OpCode, *Reg, error) {
 		if e.Right == nil {
 			return lhs, reg, nil
 		}
+
 	case *ast.Comparison:
 		lhs, reg, err := c.compileExpr(e.Left)
 		if err != nil {
@@ -121,6 +123,7 @@ func (c *Compiler) compileExpr(e interface{}) ([]opcode.OpCode, *Reg, error) {
 		if e.Right == nil {
 			return lhs, reg, nil
 		}
+
 	case *ast.Addition:
 		lhs, reg, err := c.compileExpr(e.Left)
 		if err != nil {
@@ -129,6 +132,7 @@ func (c *Compiler) compileExpr(e interface{}) ([]opcode.OpCode, *Reg, error) {
 		if e.Right == nil {
 			return lhs, reg, nil
 		}
+
 	case *ast.Multiplication:
 		lhs, reg, err := c.compileExpr(e.Left)
 		if err != nil {
@@ -137,6 +141,7 @@ func (c *Compiler) compileExpr(e interface{}) ([]opcode.OpCode, *Reg, error) {
 		if e.Right == nil {
 			return lhs, reg, nil
 		}
+
 	case *ast.Unary:
 		lhs, reg, err := c.compileExpr(e.Atom)
 		if err != nil {
@@ -145,6 +150,7 @@ func (c *Compiler) compileExpr(e interface{}) ([]opcode.OpCode, *Reg, error) {
 		if e.Unary == nil {
 			return lhs, reg, nil
 		}
+
 	case ast.Atom:
 		switch a := e.(type) {
 		case *ast.Number:

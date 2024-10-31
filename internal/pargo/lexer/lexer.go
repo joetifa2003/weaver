@@ -50,15 +50,13 @@ func (l *SimpleLexer) Lex(input string) ([]Token, error) {
 	line := 1
 
 	for i < len(runes) {
-		for isWhiteSpace(runes[i]) {
+		if runes[i] == ' ' || runes[i] == '\r' || runes[i] == '\n' || runes[i] == '\t' {
+			if runes[i] == '\n' {
+				line++
+				column = 0
+			}
 			i++
-			column++
-		}
-
-		for runes[i] == '\n' {
-			i++
-			line++
-			column = 0
+			continue
 		}
 
 		res = append(res, SimpleToken{

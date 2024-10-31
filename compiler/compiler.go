@@ -50,7 +50,7 @@ func (c *Compiler) addInstructions(instructions []opcode.OpCode) {
 	c.currentFrame().addInstructions(instructions)
 }
 
-func (c *Compiler) Compile(p *ast.Program) error {
+func (c *Compiler) Compile(p ast.Program) error {
 	c.pushFrame()
 
 	for _, s := range p.Statements {
@@ -67,7 +67,7 @@ func (c *Compiler) Compile(p *ast.Program) error {
 
 func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 	switch s := s.(type) {
-	case *ast.Echo:
+	case ast.EchoStmt:
 		expr, reg, err := c.compileExpr(s.Expr)
 		if err != nil {
 			return nil, err
@@ -80,7 +80,7 @@ func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 
 		return instructions, nil
 
-	case *ast.Let:
+	case ast.LetStmt:
 		expr, reg, err := c.compileExpr(s.Expr)
 		if err != nil {
 			return nil, err
@@ -101,66 +101,15 @@ func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 	}
 }
 
-func (c *Compiler) compileExpr(e interface{}) ([]opcode.OpCode, *Reg, error) {
+func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, *Reg, error) {
 	switch e := e.(type) {
-	case *ast.Expr:
-		return c.compileExpr(e.Equality)
-
-	case *ast.Equality:
-		lhs, reg, err := c.compileExpr(e.Left)
-		if err != nil {
-			return nil, reg, err
-		}
-		if e.Right == nil {
-			return lhs, reg, nil
-		}
-
-	case *ast.Comparison:
-		lhs, reg, err := c.compileExpr(e.Left)
-		if err != nil {
-			return nil, reg, err
-		}
-		if e.Right == nil {
-			return lhs, reg, nil
-		}
-
-	case *ast.Addition:
-		lhs, reg, err := c.compileExpr(e.Left)
-		if err != nil {
-			return nil, reg, err
-		}
-		if e.Right == nil {
-			return lhs, reg, nil
-		}
-
-	case *ast.Multiplication:
-		lhs, reg, err := c.compileExpr(e.Left)
-		if err != nil {
-			return nil, reg, err
-		}
-		if e.Right == nil {
-			return lhs, reg, nil
-		}
-
-	case *ast.Unary:
-		lhs, reg, err := c.compileExpr(e.Atom)
-		if err != nil {
-			return nil, reg, err
-		}
-		if e.Unary == nil {
-			return lhs, reg, nil
-		}
-
-	case ast.Atom:
-		switch a := e.(type) {
-		case *ast.Number:
-			reg := c.allocRegister()
-			return []opcode.OpCode{
-				opcode.OP_CONSTANT,
-				opcode.OpCode(c.defineConstant(value.NewInt(a.Value))),
-				opcode.OpCode(reg.Index),
-			}, reg, nil
-		}
+	case ast.IntExpr:
+		reg := c.allocRegister()
+		return []opcode.OpCode{
+			opcode.OP_CONSTANT,
+			opcode.OpCode(c.defineConstant(value.NewInt(e.Value))),
+			opcode.OpCode(reg.Index),
+		}, reg, nil
 	}
 
 	panic("unimplemented")

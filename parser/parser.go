@@ -7,9 +7,11 @@ import (
 )
 
 func program() pargo.Parser[ast.Program] {
-	return pargo.Map(pargo.Many(stmt()), func(stmts []ast.Statement) (ast.Program, error) {
-		return ast.Program{Statements: stmts}, nil
-	})
+	return pargo.Map(
+		pargo.ManyAll(stmt()),
+		func(stmts []ast.Statement) (ast.Program, error) {
+			return ast.Program{Statements: stmts}, nil
+		})
 }
 
 func Parse(src string) (ast.Program, error) {

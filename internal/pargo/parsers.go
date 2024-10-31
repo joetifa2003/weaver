@@ -14,6 +14,10 @@ type State struct {
 	pos    int
 }
 
+func (s *State) done() bool {
+	return s.pos >= len(s.tokens)
+}
+
 func (s *State) consume() (lexer.Token, error) {
 	if s.pos >= len(s.tokens) {
 		return nil, io.EOF
@@ -146,6 +150,25 @@ func Many[T any](p Parser[T]) Parser[[]T] {
 				return res, state, nil
 			}
 			res = append(res, r)
+		}
+	}
+}
+
+func ManyAll[T any](p Parser[T]) Parser[[]T] {
+	return func(state State) ([]T, State, error) {
+		var res []T
+		var err error
+		var r T
+
+		for {
+			r, state, err = p(state)
+			if err != nil {
+				return res, state, err
+			}
+			res = append(res, r)
+			if state.done() {
+				return res, state, nil
+			}
 		}
 	}
 }

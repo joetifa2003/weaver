@@ -10,7 +10,7 @@ import (
 
 func intExpr() pargo.Parser[ast.Expr] {
 	return pargo.Map(
-		pargo.Concat(pargo.Many(digit())),
+		pargo.Concat(pargo.Some(digit())),
 
 		func(s string) (ast.Expr, error) {
 			val, err := strconv.Atoi(s)
@@ -25,9 +25,9 @@ func intExpr() pargo.Parser[ast.Expr] {
 
 func floatExpr() pargo.Parser[ast.Expr] {
 	return pargo.Sequence3(
-		pargo.Concat(pargo.Many(digit())),
+		pargo.Concat(pargo.Some(digit())),
 		pargo.Exactly("."),
-		pargo.Concat(pargo.Many(digit())),
+		pargo.Concat(pargo.Some(digit())),
 		func(lhs string, _ string, rhs string) ast.Expr {
 			val, err := strconv.ParseFloat(lhs+"."+rhs, 64)
 			if err != nil {

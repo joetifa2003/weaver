@@ -32,3 +32,9 @@ type BinaryExpr struct {
 }
 
 func (t BinaryExpr) expr() {}
+
+type IdentExpr struct {
+	Name string
+}
+
+func (t IdentExpr) expr() {}

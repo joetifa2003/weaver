@@ -58,6 +58,23 @@ func Exactly(s string) Parser[string] {
 	}
 }
 
+func TokenType(ttype int) Parser[string] {
+	return func(state State) (string, State, error) {
+		old := state
+
+		tok, err := state.consume()
+		if err != nil {
+			return "", old, err
+		}
+
+		if tok.Type() != ttype {
+			return "", old, NewParseError(state.source, fmt.Sprintf("expected %s", ttype), tok)
+		}
+
+		return tok.String(), state, nil
+	}
+}
+
 func Except(s string) Parser[string] {
 	return func(state State) (string, State, error) {
 		old := state
@@ -222,6 +239,8 @@ func Parse[T any](p Parser[T], l lexer.Lexer, input string) (T, error) {
 	if err != nil {
 		return zero[T](), err
 	}
+
+	fmt.Println(tokens)
 
 	initialState := State{tokens: tokens, pos: 0, source: input}
 	res, _, err := p(initialState)

@@ -21,6 +21,8 @@ const (
 	TT_OR
 	TT_LPAREN
 	TT_RPAREN
+	TT_ASSIGN
+	TT_VARDECL
 	TT_WHITESPACE
 )
 
@@ -28,8 +30,8 @@ func newLexer() *lexer.RegexLexer {
 	return lexer.New(
 		[]lexer.Pattern{
 			{TokenType: TT_IDENT, Regex: "[a-zA-Z]+"},
-			{TokenType: TT_INT, Regex: "[0-9]+"},
 			{TokenType: TT_FLOAT, Regex: "[0-9]+\\.[0-9]+"},
+			{TokenType: TT_INT, Regex: "[0-9]+"},
 			{TokenType: TT_STRING, Regex: `"(?:[^"\\]|\\.)*"`},
 			// ========== operators ==========
 			{TokenType: TT_PLUS, Regex: "\\+"},
@@ -37,10 +39,12 @@ func newLexer() *lexer.RegexLexer {
 			{TokenType: TT_MULTIPLY, Regex: "\\*"},
 			{TokenType: TT_DIVIDE, Regex: "/"},
 			{TokenType: TT_EQUAL, Regex: "=="},
-			{TokenType: TT_LESS_THAN, Regex: "<"},
-			{TokenType: TT_GREATER_THAN, Regex: ">"},
+			{TokenType: TT_VARDECL, Regex: ":="},
+			{TokenType: TT_ASSIGN, Regex: "="},
 			{TokenType: TT_LESS_THAN_EQUAL, Regex: "<="},
 			{TokenType: TT_GREATER_THAN_EQUAL, Regex: ">="},
+			{TokenType: TT_LESS_THAN, Regex: "<"},
+			{TokenType: TT_GREATER_THAN, Regex: ">"},
 			{TokenType: TT_NOT_EQUAL, Regex: "!="},
 			{TokenType: TT_AND, Regex: "&&"},
 			{TokenType: TT_OR, Regex: "\\|\\|"},
@@ -50,5 +54,8 @@ func newLexer() *lexer.RegexLexer {
 			{TokenType: TT_WHITESPACE, Regex: "\\s+"},
 		},
 		lexer.WithEllide(TT_WHITESPACE),
+		lexer.WithTransform(TT_STRING, func(s string) string {
+			return s[1 : len(s)-1]
+		}),
 	)
 }

@@ -112,5 +112,5 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, *Reg, error) {
 		}, reg, nil
 	}
 
-	panic("unimplemented")
+	panic(fmt.Sprintf("unimplemented %T", e))
 }

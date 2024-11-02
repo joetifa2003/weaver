@@ -10,8 +10,7 @@ import (
 
 func intExpr() pargo.Parser[ast.Expr] {
 	return pargo.Map(
-		pargo.Concat(pargo.Some(digit())),
-
+		pargo.TokenType(TT_INT),
 		func(s string) (ast.Expr, error) {
 			val, err := strconv.Atoi(s)
 			if err != nil {
@@ -24,24 +23,25 @@ func intExpr() pargo.Parser[ast.Expr] {
 }
 
 func floatExpr() pargo.Parser[ast.Expr] {
-	return pargo.Sequence3(
-		pargo.Concat(pargo.Some(digit())),
-		pargo.Exactly("."),
-		pargo.Concat(pargo.Some(digit())),
-		func(lhs string, _ string, rhs string) ast.Expr {
-			val, err := strconv.ParseFloat(lhs+"."+rhs, 64)
+	return pargo.Map(
+		pargo.TokenType(TT_FLOAT),
+		func(lhs string) (ast.Expr, error) {
+			val, err := strconv.ParseFloat(lhs, 64)
 			if err != nil {
-				panic(err) // TODO: make sequence return error
+				return nil, err
 			}
 
-			return ast.FloatExpr{Value: val}
+			return ast.FloatExpr{Value: val}, nil
 		},
 	)
 }
 
 func booleanExpr() pargo.Parser[ast.Expr] {
 	return pargo.Map(
-		identifier(),
+		pargo.OneOf(
+			pargo.Exactly("true"),
+			pargo.Exactly("false"),
+		),
 		func(s string) (ast.Expr, error) {
 			if s != "true" && s != "false" {
 				return nil, errors.New("invalid boolean") // TODO: handle errors in a better way
@@ -53,12 +53,10 @@ func booleanExpr() pargo.Parser[ast.Expr] {
 }
 
 func stringExpr() pargo.Parser[ast.Expr] {
-	return pargo.Sequence3(
-		pargo.Exactly(`"`),
-		pargo.Concat(pargo.Many(pargo.Except(`"`))),
-		pargo.Exactly(`"`),
-		func(_ string, val string, _ string) ast.Expr {
-			return ast.StringExpr{Value: val}
+	return pargo.Map(
+		pargo.TokenType(TT_STRING),
+		func(val string) (ast.Expr, error) {
+			return ast.StringExpr{Value: val}, nil
 		},
 	)
 }
@@ -76,12 +74,22 @@ func binaryExpr(operand pargo.Parser[ast.Expr], op string) pargo.Parser[ast.Expr
 	)
 }
 
+func identExpr() pargo.Parser[ast.Expr] {
+	return pargo.Map(
+		pargo.TokenType(TT_IDENT),
+		func(s string) (ast.Expr, error) {
+			return ast.IdentExpr{Name: s}, nil
+		},
+	)
+}
+
 func atom() pargo.Parser[ast.Expr] {
 	return pargo.OneOf(
 		intExpr(),
 		floatExpr(),
 		booleanExpr(),
 		stringExpr(),
+		identExpr(),
 	)
 }
 

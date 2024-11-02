@@ -6,12 +6,11 @@ import (
 )
 
 func varDeclStmt() pargo.Parser[ast.Statement] {
-	return pargo.Sequence4(
-		identifier(),
-		pargo.Exactly(":"),
-		pargo.Exactly("="),
+	return pargo.Sequence3(
+		pargo.TokenType(TT_IDENT),
+		pargo.Exactly(":="),
 		expr(),
-		func(name string, _ string, _ string, expr ast.Expr) ast.Statement {
+		func(name string, _ string, expr ast.Expr) ast.Statement {
 			return ast.LetStmt{Name: name, Expr: expr}
 		},
 	)

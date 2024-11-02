@@ -9,7 +9,7 @@ type ParseError struct {
 }
 
 func (e ParseError) Error() string {
-	return "Expected " + e.Expected + " but found " + e.Found.String()
+	return "expected " + e.Expected + " but found " + e.Found.String()
 }
 
 func NewParseError(src string, expected string, found lexer.Token) ParseError {

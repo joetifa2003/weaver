@@ -14,3 +14,9 @@ type EchoStmt struct {
 }
 
 func (t EchoStmt) stmt() {}
+
+type BlockStmt struct {
+	Statements []Statement
+}
+
+func (t BlockStmt) stmt() {}

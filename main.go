@@ -11,7 +11,9 @@ import (
 // TODO: Maybe call it Weaver
 func main() {
 	src := `
-	x := 1
+	{
+		x := 1
+	}
 	echo x
 	`
 

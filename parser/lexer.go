@@ -9,6 +9,7 @@ const (
 	TT_STRING
 	TT_PLUS
 	TT_MINUS
+	TT_SYMBOL
 	TT_MULTIPLY
 	TT_DIVIDE
 	TT_EQUAL
@@ -34,6 +35,8 @@ func newLexer() *lexer.RegexLexer {
 			{TokenType: TT_INT, Regex: "[0-9]+"},
 			{TokenType: TT_STRING, Regex: `"(?:[^"\\]|\\.)*"`},
 			// ========== operators ==========
+			{TokenType: TT_SYMBOL, Regex: "{"},
+			{TokenType: TT_SYMBOL, Regex: "}"},
 			{TokenType: TT_PLUS, Regex: "\\+"},
 			{TokenType: TT_MINUS, Regex: "-"},
 			{TokenType: TT_MULTIPLY, Regex: "\\*"},

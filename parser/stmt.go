@@ -26,8 +26,20 @@ func echoStmt() pargo.Parser[ast.Statement] {
 	)
 }
 
+func blockStmt() pargo.Parser[ast.Statement] {
+	return pargo.Sequence3(
+		pargo.Exactly("{"),
+		pargo.Many(pargo.Lazy(stmt)),
+		pargo.Exactly("}"),
+		func(_ string, stmts []ast.Statement, _ string) ast.Statement {
+			return ast.BlockStmt{Statements: stmts}
+		},
+	)
+}
+
 func stmt() pargo.Parser[ast.Statement] {
 	return pargo.OneOf(
+		blockStmt(),
 		echoStmt(),
 		varDeclStmt(),
 	)

@@ -67,6 +67,17 @@ func (c *Compiler) Compile(p ast.Program) error {
 
 func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 	switch s := s.(type) {
+	case ast.BlockStmt:
+		instructions := []opcode.OpCode{}
+		for _, stmt := range s.Statements {
+			stmtInstructions, err := c.compileStmt(stmt)
+			if err != nil {
+				return nil, err
+			}
+			instructions = append(instructions, stmtInstructions...)
+		}
+
+		return instructions, nil
 	case ast.EchoStmt:
 		expr, reg, err := c.compileExpr(s.Expr)
 		if err != nil {
@@ -110,6 +121,10 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, *Reg, error) {
 			opcode.OpCode(c.defineConstant(value.NewInt(e.Value))),
 			opcode.OpCode(reg.Index),
 		}, reg, nil
+
+	case ast.IdentExpr:
+		v := c.currentFrame().resolveVar(e.Name)
+		return nil, v, nil
 	}
 
 	panic(fmt.Sprintf("unimplemented %T", e))

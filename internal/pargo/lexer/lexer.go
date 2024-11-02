@@ -1,5 +1,10 @@
 package lexer
 
+import (
+	"fmt"
+	"regexp"
+)
+
 type Lexer interface {
 	Lex(input string) ([]Token, error)
 }
@@ -15,74 +20,86 @@ type Location struct {
 	Column int
 }
 
-type SimpleToken struct {
+type RegexToken struct {
 	location Location
-	ttype    SimpleTokenType
+	ttype    int
 	lit      string
 }
 
-func (t SimpleToken) String() string { return t.lit }
+func (t RegexToken) String() string { return t.lit }
 
-func (t SimpleToken) Type() int { return int(t.ttype) }
+func (t RegexToken) Type() int { return t.ttype }
 
-func (t SimpleToken) Location() Location { return t.location }
+func (t RegexToken) Location() Location { return t.location }
 
-type SimpleTokenType int
-
-const (
-	TT_CHARACTER SimpleTokenType = iota
-)
-
-type SimpleLexer struct {
+type RegexLexer struct {
+	patterns []Pattern
+	ellide   map[int]struct{}
 }
 
-func New() *SimpleLexer {
-	return &SimpleLexer{}
+type Pattern struct {
+	TokenType int
+	Regex     string
 }
 
-func (l *SimpleLexer) Lex(input string) ([]Token, error) {
-	runes := []rune(input)
+type RegexLexerOption func(*RegexLexer)
 
-	res := []Token{}
-
-	i := 0
-	column := 0
-	line := 1
-
-	for i < len(runes) {
-		if runes[i] == ' ' || runes[i] == '\r' || runes[i] == '\n' || runes[i] == '\t' {
-			if runes[i] == '\n' {
-				line++
-				column = 0
-			}
-			i++
-			continue
+func WithEllide(ellide ...int) RegexLexerOption {
+	return func(l *RegexLexer) {
+		for _, ttype := range ellide {
+			l.ellide[ttype] = struct{}{}
 		}
+	}
+}
 
-		res = append(res, SimpleToken{
-			ttype: TT_CHARACTER,
-			lit:   string(runes[i]),
-			location: Location{
-				Line:   line,
-				Column: column + 1,
-			},
-		})
-
-		i++
-		column++
+func New(patterns []Pattern, options ...RegexLexerOption) *RegexLexer {
+	l := &RegexLexer{
+		patterns: patterns,
+		ellide:   map[int]struct{}{},
 	}
 
-	return res, nil
+	for _, option := range options {
+		option(l)
+	}
+
+	return l
 }
 
-func isCharacter(r rune) bool {
-	return r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z'
-}
+func (l *RegexLexer) Lex(input string) ([]Token, error) {
+	var tokens []Token
+	location := Location{Line: 1, Column: 1}
 
-func isWhiteSpace(r rune) bool {
-	return r == ' ' || r == '\r'
-}
+	for len(input) > 0 {
+		matched := false
+		for _, pattern := range l.patterns {
+			re := regexp.MustCompile(fmt.Sprintf("^%s", pattern.Regex))
+			if match := re.FindString(input); match != "" {
+				if _, ok := l.ellide[pattern.TokenType]; !ok {
+					tokens = append(tokens, RegexToken{
+						location: location,
+						ttype:    pattern.TokenType,
+						lit:      match,
+					})
+				}
 
-func isSymbol(r rune) bool {
-	return r == '='
+				advance := len(match)
+				input = input[advance:]
+				for _, char := range match {
+					if char == '\n' {
+						location.Line++
+						location.Column = 1
+					} else {
+						location.Column++
+					}
+				}
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			return nil, fmt.Errorf("unexpected character '%s' at line %d, column %d", input[:1], location.Line, location.Column)
+		}
+	}
+
+	return tokens, nil
 }

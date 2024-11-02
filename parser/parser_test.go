@@ -7,14 +7,13 @@ import (
 
 	"github.com/joetifa2003/weaver/ast"
 	"github.com/joetifa2003/weaver/internal/pargo"
-	"github.com/joetifa2003/weaver/internal/pargo/lexer"
 )
 
 func TestIntExpr(t *testing.T) {
 	assert := require.New(t)
 
 	p := intExpr()
-	expr, err := pargo.Parse(p, lexer.New(), "123")
+	expr, err := pargo.Parse(p, newLexer(), "123")
 	require.NoError(t, err)
 
 	intExpr, ok := expr.(ast.IntExpr)
@@ -26,7 +25,7 @@ func TestFloatExpr(t *testing.T) {
 	assert := require.New(t)
 
 	p := floatExpr()
-	expr, err := pargo.Parse(p, lexer.New(), "123.456")
+	expr, err := pargo.Parse(p, newLexer(), "123.456")
 	require.NoError(t, err)
 
 	floatExpr, ok := expr.(ast.FloatExpr)
@@ -39,21 +38,21 @@ func TestBooleanExpr(t *testing.T) {
 
 	p := booleanExpr()
 
-	expr, err := pargo.Parse(p, lexer.New(), "true")
+	expr, err := pargo.Parse(p, newLexer(), "true")
 	require.NoError(t, err)
 
 	boolExpr, ok := expr.(ast.BoolExpr)
 	assert.True(ok)
 	assert.True(boolExpr.Value)
 
-	expr, err = pargo.Parse(p, lexer.New(), "false")
+	expr, err = pargo.Parse(p, newLexer(), "false")
 	require.NoError(t, err)
 
 	boolExpr, ok = expr.(ast.BoolExpr)
 	assert.True(ok)
 	assert.False(boolExpr.Value)
 
-	expr, err = pargo.Parse(p, lexer.New(), "foo")
+	expr, err = pargo.Parse(p, newLexer(), "foo")
 	require.Error(t, err)
 }
 
@@ -62,7 +61,7 @@ func TestStringExpr(t *testing.T) {
 
 	p := stringExpr()
 
-	expr, err := pargo.Parse(p, lexer.New(), `"foo"`)
+	expr, err := pargo.Parse(p, newLexer(), `"foo"`)
 	require.NoError(t, err)
 
 	stringExpr, ok := expr.(ast.StringExpr)
@@ -75,7 +74,7 @@ func TestVarDeclStmt(t *testing.T) {
 
 	p := varDeclStmt()
 
-	stmt, err := pargo.Parse(p, lexer.New(), "foo := 123")
+	stmt, err := pargo.Parse(p, newLexer(), "foo := 123")
 	require.NoError(t, err)
 
 	letStmt, ok := stmt.(ast.LetStmt)
@@ -89,7 +88,7 @@ func TestBinaryExpr(t *testing.T) {
 
 	p := addExpr()
 
-	expr, err := pargo.Parse(p, lexer.New(), "123 + 456")
+	expr, err := pargo.Parse(p, newLexer(), "123 + 456")
 	require.NoError(t, err)
 
 	binaryExpr, ok := expr.(ast.BinaryExpr)
@@ -105,7 +104,7 @@ func TestBinaryExpr(t *testing.T) {
 		binaryExpr,
 	)
 
-	expr, err = pargo.Parse(p, lexer.New(), "123 + 456 * 789")
+	expr, err = pargo.Parse(p, newLexer(), "123 + 456 * 789")
 	require.NoError(t, err)
 
 	binaryExpr, ok = expr.(ast.BinaryExpr)

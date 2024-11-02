@@ -3,7 +3,6 @@ package parser
 import (
 	"github.com/joetifa2003/weaver/ast"
 	"github.com/joetifa2003/weaver/internal/pargo"
-	"github.com/joetifa2003/weaver/internal/pargo/lexer"
 )
 
 func program() pargo.Parser[ast.Program] {
@@ -15,7 +14,7 @@ func program() pargo.Parser[ast.Program] {
 }
 
 func Parse(src string) (ast.Program, error) {
-	p, err := pargo.Parse(program(), lexer.New(), src)
+	p, err := pargo.Parse(program(), newLexer(), src)
 	if err != nil {
 		return ast.Program{}, err
 	}

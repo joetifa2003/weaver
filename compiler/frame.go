@@ -1,58 +1,63 @@
 package compiler
 
-import "github.com/joetifa2003/weaver/opcode"
+import (
+	"fmt"
+
+	"github.com/joetifa2003/weaver/internal/pkg/ds"
+	"github.com/joetifa2003/weaver/opcode"
+)
 
 type Frame struct {
-	Register     []*Reg
-	Vars         map[string]*Reg
+	Vars         []*Var
 	Instructions []opcode.OpCode
+	Blocks       *ds.Stack[*Block]
 }
 
-func newFrame() *Frame {
+func NewFrame() *Frame {
 	return &Frame{
-		Vars: map[string]*Reg{},
+		Vars:         []*Var{},
+		Instructions: []opcode.OpCode{},
+		Blocks:       ds.NewStack(&Block{}),
 	}
 }
 
-type Reg struct {
+type Var struct {
+	Name  string
 	Index int
-	Free  bool
 }
 
-func (r *Reg) free() {
-	r.Free = true
+type Block struct {
+	Vars []*Var
 }
 
-func (f *Frame) allocReg() *Reg {
-	for _, r := range f.Register {
-		if r.Free {
-			r.Free = false
-			return r
+func (c *Frame) addInstructions(instructions []opcode.OpCode) {
+	c.Instructions = append(c.Instructions, instructions...)
+}
+
+func (c *Frame) defineVar(name string) int {
+	v := &Var{Name: name, Index: len(c.Vars)}
+	c.Vars = append(c.Vars, v)
+	c.Blocks.Peek().Vars = append(c.Blocks.Peek().Vars, v)
+	return len(c.Vars) - 1
+}
+
+func (c *Frame) resolve(name string) int {
+	for _, b := range c.Blocks.Iter() {
+		for _, v := range b.Vars {
+			if v.Name == name {
+				return v.Index
+			}
 		}
 	}
 
-	f.Register = append(f.Register, &Reg{
-		Free:  false,
-		Index: len(f.Register),
-	})
-	return f.Register[len(f.Register)-1]
+	panic(fmt.Sprintf("variable %s not found", name))
 }
 
-func (f *Frame) allocVar(name string) *Reg {
-	reg := f.allocReg()
-	f.Vars[name] = reg
-
-	return reg
+func (c *Frame) beginBlock() {
+	b := &Block{}
+	c.Blocks.Push(b)
 }
 
-func (f *Frame) resolveVar(name string) *Reg {
-	if reg, ok := f.Vars[name]; ok {
-		return reg
-	}
-
-	panic("var not found")
-}
-
-func (f *Frame) addInstructions(instructions []opcode.OpCode) {
-	f.Instructions = append(f.Instructions, instructions...)
+func (c *Frame) endBlock() {
+	c.Blocks.Pop()
 }

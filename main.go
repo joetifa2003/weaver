@@ -6,14 +6,13 @@ import (
 	"github.com/joetifa2003/weaver/compiler"
 	"github.com/joetifa2003/weaver/opcode"
 	"github.com/joetifa2003/weaver/parser"
+	"github.com/joetifa2003/weaver/vm"
 )
 
 // TODO: Maybe call it Weaver
 func main() {
 	src := `
-	{
-		x := 1
-	}
+	x := 1 + 2 * 2 
 	echo x
 	`
 
@@ -23,11 +22,13 @@ func main() {
 	}
 
 	c := compiler.New()
-	err = c.Compile(p)
+	mainFrame, constants, err := c.Compile(p)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println(c.Frames[0].Instructions)
-	fmt.Println(opcode.PrintOpcodes(c.Frames[0].Instructions))
+	fmt.Println(opcode.PrintOpcodes(mainFrame.Instructions))
+
+	vm := vm.New(constants, mainFrame)
+	vm.Run()
 }

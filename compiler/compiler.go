@@ -145,15 +145,19 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 		}, nil
 
 	case ast.IntExpr:
+		value := value.Value{}
+		value.SetInt(e.Value)
 		return []opcode.OpCode{
 			opcode.OP_CONSTANT,
-			opcode.OpCode(c.defineConstant(value.NewInt(e.Value))),
+			opcode.OpCode(c.defineConstant(value)),
 		}, nil
 
 	case ast.FloatExpr:
+		value := value.Value{}
+		value.SetFloat(e.Value)
 		return []opcode.OpCode{
 			opcode.OP_CONSTANT,
-			opcode.OpCode(c.defineConstant(value.NewFloat(e.Value))),
+			opcode.OpCode(c.defineConstant(value)),
 		}, nil
 	}
 

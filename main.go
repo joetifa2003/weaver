@@ -9,11 +9,10 @@ import (
 	"github.com/joetifa2003/weaver/vm"
 )
 
-// TODO: Maybe call it Weaver
 func main() {
 	src := `
 	x := 0
-	while x < 100 {
+	while x < 100000000 {
 		x = x + 1
 	}
 	echo x 

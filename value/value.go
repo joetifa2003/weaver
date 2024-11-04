@@ -37,8 +37,8 @@ type Value struct {
 	nonPrimitive unsafe.Pointer
 }
 
-func interpret[T any](b []byte) *T {
-	return (*T)(unsafe.Pointer(&b[0]))
+func interpret[T any](b *[8]byte) *T {
+	return (*T)(unsafe.Pointer(b))
 }
 
 func (v *Value) GetInt() int {
@@ -46,7 +46,7 @@ func (v *Value) GetInt() int {
 		panic("Value.GetInt(): not an int")
 	}
 
-	return *interpret[int](v.primitive[:])
+	return *interpret[int](&v.primitive)
 }
 
 func (v *Value) GetFloat() float64 {
@@ -54,7 +54,7 @@ func (v *Value) GetFloat() float64 {
 		panic("Value.GetFloat(): not a float")
 	}
 
-	return *interpret[float64](v.primitive[:])
+	return *interpret[float64](&v.primitive)
 }
 
 func (v *Value) GetString() string {
@@ -73,12 +73,27 @@ func (v *Value) GetObject() map[string]Value {
 	return *(*map[string]Value)(v.nonPrimitive)
 }
 
-func (v Value) GetBool() bool {
+func (v *Value) GetBool() bool {
 	if v.VType != ValueTypeBool {
 		panic("Value.GetBool(): not a bool")
 	}
 
-	return *interpret[bool](v.primitive[:])
+	return *interpret[bool](&v.primitive)
+}
+
+func (v *Value) SetBool(b bool) {
+	v.VType = ValueTypeBool
+	*interpret[bool](&v.primitive) = b
+}
+
+func (v *Value) SetInt(i int) {
+	v.VType = ValueTypeInt
+	*interpret[int](&v.primitive) = i
+}
+
+func (v *Value) SetFloat(f float64) {
+	v.VType = ValueTypeFloat
+	*interpret[float64](&v.primitive) = f
 }
 
 func (v Value) String() string {
@@ -118,42 +133,5 @@ func NewString(s string) Value {
 	return Value{
 		VType:        ValueTypeString,
 		nonPrimitive: unsafe.Pointer(&s),
-	}
-}
-
-func NewInt(i int) Value {
-	v := Value{
-		VType: ValueTypeInt,
-	}
-	p := interpret[int](v.primitive[:])
-	*p = i
-
-	return v
-}
-
-func NewFloat(f float64) Value {
-	v := Value{
-		VType: ValueTypeFloat,
-	}
-	p := interpret[float64](v.primitive[:])
-	*p = f
-
-	return v
-}
-
-func NewBool(b bool) Value {
-	v := Value{
-		VType: ValueTypeBool,
-	}
-	p := interpret[bool](v.primitive[:])
-	*p = b
-
-	return v
-}
-
-func NewObject(o map[string]Value) Value {
-	return Value{
-		VType:        ValueTypeObject,
-		nonPrimitive: unsafe.Pointer(&o),
 	}
 }

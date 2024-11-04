@@ -59,6 +59,17 @@ func whileStmt() pargo.Parser[ast.Statement] {
 	)
 }
 
+func ifStmt() pargo.Parser[ast.Statement] {
+	return pargo.Sequence3(
+		pargo.Exactly("if"),
+		expr(),
+		blockStmt(),
+		func(_ string, condition ast.Expr, body ast.Statement) ast.Statement {
+			return ast.IfStmt{Condition: condition, Body: body}
+		},
+	)
+}
+
 func stmt() pargo.Parser[ast.Statement] {
 	return pargo.OneOf(
 		blockStmt(),
@@ -66,5 +77,6 @@ func stmt() pargo.Parser[ast.Statement] {
 		varDeclStmt(),
 		assignStmt(),
 		whileStmt(),
+		ifStmt(),
 	)
 }

@@ -106,6 +106,24 @@ func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 
 		return instructions, nil
 
+	case ast.IfStmt:
+		var instructions []opcode.OpCode
+		expr, err := c.compileExpr(s.Condition)
+		if err != nil {
+			return nil, err
+		}
+
+		body, err := c.compileStmt(s.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		instructions = append(instructions, expr...)
+		instructions = append(instructions, opcode.OP_JUMPF, opcode.OpCode(len(body)+1))
+		instructions = append(instructions, body...)
+
+		return instructions, nil
+
 	default:
 		panic(fmt.Sprintf("Unimplemented: %T", s))
 	}

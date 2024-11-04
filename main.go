@@ -11,9 +11,11 @@ import (
 
 func main() {
 	src := `
-	x := 0
-	while x < 100000000 {
-		x = x + 1
+	x := 1
+	while x < 100 {
+		if x {
+			x = x + 1
+		}	
 	}
 	echo x 
 	`

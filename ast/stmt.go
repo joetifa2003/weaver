@@ -34,3 +34,10 @@ type WhileStmt struct {
 }
 
 func (t WhileStmt) stmt() {}
+
+type IfStmt struct {
+	Condition Expr
+	Body      Statement
+}
+
+func (t IfStmt) stmt() {}

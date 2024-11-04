@@ -12,8 +12,11 @@ import (
 // TODO: Maybe call it Weaver
 func main() {
 	src := `
-	x := 1 + 2 * 2 
-	echo x
+	x := 0
+	while x < 100 {
+		x = x + 1
+	}
+	echo x 
 	`
 
 	p, err := parser.Parse(src)

@@ -38,31 +38,99 @@ func (v *VM) Run() {
 			index := v.currentInstruction()
 			v.stack.Push(v.constants[index])
 			v.incrementIP()
+
 		case opcode.OP_LET:
 			v.incrementIP()
 			index := v.currentInstruction()
 			v.stack.Set(int(index), v.stack.Pop())
 			v.incrementIP()
-		case opcode.OP_ECHO:
-			value := v.stack.Pop()
-			fmt.Println(value.String())
-			v.incrementIP()
-		case opcode.OP_ADD:
-			left := v.stack.Pop()
-			right := v.stack.Pop()
-			v.stack.Push(value.NewInt(left.GetInt() + right.GetInt()))
-			v.incrementIP()
-		case opcode.OP_MUL:
-			left := v.stack.Pop()
-			right := v.stack.Pop()
-			v.stack.Push(value.NewInt(left.GetInt() * right.GetInt()))
-			v.incrementIP()
+
 		case opcode.OP_LOAD:
 			v.incrementIP()
 			index := v.currentInstruction()
 			val := v.stack.Get(int(index))
 			v.stack.Push(val)
 			v.incrementIP()
+
+		case opcode.OP_ASSIGN:
+			v.incrementIP()
+			index := v.currentInstruction()
+			v.stack.Set(int(index), v.stack.Pop())
+			v.incrementIP()
+
+		case opcode.OP_ECHO:
+			value := v.stack.Pop()
+			fmt.Println(value.String())
+			v.incrementIP()
+
+		case opcode.OP_JUMP:
+			v.incrementIP()
+			v.currentFrame().ip += int(v.currentInstruction())
+
+		case opcode.OP_JUMPF:
+			v.incrementIP()
+			operand := v.stack.Pop()
+			offset := int(v.currentInstruction())
+
+			if !operand.IsTruthy() {
+				v.currentFrame().ip += offset
+			} else {
+				v.incrementIP()
+			}
+
+		case opcode.OP_LT:
+			right := v.stack.Pop()
+			left := v.stack.Pop()
+
+			switch left.VType {
+			case value.ValueTypeInt:
+				switch right.VType {
+				case value.ValueTypeInt:
+					v.stack.Push(value.NewBool(left.GetInt() < right.GetInt()))
+				default:
+					panic(fmt.Sprintf("illegal operation %s < %s", left, right))
+				}
+			default:
+				panic(fmt.Sprintf("illegal operation %s < %s", left, right))
+			}
+
+			v.incrementIP()
+
+		case opcode.OP_ADD:
+			right := v.stack.Pop()
+			left := v.stack.Pop()
+
+			switch left.VType {
+			case value.ValueTypeInt:
+				switch right.VType {
+				case value.ValueTypeInt:
+					v.stack.Push(value.NewInt(left.GetInt() + right.GetInt()))
+				case value.ValueTypeFloat:
+					v.stack.Push(value.NewFloat(float64(left.GetInt()) + right.GetFloat()))
+				default:
+					panic(fmt.Sprintf("illegal operation %s + %s", left, right))
+				}
+			case value.ValueTypeFloat:
+				switch right.VType {
+				case value.ValueTypeInt:
+					v.stack.Push(value.NewFloat(left.GetFloat() + float64(right.GetInt())))
+				case value.ValueTypeFloat:
+					v.stack.Push(value.NewFloat(left.GetFloat() + right.GetFloat()))
+				default:
+					panic(fmt.Sprintf("illegal operation %s + %s", left, right))
+				}
+			default:
+				panic(fmt.Sprintf("illegal operation %s + %s", left, right))
+			}
+
+			v.incrementIP()
+
+		case opcode.OP_MUL:
+			left := v.stack.Pop()
+			right := v.stack.Pop()
+			v.stack.Push(value.NewInt(left.GetInt() * right.GetInt()))
+			v.incrementIP()
+
 		default:
 			panic(fmt.Sprintf("unimplemented %s", v.currentInstruction()))
 		}

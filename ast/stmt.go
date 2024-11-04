@@ -20,3 +20,17 @@ type BlockStmt struct {
 }
 
 func (t BlockStmt) stmt() {}
+
+type AssignStmt struct {
+	Name string
+	Expr Expr
+}
+
+func (t AssignStmt) stmt() {}
+
+type WhileStmt struct {
+	Condition Expr
+	Body      Statement
+}
+
+func (t WhileStmt) stmt() {}

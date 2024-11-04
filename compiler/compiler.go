@@ -75,6 +75,37 @@ func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 
 		return instructions, nil
 
+	case ast.AssignStmt:
+		var instructions []opcode.OpCode
+		expr, err := c.compileExpr(s.Expr)
+		if err != nil {
+			return nil, err
+		}
+		instructions = append(instructions, expr...)
+		instructions = append(instructions, opcode.OP_ASSIGN)
+		instructions = append(instructions, opcode.OpCode(c.resolveVar(s.Name)))
+
+		return instructions, nil
+
+	case ast.WhileStmt:
+		var instructions []opcode.OpCode
+		expr, err := c.compileExpr(s.Condition)
+		if err != nil {
+			return nil, err
+		}
+
+		body, err := c.compileStmt(s.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		instructions = append(instructions, expr...)
+		instructions = append(instructions, opcode.OP_JUMPF, opcode.OpCode(len(body)+3))
+		instructions = append(instructions, body...)
+		instructions = append(instructions, opcode.OP_JUMP, opcode.OpCode(-(len(body) + 2 + len(expr) + 1)))
+
+		return instructions, nil
+
 	default:
 		panic(fmt.Sprintf("Unimplemented: %T", s))
 	}
@@ -92,12 +123,14 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 			instructions = append(instructions, expr...)
 		}
 
-		for range (len(e.Operands) + 1) / 2 {
+		for range len(e.Operands) - 1 {
 			switch e.Operator {
 			case "+":
 				instructions = append(instructions, opcode.OP_ADD)
 			case "*":
 				instructions = append(instructions, opcode.OP_MUL)
+			case "<":
+				instructions = append(instructions, opcode.OP_LT)
 			default:
 				panic(fmt.Sprintf("unimplemented operator %s", e.Operator))
 			}
@@ -115,6 +148,12 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 		return []opcode.OpCode{
 			opcode.OP_CONSTANT,
 			opcode.OpCode(c.defineConstant(value.NewInt(e.Value))),
+		}, nil
+
+	case ast.FloatExpr:
+		return []opcode.OpCode{
+			opcode.OP_CONSTANT,
+			opcode.OpCode(c.defineConstant(value.NewFloat(e.Value))),
 		}, nil
 	}
 

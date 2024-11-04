@@ -37,10 +37,34 @@ func blockStmt() pargo.Parser[ast.Statement] {
 	)
 }
 
+func assignStmt() pargo.Parser[ast.Statement] {
+	return pargo.Sequence3(
+		pargo.TokenType(TT_IDENT),
+		pargo.Exactly("="),
+		expr(),
+		func(name string, _ string, expr ast.Expr) ast.Statement {
+			return ast.AssignStmt{Name: name, Expr: expr}
+		},
+	)
+}
+
+func whileStmt() pargo.Parser[ast.Statement] {
+	return pargo.Sequence3(
+		pargo.Exactly("while"),
+		expr(),
+		blockStmt(),
+		func(_ string, condition ast.Expr, statement ast.Statement) ast.Statement {
+			return ast.WhileStmt{Condition: condition, Body: statement}
+		},
+	)
+}
+
 func stmt() pargo.Parser[ast.Statement] {
 	return pargo.OneOf(
 		blockStmt(),
 		echoStmt(),
 		varDeclStmt(),
+		assignStmt(),
+		whileStmt(),
 	)
 }

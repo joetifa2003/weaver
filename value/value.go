@@ -12,7 +12,23 @@ const (
 	ValueTypeFloat
 	ValueTypeString
 	ValueTypeObject
+	ValueTypeBool
 )
+
+func (t ValueType) String() string {
+	switch t {
+	case ValueTypeInt:
+		return "int"
+	case ValueTypeFloat:
+		return "float"
+	case ValueTypeString:
+		return "string"
+	case ValueTypeObject:
+		return "object"
+	default:
+		panic(fmt.Sprintf("unimplemented %T", t))
+	}
+}
 
 // Value poor mans union/enum
 type Value struct {
@@ -57,7 +73,15 @@ func (v *Value) GetObject() map[string]Value {
 	return *(*map[string]Value)(v.nonPrimitive)
 }
 
-func (v *Value) String() string {
+func (v Value) GetBool() bool {
+	if v.VType != ValueTypeBool {
+		panic("Value.GetBool(): not a bool")
+	}
+
+	return *interpret[bool](v.primitive[:])
+}
+
+func (v Value) String() string {
 	switch v.VType {
 	case ValueTypeString:
 		str := v.GetString()
@@ -70,6 +94,23 @@ func (v *Value) String() string {
 		return fmt.Sprint(float)
 	default:
 		panic(fmt.Sprintf("Value.String(): unimplemented %T", v.VType))
+	}
+}
+
+func (v Value) IsTruthy() bool {
+	switch v.VType {
+	case ValueTypeBool:
+		return v.GetBool()
+	case ValueTypeInt:
+		return v.GetInt() != 0
+	case ValueTypeFloat:
+		return v.GetFloat() != 0
+	case ValueTypeString:
+		return len(v.GetString()) != 0
+	case ValueTypeObject:
+		return len(v.GetObject()) != 0
+	default:
+		panic(fmt.Sprintf("Value.IsTruthy(): unimplemented %T", v.VType))
 	}
 }
 
@@ -86,6 +127,26 @@ func NewInt(i int) Value {
 	}
 	p := interpret[int](v.primitive[:])
 	*p = i
+
+	return v
+}
+
+func NewFloat(f float64) Value {
+	v := Value{
+		VType: ValueTypeFloat,
+	}
+	p := interpret[float64](v.primitive[:])
+	*p = f
+
+	return v
+}
+
+func NewBool(b bool) Value {
+	v := Value{
+		VType: ValueTypeBool,
+	}
+	p := interpret[bool](v.primitive[:])
+	*p = b
 
 	return v
 }

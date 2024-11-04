@@ -94,7 +94,14 @@ func atom() pargo.Parser[ast.Expr] {
 }
 
 func expr() pargo.Parser[ast.Expr] {
-	return addExpr()
+	return lessThanExpr()
+}
+
+func lessThanExpr() pargo.Parser[ast.Expr] {
+	return binaryExpr(
+		addExpr(),
+		"<",
+	)
 }
 
 func addExpr() pargo.Parser[ast.Expr] {

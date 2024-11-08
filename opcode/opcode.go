@@ -20,6 +20,7 @@ const (
 	OP_MOD
 	OP_SUB
 	OP_LT
+	OP_EQ
 
 	OP_ECHO
 )
@@ -80,6 +81,9 @@ func PrintOpcodes(instructions []OpCode) string {
 
 		case OP_LT:
 			out += "lt\n"
+
+		case OP_EQ:
+			out += "eq\n"
 
 		default:
 			out += fmt.Sprintf("unknown opcode %d\n", instr)

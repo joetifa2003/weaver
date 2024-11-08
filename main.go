@@ -11,13 +11,19 @@ import (
 
 func main() {
 	src := `
-	x := 1
+	x := 0
+	even := 0
+
 	while x < 100 {
-		if x {
-			x = x + 1
+		if x % 2 == 0 {
+			even = even + 1
 		}	
+
+		x = x + 1
 	}
+
 	echo x 
+	echo even
 	`
 
 	p, err := parser.Parse(src)

@@ -152,6 +152,24 @@ func (v *VM) Run() {
 
 			v.incrementIP()
 
+		case opcode.OP_MOD:
+			right := v.stack[v.sp]
+			left := v.stack[v.sp-1]
+			v.sp--
+
+			v.stack[v.sp].SetInt(left.GetInt() % right.GetInt())
+
+			v.incrementIP()
+
+		case opcode.OP_EQ:
+			right := v.stack[v.sp]
+			left := v.stack[v.sp-1]
+			v.sp--
+
+			v.stack[v.sp].SetBool(left.GetInt() == right.GetInt())
+
+			v.incrementIP()
+
 		default:
 			panic(fmt.Sprintf("unimplemented %s", v.currentInstruction()))
 		}

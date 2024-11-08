@@ -22,6 +22,7 @@ func New() *Compiler {
 
 func (c *Compiler) Compile(p ast.Program) (*Frame, []value.Value, error) {
 	c.pushFrame()
+
 	for _, s := range p.Statements {
 		instructions, err := c.compileStmt(s)
 		if err != nil {
@@ -149,6 +150,12 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 				instructions = append(instructions, opcode.OP_MUL)
 			case "<":
 				instructions = append(instructions, opcode.OP_LT)
+			case "%":
+				instructions = append(instructions, opcode.OP_MOD)
+			case "/":
+				instructions = append(instructions, opcode.OP_DIV)
+			case "==":
+				instructions = append(instructions, opcode.OP_EQ)
 			default:
 				panic(fmt.Sprintf("unimplemented operator %s", e.Operator))
 			}

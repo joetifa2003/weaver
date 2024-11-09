@@ -3,6 +3,8 @@ package value
 import (
 	"fmt"
 	"unsafe"
+
+	"github.com/joetifa2003/weaver/opcode"
 )
 
 type ValueType int
@@ -13,6 +15,8 @@ const (
 	ValueTypeString
 	ValueTypeObject
 	ValueTypeBool
+	ValueTypeFunction
+	ValueTypeNil
 )
 
 func (t ValueType) String() string {
@@ -25,6 +29,12 @@ func (t ValueType) String() string {
 		return "string"
 	case ValueTypeObject:
 		return "object"
+	case ValueTypeBool:
+		return "bool"
+	case ValueTypeFunction:
+		return "function"
+	case ValueTypeNil:
+		return "nil"
 	default:
 		panic(fmt.Sprintf("unimplemented %T", t))
 	}
@@ -55,14 +65,6 @@ func (v *Value) GetFloat() float64 {
 	}
 
 	return *interpret[float64](&v.primitive)
-}
-
-func (v *Value) GetString() string {
-	if v.VType != ValueTypeString {
-		panic("Value.GetString(): not a string")
-	}
-
-	return *(*string)(v.nonPrimitive)
 }
 
 func (v *Value) GetObject() map[string]Value {
@@ -96,6 +98,41 @@ func (v *Value) SetFloat(f float64) {
 	*interpret[float64](&v.primitive) = f
 }
 
+func (v *Value) SetNil() {
+	v.VType = ValueTypeNil
+}
+
+type FunctionValue struct {
+	NumVars      int
+	Instructions []opcode.OpCode
+}
+
+func (v *Value) SetFunction(f FunctionValue) {
+	v.VType = ValueTypeFunction
+	v.nonPrimitive = unsafe.Pointer(&f)
+}
+
+func (v *Value) GetFunction() FunctionValue {
+	if v.VType != ValueTypeFunction {
+		panic("Value.GetFunction(): not a function")
+	}
+
+	return *(*FunctionValue)(v.nonPrimitive)
+}
+
+func (v *Value) SetString(s string) {
+	v.VType = ValueTypeString
+	v.nonPrimitive = unsafe.Pointer(&s)
+}
+
+func (v *Value) GetString() string {
+	if v.VType != ValueTypeString {
+		panic("Value.GetString(): not a string")
+	}
+
+	return *(*string)(v.nonPrimitive)
+}
+
 func (v Value) String() string {
 	switch v.VType {
 	case ValueTypeString:
@@ -107,6 +144,14 @@ func (v Value) String() string {
 	case ValueTypeFloat:
 		float := v.GetFloat()
 		return fmt.Sprint(float)
+	case ValueTypeNil:
+		return "nil"
+	case ValueTypeObject:
+		return "object"
+	case ValueTypeBool:
+		return "bool"
+	case ValueTypeFunction:
+		return "function"
 	default:
 		panic(fmt.Sprintf("Value.String(): unimplemented %T", v.VType))
 	}
@@ -126,12 +171,5 @@ func (v Value) IsTruthy() bool {
 		return len(v.GetObject()) != 0
 	default:
 		panic(fmt.Sprintf("Value.IsTruthy(): unimplemented %T", v.VType))
-	}
-}
-
-func NewString(s string) Value {
-	return Value{
-		VType:        ValueTypeString,
-		nonPrimitive: unsafe.Pointer(&s),
 	}
 }

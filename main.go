@@ -1,29 +1,31 @@
 package main
 
 import (
-	"fmt"
+	"github.com/pkg/profile"
 
 	"github.com/joetifa2003/weaver/compiler"
-	"github.com/joetifa2003/weaver/opcode"
 	"github.com/joetifa2003/weaver/parser"
 	"github.com/joetifa2003/weaver/vm"
 )
 
 func main() {
+	defer profile.Start().Stop()
 	src := `
-	x := 0
-	even := 0
+	isEven := |a| a % 2 == 0
 
-	while x < 100 {
-		if x % 2 == 0 {
-			even = even + 1
-		}	
+	x := 0
+
+	eventNums := 0
+
+	while x < 10000000 {
+		if isEven(x) {
+			eventNums = eventNums + 1
+		}
 
 		x = x + 1
 	}
 
-	echo x 
-	echo even
+	echo eventNums 
 	`
 
 	p, err := parser.Parse(src)
@@ -37,7 +39,14 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println(opcode.PrintOpcodes(mainFrame.Instructions))
+	// fmt.Println(opcode.PrintOpcodes(mainFrame.Instructions))
+	//
+	// for _, c := range constants {
+	// 	if c.VType == value.ValueTypeFunction {
+	// 		fn := c.GetFunction()
+	// 		fmt.Println(opcode.PrintOpcodes(fn.Instructions))
+	// 	}
+	// }
 
 	vm := vm.New(constants, mainFrame)
 	vm.Run()

@@ -15,8 +15,13 @@ type Compiler struct {
 }
 
 func New() *Compiler {
+	nilValue := value.Value{}
+	nilValue.SetNil()
 	return &Compiler{
 		frames: &ds.Stack[*Frame]{},
+		constants: []value.Value{
+			nilValue,
+		},
 	}
 }
 
@@ -125,6 +130,32 @@ func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 
 		return instructions, nil
 
+	case ast.ExprStmt:
+		var instructions []opcode.OpCode
+
+		expr, err := c.compileExpr(s.Expr)
+		if err != nil {
+			return nil, err
+		}
+
+		instructions = append(instructions, expr...)
+		instructions = append(instructions, opcode.OP_POP)
+
+		return instructions, nil
+
+	case ast.ReturnStmt:
+		var instructions []opcode.OpCode
+
+		expr, err := c.compileExpr(s.Expr)
+		if err != nil {
+			return nil, err
+		}
+
+		instructions = append(instructions, expr...)
+		instructions = append(instructions, opcode.OP_RET)
+
+		return instructions, nil
+
 	default:
 		panic(fmt.Sprintf("Unimplemented: %T", s))
 	}
@@ -163,6 +194,39 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 
 		return instructions, nil
 
+	case ast.FunctionExpr:
+		c.pushFrame()
+
+		for _, param := range e.Params {
+			c.defineVar(param)
+		}
+
+		body, err := c.compileStmt(e.Body)
+		if err != nil {
+			return nil, err
+		}
+		c.addInstructions(body)
+
+		// default return
+		c.addInstructions([]opcode.OpCode{
+			opcode.OP_CONSTANT,
+			opcode.OpCode(0),
+			opcode.OP_RET,
+		})
+
+		frame := c.popFrame()
+
+		fnValue := value.Value{}
+		fnValue.SetFunction(value.FunctionValue{
+			NumVars:      len(frame.Vars),
+			Instructions: frame.Instructions,
+		})
+
+		return []opcode.OpCode{
+			opcode.OP_CONSTANT,
+			opcode.OpCode(c.defineConstant(fnValue)),
+		}, nil
+
 	case ast.IdentExpr:
 		return []opcode.OpCode{
 			opcode.OP_LOAD,
@@ -184,6 +248,34 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 			opcode.OP_CONSTANT,
 			opcode.OpCode(c.defineConstant(value)),
 		}, nil
+
+	case ast.StringExpr:
+		value := value.Value{}
+		value.SetString(e.Value)
+		return []opcode.OpCode{
+			opcode.OP_CONSTANT,
+			opcode.OpCode(c.defineConstant(value)),
+		}, nil
+
+	case ast.CallExpr:
+		var instructions []opcode.OpCode
+
+		for _, arg := range e.Args {
+			expr, err := c.compileExpr(arg)
+			if err != nil {
+				return nil, err
+			}
+			instructions = append(instructions, expr...)
+		}
+
+		callee, err := c.compileExpr(e.Callee)
+		if err != nil {
+			return nil, err
+		}
+		instructions = append(instructions, callee...)
+		instructions = append(instructions, opcode.OP_CALL, opcode.OpCode(len(e.Args)))
+
+		return instructions, nil
 	}
 
 	panic(fmt.Sprintf("unimplemented %T", e))

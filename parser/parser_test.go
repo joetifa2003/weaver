@@ -126,3 +126,47 @@ func TestBinaryExpr(t *testing.T) {
 		binaryExpr,
 	)
 }
+
+func TestFunctionExpr(t *testing.T) {
+	t.Run("function expr", func(t *testing.T) {
+		assert := require.New(t)
+
+		p := expr()
+
+		expr, err := pargo.Parse(p, newLexer(), "|a, b| {  }")
+		require.NoError(t, err)
+
+		functionExpr, ok := expr.(ast.FunctionExpr)
+		assert.True(ok)
+		assert.Equal(
+			ast.FunctionExpr{
+				Params: []string{"a", "b"},
+				Body: ast.BlockStmt{
+					Statements: nil,
+				},
+			},
+			functionExpr,
+		)
+	})
+
+	t.Run("functionExpr without params", func(t *testing.T) {
+		assert := require.New(t)
+
+		p := expr()
+
+		expr, err := pargo.Parse(p, newLexer(), "|| {  }")
+		require.NoError(t, err)
+
+		functionExpr, ok := expr.(ast.FunctionExpr)
+		assert.True(ok)
+		assert.Equal(
+			ast.FunctionExpr{
+				Params: nil,
+				Body: ast.BlockStmt{
+					Statements: nil,
+				},
+			},
+			functionExpr,
+		)
+	})
+}

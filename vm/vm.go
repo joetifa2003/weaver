@@ -8,41 +8,46 @@ import (
 	"github.com/joetifa2003/weaver/value"
 )
 
-const MaxStack = 1024 * 4
+const MaxStack = 1024 * 2
 
 const MaxCallStack = 1024
 
 type Frame struct {
-	*compiler.Frame
-	ip int
+	ip           int
+	instructions []opcode.OpCode
+	numVars      int
+	stackOffset  int
 }
 
 type VM struct {
-	constants []value.Value
 	stack     [MaxStack]value.Value
-	sp        int
+	callStack [MaxCallStack]*Frame
+	constants []value.Value
+	curFrame  *Frame
 
-	frames [MaxCallStack]*Frame
-	fp     int
+	sp int
+	fp int
 }
 
 func New(constants []value.Value, mainFrame *compiler.Frame) *VM {
-	frames := [MaxCallStack]*Frame{}
-	frames[0] = &Frame{mainFrame, 0}
-	return &VM{
+	vm := &VM{
 		constants: constants,
-		frames:    frames,
-		stack:     [MaxStack]value.Value{},
 		sp:        -1,
-		fp:        0,
+		fp:        -1,
 	}
+
+	vm.pushFrame(&Frame{
+		instructions: mainFrame.Instructions,
+		numVars:      len(mainFrame.Vars),
+		ip:           0,
+	}, 0)
+
+	return vm
 }
 
 func (v *VM) Run() {
-	v.initializeFrame()
-
-	for v.currentFrame().ip < len(v.currentFrame().Instructions) {
-		switch v.currentFrame().Instructions[v.currentFrame().ip] {
+	for v.curFrame.ip < len(v.curFrame.instructions) {
+		switch v.curFrame.instructions[v.curFrame.ip] {
 		case opcode.OP_CONSTANT:
 			v.incrementIP()
 			index := v.currentInstruction()
@@ -52,14 +57,14 @@ func (v *VM) Run() {
 
 		case opcode.OP_LET:
 			v.incrementIP()
-			index := v.currentInstruction()
+			index := int(v.currentInstruction()) + v.curFrame.stackOffset
 			v.stack[index] = v.stack[v.sp]
 			v.sp--
 			v.incrementIP()
 
 		case opcode.OP_LOAD:
 			v.incrementIP()
-			index := v.currentInstruction()
+			index := int(v.currentInstruction()) + v.curFrame.stackOffset
 			val := v.stack[index]
 			v.sp++
 			v.stack[v.sp] = val
@@ -80,7 +85,7 @@ func (v *VM) Run() {
 
 		case opcode.OP_JUMP:
 			v.incrementIP()
-			v.currentFrame().ip += int(v.currentInstruction())
+			v.curFrame.ip += int(v.currentInstruction())
 
 		case opcode.OP_JUMPF:
 			v.incrementIP()
@@ -89,7 +94,7 @@ func (v *VM) Run() {
 			offset := int(v.currentInstruction())
 
 			if !operand.IsTruthy() {
-				v.currentFrame().ip += offset
+				v.curFrame.ip += offset
 			} else {
 				v.incrementIP()
 			}
@@ -170,28 +175,63 @@ func (v *VM) Run() {
 
 			v.incrementIP()
 
+		case opcode.OP_POP:
+			v.sp--
+			v.incrementIP()
+
+		case opcode.OP_CALL:
+			v.incrementIP()
+			numArgs := int(v.currentInstruction())
+
+			callee := v.stack[v.sp]
+			v.sp--
+
+			fn := callee.GetFunction()
+			frame := &Frame{
+				instructions: fn.Instructions,
+				numVars:      fn.NumVars,
+				ip:           0,
+				stackOffset:  v.sp - numArgs + 1,
+			}
+			v.incrementIP()
+
+			v.pushFrame(frame, numArgs)
+
+		case opcode.OP_RET:
+			val := v.stack[v.sp]
+			v.sp = v.curFrame.stackOffset
+			v.stack[v.sp] = val
+			v.popFrame()
+
 		default:
 			panic(fmt.Sprintf("unimplemented %s", v.currentInstruction()))
 		}
 	}
 }
 
-func (v *VM) currentFrame() *Frame {
-	return v.frames[v.fp]
-}
-
 func (v *VM) incrementIP() {
-	v.currentFrame().ip++
+	v.curFrame.ip++
 }
 
 func (v *VM) currentInstruction() opcode.OpCode {
-	return v.currentFrame().Instructions[v.currentFrame().ip]
+	return v.curFrame.instructions[v.curFrame.ip]
 }
 
-func (v *VM) initializeFrame() {
-	f := v.currentFrame()
-	for range f.Vars {
+func (v *VM) pushFrame(f *Frame, args int) {
+	v.fp++
+
+	for range f.numVars - args {
 		v.sp++
-		v.stack[v.sp] = value.Value{}
+		val := value.Value{}
+		val.SetNil()
+		v.stack[v.sp] = val
 	}
+
+	v.callStack[v.fp] = f
+	v.curFrame = f
+}
+
+func (v *VM) popFrame() {
+	v.fp--
+	v.curFrame = v.callStack[v.fp]
 }

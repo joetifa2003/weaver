@@ -41,3 +41,15 @@ type IfStmt struct {
 }
 
 func (t IfStmt) stmt() {}
+
+type ReturnStmt struct {
+	Expr Expr
+}
+
+func (t ReturnStmt) stmt() {}
+
+type ExprStmt struct {
+	Expr Expr
+}
+
+func (t ExprStmt) stmt() {}

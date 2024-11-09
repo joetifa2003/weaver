@@ -38,3 +38,17 @@ type IdentExpr struct {
 }
 
 func (t IdentExpr) expr() {}
+
+type FunctionExpr struct {
+	Params []string
+	Body   Statement
+}
+
+func (t FunctionExpr) expr() {}
+
+type CallExpr struct {
+	Callee Expr
+	Args   []Expr
+}
+
+func (t CallExpr) expr() {}

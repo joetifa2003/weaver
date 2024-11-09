@@ -70,13 +70,36 @@ func ifStmt() pargo.Parser[ast.Statement] {
 	)
 }
 
+func returnStmt() pargo.Parser[ast.Statement] {
+	return pargo.Sequence2(
+		pargo.Exactly("return"),
+		expr(),
+		func(_ string, expr ast.Expr) ast.Statement {
+			return ast.ReturnStmt{Expr: expr}
+		},
+	)
+}
+
+func exprStmt() pargo.Parser[ast.Statement] {
+	return pargo.Map(
+		expr(),
+		func(expr ast.Expr) (ast.Statement, error) {
+			return ast.ExprStmt{Expr: expr}, nil
+		},
+	)
+}
+
 func stmt() pargo.Parser[ast.Statement] {
 	return pargo.OneOf(
+		varDeclStmt(),
 		blockStmt(),
 		echoStmt(),
-		varDeclStmt(),
 		assignStmt(),
 		whileStmt(),
 		ifStmt(),
+		returnStmt(),
+
+		// keep this at the end
+		exprStmt(),
 	)
 }

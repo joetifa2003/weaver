@@ -123,7 +123,7 @@ func Map[T, U any](p Parser[T], f func(T) (U, error)) Parser[U] {
 	}
 }
 
-func ManySep[T any, S any](p Parser[T], separator Parser[S]) Parser[[]T] {
+func SomeSep[T any, S any](p Parser[T], separator Parser[S]) Parser[[]T] {
 	return Sequence2(
 		Many(
 			Sequence2(
@@ -137,6 +137,40 @@ func ManySep[T any, S any](p Parser[T], separator Parser[S]) Parser[[]T] {
 		p,
 		func(a []T, b T) []T {
 			return append(a, b)
+		},
+	)
+}
+
+func Optional[T any](p Parser[T]) Parser[*T] {
+	return func(state State) (*T, State, error) {
+		oldState := state
+
+		res, state, err := p(state)
+		if err != nil {
+			return nil, oldState, nil
+		}
+
+		return &res, state, nil
+	}
+}
+
+func ManySep[T any, S any](p Parser[T], separator Parser[S]) Parser[[]T] {
+	return Sequence2(
+		Many(
+			Sequence2(
+				p,
+				separator,
+				func(a T, _ S) T {
+					return a
+				},
+			),
+		),
+		Optional(p),
+		func(a []T, b *T) []T {
+			if b == nil {
+				return a
+			}
+			return append(a, *b)
 		},
 	)
 }

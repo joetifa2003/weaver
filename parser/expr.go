@@ -63,7 +63,7 @@ func stringExpr() pargo.Parser[ast.Expr] {
 
 func binaryExpr(operand pargo.Parser[ast.Expr], op string) pargo.Parser[ast.Expr] {
 	return pargo.Map(
-		pargo.ManySep(operand, pargo.Exactly(op)),
+		pargo.SomeSep(operand, pargo.Exactly(op)),
 		func(exprs []ast.Expr) (ast.Expr, error) {
 			if len(exprs) == 1 {
 				return exprs[0], nil
@@ -83,13 +83,32 @@ func identExpr() pargo.Parser[ast.Expr] {
 	)
 }
 
-func atom() pargo.Parser[ast.Expr] {
-	return pargo.OneOf(
-		intExpr(),
-		floatExpr(),
-		booleanExpr(),
-		stringExpr(),
-		identExpr(),
+func functionExpr() pargo.Parser[ast.Expr] {
+	return pargo.Sequence4(
+		pargo.Exactly("|"),
+		pargo.ManySep(pargo.TokenType(TT_IDENT), pargo.Exactly(",")),
+		pargo.Exactly("|"),
+		blockStmt(),
+		func(_ string, params []string, _ string, body ast.Statement) ast.Expr {
+			return ast.FunctionExpr{Params: params, Body: body}
+		},
+	)
+}
+
+func lambdaExpr() pargo.Parser[ast.Expr] {
+	return pargo.Sequence4(
+		pargo.Exactly("|"),
+		pargo.ManySep(pargo.TokenType(TT_IDENT), pargo.Exactly(",")),
+		pargo.Exactly("|"),
+		pargo.Lazy(expr),
+		func(_ string, params []string, _ string, expr ast.Expr) ast.Expr {
+			return ast.FunctionExpr{
+				Params: params,
+				Body: ast.ReturnStmt{
+					Expr: expr,
+				},
+			}
+		},
 	)
 }
 
@@ -141,7 +160,34 @@ func mulExpr() pargo.Parser[ast.Expr] {
 
 func divExpr() pargo.Parser[ast.Expr] {
 	return binaryExpr(
-		atom(),
+		callExpr(),
 		"/",
+	)
+}
+
+func callExpr() pargo.Parser[ast.Expr] {
+	return pargo.OneOf(
+		pargo.Sequence4(
+			atom(),
+			pargo.Exactly("("),
+			pargo.ManySep(pargo.Lazy(expr), pargo.Exactly(",")),
+			pargo.Exactly(")"),
+			func(callee ast.Expr, _ string, args []ast.Expr, _ string) ast.Expr {
+				return ast.CallExpr{Callee: callee, Args: args}
+			},
+		),
+		atom(),
+	)
+}
+
+func atom() pargo.Parser[ast.Expr] {
+	return pargo.OneOf(
+		intExpr(),
+		floatExpr(),
+		booleanExpr(),
+		stringExpr(),
+		identExpr(),
+		functionExpr(),
+		lambdaExpr(),
 	)
 }

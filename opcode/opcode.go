@@ -6,6 +6,10 @@ type OpCode int
 
 const (
 	OP_CONSTANT OpCode = iota // arg1: constant index
+	OP_POP
+
+	OP_CALL
+	OP_RET
 
 	OP_LET    // arg1: variable index
 	OP_ASSIGN // arg1: variable index
@@ -84,6 +88,17 @@ func PrintOpcodes(instructions []OpCode) string {
 
 		case OP_EQ:
 			out += "eq\n"
+
+		case OP_POP:
+			out += "pop\n"
+
+		case OP_CALL:
+			i++
+			op1 := instructions[i]
+			out += fmt.Sprintf("call %d\n", op1)
+
+		case OP_RET:
+			out += "ret\n"
 
 		default:
 			out += fmt.Sprintf("unknown opcode %d\n", instr)

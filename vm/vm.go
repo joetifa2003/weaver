@@ -8,7 +8,7 @@ import (
 	"github.com/joetifa2003/weaver/value"
 )
 
-const MaxStack = 1024 * 2
+const MaxStack = 1024
 
 const MaxCallStack = 1024
 
@@ -49,54 +49,51 @@ func (v *VM) Run() {
 	for v.curFrame.ip < len(v.curFrame.instructions) {
 		switch v.curFrame.instructions[v.curFrame.ip] {
 		case opcode.OP_CONSTANT:
-			v.incrementIP()
-			index := v.currentInstruction()
+			index := v.curFrame.instructions[v.curFrame.ip+1]
 			v.sp++
 			v.stack[v.sp] = v.constants[index]
-			v.incrementIP()
+			v.curFrame.ip += 2
 
 		case opcode.OP_LET:
-			v.incrementIP()
-			index := int(v.currentInstruction()) + v.curFrame.stackOffset
+			index := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+1])
 			v.stack[index] = v.stack[v.sp]
 			v.sp--
-			v.incrementIP()
+			v.curFrame.ip += 2
 
 		case opcode.OP_LOAD:
-			v.incrementIP()
-			index := int(v.currentInstruction()) + v.curFrame.stackOffset
+			index := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+1])
 			val := v.stack[index]
 			v.sp++
 			v.stack[v.sp] = val
-			v.incrementIP()
+			v.curFrame.ip += 2
 
 		case opcode.OP_ASSIGN:
-			v.incrementIP()
-			index := v.currentInstruction()
+			index := v.curFrame.instructions[v.curFrame.ip+1]
+
 			v.stack[index] = v.stack[v.sp]
 			v.sp--
-			v.incrementIP()
+			v.curFrame.ip += 2
 
 		case opcode.OP_ECHO:
 			value := v.stack[v.sp]
 			v.sp--
 			fmt.Println(value.String())
-			v.incrementIP()
+			v.curFrame.ip += 2
 
 		case opcode.OP_JUMP:
-			v.incrementIP()
-			v.curFrame.ip += int(v.currentInstruction())
+			v.curFrame.ip++
+			v.curFrame.ip += int(v.curFrame.instructions[v.curFrame.ip])
 
 		case opcode.OP_JUMPF:
-			v.incrementIP()
+			v.curFrame.ip++
 			operand := v.stack[v.sp]
 			v.sp--
-			offset := int(v.currentInstruction())
+			offset := int(v.curFrame.instructions[v.curFrame.ip])
 
-			if !operand.IsTruthy() {
-				v.curFrame.ip += offset
+			if operand.IsTruthy() {
+				v.curFrame.ip++
 			} else {
-				v.incrementIP()
+				v.curFrame.ip += offset
 			}
 
 		case opcode.OP_LT:
@@ -116,7 +113,7 @@ func (v *VM) Run() {
 				panic(fmt.Sprintf("illegal operation %s < %s", left, right))
 			}
 
-			v.incrementIP()
+			v.curFrame.ip++
 
 		case opcode.OP_ADD:
 			right := v.stack[v.sp]
@@ -146,7 +143,7 @@ func (v *VM) Run() {
 				panic(fmt.Sprintf("illegal operation %s + %s", left, right))
 			}
 
-			v.incrementIP()
+			v.curFrame.ip++
 
 		case opcode.OP_MUL:
 			right := v.stack[v.sp]
@@ -155,7 +152,7 @@ func (v *VM) Run() {
 
 			v.stack[v.sp].SetInt(left.GetInt() * right.GetInt())
 
-			v.incrementIP()
+			v.curFrame.ip++
 
 		case opcode.OP_MOD:
 			right := v.stack[v.sp]
@@ -164,7 +161,7 @@ func (v *VM) Run() {
 
 			v.stack[v.sp].SetInt(left.GetInt() % right.GetInt())
 
-			v.incrementIP()
+			v.curFrame.ip++
 
 		case opcode.OP_EQ:
 			right := v.stack[v.sp]
@@ -173,16 +170,14 @@ func (v *VM) Run() {
 
 			v.stack[v.sp].SetBool(left.GetInt() == right.GetInt())
 
-			v.incrementIP()
+			v.curFrame.ip++
 
 		case opcode.OP_POP:
 			v.sp--
-			v.incrementIP()
+			v.curFrame.ip++
 
 		case opcode.OP_CALL:
-			v.incrementIP()
-			numArgs := int(v.currentInstruction())
-
+			numArgs := int(v.curFrame.instructions[v.curFrame.ip+1])
 			callee := v.stack[v.sp]
 			v.sp--
 
@@ -193,7 +188,8 @@ func (v *VM) Run() {
 				ip:           0,
 				stackOffset:  v.sp - numArgs + 1,
 			}
-			v.incrementIP()
+
+			v.curFrame.ip += 2
 
 			v.pushFrame(frame, numArgs)
 
@@ -204,17 +200,9 @@ func (v *VM) Run() {
 			v.popFrame()
 
 		default:
-			panic(fmt.Sprintf("unimplemented %s", v.currentInstruction()))
+			panic(fmt.Sprintf("unimplemented %s", v.curFrame.instructions[v.curFrame.ip]))
 		}
 	}
-}
-
-func (v *VM) incrementIP() {
-	v.curFrame.ip++
-}
-
-func (v *VM) currentInstruction() opcode.OpCode {
-	return v.curFrame.instructions[v.curFrame.ip]
 }
 
 func (v *VM) pushFrame(f *Frame, args int) {

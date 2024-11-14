@@ -1,22 +1,20 @@
 package main
 
 import (
-	"github.com/pkg/profile"
-
 	"github.com/joetifa2003/weaver/compiler"
 	"github.com/joetifa2003/weaver/parser"
 	"github.com/joetifa2003/weaver/vm"
 )
 
 func main() {
-	defer profile.Start().Stop()
+	// defer profile.Start().Stop()
+
 	src := `
 	isEven := |a| a % 2 == 0
 
-	x := 0
-
 	eventNums := 0
 
+	x := 0
 	while x < 10000000 {
 		if isEven(x) {
 			eventNums = eventNums + 1
@@ -47,7 +45,7 @@ func main() {
 	// 		fmt.Println(opcode.PrintOpcodes(fn.Instructions))
 	// 	}
 	// }
-
+	//
 	vm := vm.New(constants, mainFrame)
 	vm.Run()
 }

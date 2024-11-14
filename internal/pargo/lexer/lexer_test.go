@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	TT_IDENT RegexTokenType = iota
+	TT_IDENT = iota
 	TT_WHITESPACE
 )
 

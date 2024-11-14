@@ -10,20 +10,17 @@ func main() {
 	// defer profile.Start().Stop()
 
 	src := `
-	isEven := |a| a % 2 == 0
-
-	eventNums := 0
-
+	evenNums := 0
 	x := 0
 	while x < 10000000 {
-		if isEven(x) {
-			eventNums = eventNums + 1
+		if x % 2 == 0 {
+			evenNums = evenNums + 1
 		}
 
 		x = x + 1
 	}
 
-	echo eventNums 
+	echo evenNums
 	`
 
 	p, err := parser.Parse(src)

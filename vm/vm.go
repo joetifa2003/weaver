@@ -46,7 +46,7 @@ func New(constants []value.Value, mainFrame *compiler.Frame) *VM {
 }
 
 func (v *VM) Run() {
-	for v.curFrame.ip < len(v.curFrame.instructions) {
+	for {
 		switch v.curFrame.instructions[v.curFrame.ip] {
 		case opcode.OP_CONSTANT:
 			index := v.curFrame.instructions[v.curFrame.ip+1]
@@ -78,7 +78,7 @@ func (v *VM) Run() {
 			value := v.stack[v.sp]
 			v.sp--
 			fmt.Println(value.String())
-			v.curFrame.ip += 2
+			v.curFrame.ip += 1
 
 		case opcode.OP_JUMP:
 			v.curFrame.ip++
@@ -198,6 +198,9 @@ func (v *VM) Run() {
 			v.sp = v.curFrame.stackOffset
 			v.stack[v.sp] = val
 			v.popFrame()
+
+		case opcode.OP_HALT:
+			return
 
 		default:
 			panic(fmt.Sprintf("unimplemented %s", v.curFrame.instructions[v.curFrame.ip]))

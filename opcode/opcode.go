@@ -10,6 +10,7 @@ const (
 
 	OP_CALL
 	OP_RET
+	OP_HALT
 
 	OP_LET    // arg1: variable index
 	OP_ASSIGN // arg1: variable index
@@ -99,6 +100,9 @@ func PrintOpcodes(instructions []OpCode) string {
 
 		case OP_RET:
 			out += "ret\n"
+
+		case OP_HALT:
+			out += "halt\n"
 
 		default:
 			out += fmt.Sprintf("unknown opcode %d\n", instr)

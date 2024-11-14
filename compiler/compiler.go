@@ -36,7 +36,10 @@ func (c *Compiler) Compile(p ast.Program) (*Frame, []value.Value, error) {
 		c.addInstructions(instructions)
 	}
 
-	return c.popFrame(), c.constants, nil
+	mainFrame := c.popFrame()
+	mainFrame.Instructions = append(mainFrame.Instructions, opcode.OP_HALT)
+
+	return mainFrame, c.constants, nil
 }
 
 func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {

@@ -68,7 +68,7 @@ func (v *VM) Run() {
 			v.curFrame.ip += 2
 
 		case opcode.OP_ASSIGN:
-			index := v.curFrame.instructions[v.curFrame.ip+1]
+			index := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+1])
 
 			v.stack[index] = v.stack[v.sp]
 			v.sp--

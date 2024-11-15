@@ -125,18 +125,18 @@ func Map[T, U any](p Parser[T], f func(T) (U, error)) Parser[U] {
 
 func SomeSep[T any, S any](p Parser[T], separator Parser[S]) Parser[[]T] {
 	return Sequence2(
+		p,
 		Many(
 			Sequence2(
-				p,
 				separator,
-				func(a T, _ S) T {
+				p,
+				func(_ S, a T) T {
 					return a
 				},
 			),
 		),
-		p,
-		func(a []T, b T) []T {
-			return append(a, b)
+		func(b T, a []T) []T {
+			return append([]T{b}, a...)
 		},
 	)
 }

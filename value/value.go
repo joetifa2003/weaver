@@ -149,7 +149,7 @@ func (v Value) String() string {
 	case ValueTypeObject:
 		return "object"
 	case ValueTypeBool:
-		return "bool"
+		return fmt.Sprint(v.GetBool())
 	case ValueTypeFunction:
 		return "function"
 	default:

@@ -48,17 +48,17 @@ func New(constants []value.Value, mainFrame *compiler.Frame) *VM {
 func (v *VM) Run() {
 	for {
 		switch v.curFrame.instructions[v.curFrame.ip] {
-		case opcode.OP_CONSTANT:
+		case opcode.OP_CONST:
 			index := v.curFrame.instructions[v.curFrame.ip+1]
 			v.sp++
 			v.stack[v.sp] = v.constants[index]
 			v.curFrame.ip += 2
 
-		case opcode.OP_LET:
-			index := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+1])
-			v.stack[index] = v.stack[v.sp]
-			v.sp--
-			v.curFrame.ip += 2
+		case opcode.OP_CONST_STORE:
+			constantIdx := int(v.curFrame.instructions[v.curFrame.ip+1])
+			variableIdx := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+2])
+			v.stack[variableIdx] = v.constants[constantIdx]
+			v.curFrame.ip += 3
 
 		case opcode.OP_LOAD:
 			index := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+1])
@@ -119,34 +119,33 @@ func (v *VM) Run() {
 
 			v.curFrame.ip++
 
+		case opcode.OP_LOAD_CONST_ADD_STORE:
+			constantIdx := int(v.curFrame.instructions[v.curFrame.ip+1])
+			variableIdx := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+2])
+			variableIdx2 := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+3])
+			v.stack[variableIdx2] = v.constants[constantIdx].Add(v.stack[variableIdx])
+			v.curFrame.ip += 4
+
+		case opcode.OP_LOAD_CONST_ADD:
+			constantIdx := int(v.curFrame.instructions[v.curFrame.ip+1])
+			variableIdx := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+2])
+			v.sp++
+			v.stack[v.sp] = v.constants[constantIdx].Add(v.stack[variableIdx])
+			v.curFrame.ip += 3
+
+		case opcode.OP_CONST_ADD:
+			constantIdx := int(v.curFrame.instructions[v.curFrame.ip+1])
+			right := v.constants[constantIdx]
+			left := v.stack[v.sp]
+			v.stack[v.sp] = left.Add(right)
+			v.curFrame.ip += 2
+
 		case opcode.OP_ADD:
 			right := v.stack[v.sp]
 			left := v.stack[v.sp-1]
 			v.sp--
 
-			switch left.VType {
-			case value.ValueTypeInt:
-				switch right.VType {
-				case value.ValueTypeInt:
-					v.stack[v.sp].SetInt(left.GetInt() + right.GetInt())
-				case value.ValueTypeFloat:
-					v.stack[v.sp].SetFloat(float64(left.GetInt()) + right.GetFloat())
-				default:
-					panic(fmt.Sprintf("illegal operation %s + %s", left, right))
-				}
-			case value.ValueTypeFloat:
-				switch right.VType {
-				case value.ValueTypeInt:
-					v.stack[v.sp].SetFloat(left.GetFloat() + float64(right.GetInt()))
-				case value.ValueTypeFloat:
-					v.stack[v.sp].SetFloat(left.GetFloat() + right.GetFloat())
-				default:
-					panic(fmt.Sprintf("illegal operation %s + %s", left, right))
-				}
-			default:
-				panic(fmt.Sprintf("illegal operation %s + %s", left, right))
-			}
-
+			v.stack[v.sp] = left.Add(right)
 			v.curFrame.ip++
 
 		case opcode.OP_MUL:

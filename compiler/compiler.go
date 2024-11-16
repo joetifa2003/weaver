@@ -39,10 +39,12 @@ func (c *Compiler) Compile(p ast.Program) (*Frame, []value.Value, error) {
 
 	mainFrame := c.popFrame()
 	mainFrame.Instructions = append(mainFrame.Instructions, opcode.OP_HALT)
+	mainFrame.Instructions = c.optimize(mainFrame.Instructions)
 	mainFrame.Instructions = c.handleLabels(mainFrame.Instructions)
 
 	for _, f := range c.functionsIdx {
 		fn := c.constants[f].GetFunction()
+		fn.Instructions = c.optimize(fn.Instructions)
 		fn.Instructions = c.handleLabels(fn.Instructions)
 	}
 
@@ -113,7 +115,7 @@ func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 			return nil, err
 		}
 		instructions = append(instructions, expr...)
-		instructions = append(instructions, opcode.OP_LET)
+		instructions = append(instructions, opcode.OP_STORE)
 		instructions = append(instructions, opcode.OpCode(c.defineVar(s.Name)))
 
 		return instructions, nil
@@ -206,35 +208,42 @@ func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 	}
 }
 
+func (c *Compiler) operatorOpcode(operator string) opcode.OpCode {
+	switch operator {
+	case "+":
+		return opcode.OP_ADD
+	case "*":
+		return opcode.OP_MUL
+	case "<":
+		return opcode.OP_LT
+	case "%":
+		return opcode.OP_MOD
+	case "/":
+		return opcode.OP_DIV
+	case "==":
+		return opcode.OP_EQ
+	default:
+		panic(fmt.Sprintf("unimplemented operator %s", operator))
+	}
+}
+
 func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 	switch e := e.(type) {
 	case ast.BinaryExpr:
 		var instructions []opcode.OpCode
-		for _, operand := range e.Operands {
+		for i, operand := range e.Operands {
 			expr, err := c.compileExpr(operand)
 			if err != nil {
 				return nil, err
 			}
 			instructions = append(instructions, expr...)
-		}
 
-		for range len(e.Operands) - 1 {
-			switch e.Operator {
-			case "+":
-				instructions = append(instructions, opcode.OP_ADD)
-			case "*":
-				instructions = append(instructions, opcode.OP_MUL)
-			case "<":
-				instructions = append(instructions, opcode.OP_LT)
-			case "%":
-				instructions = append(instructions, opcode.OP_MOD)
-			case "/":
-				instructions = append(instructions, opcode.OP_DIV)
-			case "==":
-				instructions = append(instructions, opcode.OP_EQ)
-			default:
-				panic(fmt.Sprintf("unimplemented operator %s", e.Operator))
+			if (i+1)%2 == 0 {
+				instructions = append(instructions, c.operatorOpcode(e.Operator))
 			}
+		}
+		if len(e.Operands)%2 != 0 {
+			instructions = append(instructions, c.operatorOpcode(e.Operator))
 		}
 
 		return instructions, nil
@@ -254,7 +263,7 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 
 		// default return
 		c.addInstructions([]opcode.OpCode{
-			opcode.OP_CONSTANT,
+			opcode.OP_CONST,
 			opcode.OpCode(0),
 			opcode.OP_RET,
 		})
@@ -271,7 +280,7 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 		c.functionsIdx = append(c.functionsIdx, constant)
 
 		return []opcode.OpCode{
-			opcode.OP_CONSTANT,
+			opcode.OP_CONST,
 			opcode.OpCode(constant),
 		}, nil
 
@@ -285,7 +294,7 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 		value := value.Value{}
 		value.SetInt(e.Value)
 		return []opcode.OpCode{
-			opcode.OP_CONSTANT,
+			opcode.OP_CONST,
 			opcode.OpCode(c.defineConstant(value)),
 		}, nil
 
@@ -293,7 +302,7 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 		value := value.Value{}
 		value.SetFloat(e.Value)
 		return []opcode.OpCode{
-			opcode.OP_CONSTANT,
+			opcode.OP_CONST,
 			opcode.OpCode(c.defineConstant(value)),
 		}, nil
 
@@ -301,7 +310,7 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 		value := value.Value{}
 		value.SetString(e.Value)
 		return []opcode.OpCode{
-			opcode.OP_CONSTANT,
+			opcode.OP_CONST,
 			opcode.OpCode(c.defineConstant(value)),
 		}, nil
 
@@ -310,7 +319,7 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 		value.SetBool(e.Value)
 
 		return []opcode.OpCode{
-			opcode.OP_CONSTANT,
+			opcode.OP_CONST,
 			opcode.OpCode(c.defineConstant(value)),
 		}, nil
 

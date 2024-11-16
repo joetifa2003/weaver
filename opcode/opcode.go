@@ -9,7 +9,7 @@ import (
 type OpCode int
 
 const (
-	OP_CONSTANT OpCode = iota // arg1: constant index
+	OP_CONST OpCode = iota // arg1: constant index
 	OP_POP
 
 	OP_LABEL
@@ -18,7 +18,6 @@ const (
 	OP_RET
 	OP_HALT
 
-	OP_LET   // arg1: variable index
 	OP_STORE // arg1: variable index
 	OP_LOAD  // arg1: variable index
 
@@ -34,6 +33,11 @@ const (
 	OP_EQ
 
 	OP_ECHO
+
+	OP_CONST_STORE          // arg1: constant index; arg2: variable index
+	OP_LOAD_CONST_ADD       // arg1: constant index; arg2: variable index
+	OP_LOAD_CONST_ADD_STORE // arg1: constant index; arg2: variable index; arg3: variable index
+	OP_CONST_ADD            // arg1: constant index;
 )
 
 type OpCodeDef struct {
@@ -43,25 +47,28 @@ type OpCodeDef struct {
 }
 
 var opCodeDefs = map[OpCode]OpCodeDef{
-	OP_CONSTANT: {OP_CONSTANT, "const", 1},
-	OP_POP:      {OP_POP, "pop", 0},
-	OP_CALL:     {OP_CALL, "call", 1},
-	OP_RET:      {OP_RET, "ret", 0},
-	OP_HALT:     {OP_HALT, "halt", 0},
-	OP_LET:      {OP_LET, "let", 1},
-	OP_STORE:    {OP_STORE, "store", 1},
-	OP_LOAD:     {OP_LOAD, "load", 1},
-	OP_JUMP:     {OP_JUMP, "jump", 1},
-	OP_JUMPF:    {OP_JUMPF, "jumpf", 1},
-	OP_ADD:      {OP_ADD, "add", 0},
-	OP_MUL:      {OP_MUL, "mul", 0},
-	OP_DIV:      {OP_DIV, "div", 0},
-	OP_MOD:      {OP_MOD, "mod", 0},
-	OP_SUB:      {OP_SUB, "sub", 0},
-	OP_LT:       {OP_LT, "lt", 0},
-	OP_EQ:       {OP_EQ, "eq", 0},
-	OP_ECHO:     {OP_ECHO, "echo", 0},
-	OP_LABEL:    {OP_ECHO, "label", 1},
+	OP_CONST:                {OP_CONST, "const", 1},
+	OP_POP:                  {OP_POP, "pop", 0},
+	OP_CALL:                 {OP_CALL, "call", 1},
+	OP_RET:                  {OP_RET, "ret", 0},
+	OP_HALT:                 {OP_HALT, "halt", 0},
+	OP_STORE:                {OP_STORE, "store", 1},
+	OP_LOAD:                 {OP_LOAD, "load", 1},
+	OP_JUMP:                 {OP_JUMP, "jmp", 1},
+	OP_JUMPF:                {OP_JUMPF, "jmpf", 1},
+	OP_ADD:                  {OP_ADD, "add", 0},
+	OP_MUL:                  {OP_MUL, "mul", 0},
+	OP_DIV:                  {OP_DIV, "div", 0},
+	OP_MOD:                  {OP_MOD, "mod", 0},
+	OP_SUB:                  {OP_SUB, "sub", 0},
+	OP_LT:                   {OP_LT, "lt", 0},
+	OP_EQ:                   {OP_EQ, "eq", 0},
+	OP_ECHO:                 {OP_ECHO, "echo", 0},
+	OP_LABEL:                {OP_ECHO, "label", 1},
+	OP_CONST_STORE:          {OP_CONST_STORE, "sconst", 2},
+	OP_LOAD_CONST_ADD:       {OP_LOAD_CONST_ADD, "lcadd", 2},
+	OP_LOAD_CONST_ADD_STORE: {OP_LOAD_CONST_ADD_STORE, "lcastore", 3},
+	OP_CONST_ADD:            {OP_CONST_ADD, "cadd", 1},
 }
 
 type DecodedOpCode struct {
@@ -73,7 +80,6 @@ type DecodedOpCode struct {
 
 func OpCodeIterator(instruction []OpCode, skip ...OpCode) iter.Seq2[int, DecodedOpCode] {
 	return func(yield func(int, DecodedOpCode) bool) {
-		k := 0
 
 		for i := 0; i < len(instruction); i++ {
 			res := DecodedOpCode{}
@@ -94,10 +100,9 @@ func OpCodeIterator(instruction []OpCode, skip ...OpCode) iter.Seq2[int, Decoded
 				continue
 			}
 
-			if !yield(k, res) {
+			if !yield(i, res) {
 				return
 			}
-			k++
 		}
 	}
 }

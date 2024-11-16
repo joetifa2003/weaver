@@ -52,3 +52,9 @@ type CallExpr struct {
 }
 
 func (t CallExpr) expr() {}
+
+type PipeExpr struct {
+	Exprs []Expr
+}
+
+func (t PipeExpr) expr() {}

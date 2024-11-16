@@ -13,18 +13,11 @@ import (
 
 func main() {
 	src := `
-	i := 0
-	evenNums := 0
+	isEven := |n| n % 2 == 0	
+	add := |a, b| a + b
 
-	while i < 10000000 {
-		if i % 2 == 0 {
-			evenNums = evenNums + 1
-		}
-
-		i = i + 1
-	}
-
-	echo evenNums
+	a := 1 | add(1) | isEven()
+	echo a
 	`
 
 	pt := time.Now()
@@ -40,7 +33,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	_ = constants
 	fmt.Println("compiler took: ", time.Since(ct))
 
 	fmt.Println(opcode.PrintOpcodes(mainFrame.Instructions))

@@ -1,6 +1,7 @@
 package compiler
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/joetifa2003/weaver/ast"
@@ -212,16 +213,31 @@ func (c *Compiler) operatorOpcode(operator string) opcode.OpCode {
 	switch operator {
 	case "+":
 		return opcode.OP_ADD
+
 	case "*":
 		return opcode.OP_MUL
-	case "<":
-		return opcode.OP_LT
+
 	case "%":
 		return opcode.OP_MOD
+
 	case "/":
 		return opcode.OP_DIV
+
 	case "==":
 		return opcode.OP_EQ
+
+	case "<":
+		return opcode.OP_LT
+
+	case "<=":
+		return opcode.OP_LTE
+
+	case ">":
+		return opcode.OP_GT
+
+	case ">=":
+		return opcode.OP_GTE
+
 	default:
 		panic(fmt.Sprintf("unimplemented operator %s", operator))
 	}
@@ -231,6 +247,11 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 	switch e := e.(type) {
 	case ast.BinaryExpr:
 		var instructions []opcode.OpCode
+
+		if e.Operator == "|" {
+			return c.compilePipeExpr(e)
+		}
+
 		for i, operand := range e.Operands {
 			expr, err := c.compileExpr(operand)
 			if err != nil {
@@ -345,6 +366,21 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 	}
 
 	panic(fmt.Sprintf("unimplemented %T", e))
+}
+
+func (c *Compiler) compilePipeExpr(e ast.BinaryExpr) ([]opcode.OpCode, error) {
+	left := e.Operands[0]
+	for _, right := range e.Operands[1:] {
+		switch right := right.(type) {
+		case ast.CallExpr:
+			right.Args = append([]ast.Expr{left}, right.Args...)
+			left = right
+		default:
+			return nil, errors.New("right operand of pipe must be a call expression")
+		}
+	}
+
+	return c.compileExpr(left)
 }
 
 func (c *Compiler) defineVar(name string) int {

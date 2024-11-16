@@ -30,7 +30,10 @@ const (
 	OP_MOD
 	OP_SUB
 	OP_LT
+	OP_LTE
 	OP_EQ
+	OP_GT
+	OP_GTE
 
 	OP_ECHO
 

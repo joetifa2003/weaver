@@ -112,12 +112,12 @@ func (v *Value) SetFunction(f FunctionValue) {
 	v.nonPrimitive = unsafe.Pointer(&f)
 }
 
-func (v *Value) GetFunction() FunctionValue {
+func (v *Value) GetFunction() *FunctionValue {
 	if v.VType != ValueTypeFunction {
 		panic("Value.GetFunction(): not a function")
 	}
 
-	return *(*FunctionValue)(v.nonPrimitive)
+	return (*FunctionValue)(v.nonPrimitive)
 }
 
 func (v *Value) SetString(s string) {

@@ -1,6 +1,10 @@
 package opcode
 
-import "fmt"
+import (
+	"fmt"
+	"iter"
+	"slices"
+)
 
 type OpCode int
 
@@ -8,13 +12,15 @@ const (
 	OP_CONSTANT OpCode = iota // arg1: constant index
 	OP_POP
 
+	OP_LABEL
+
 	OP_CALL
 	OP_RET
 	OP_HALT
 
-	OP_LET    // arg1: variable index
-	OP_ASSIGN // arg1: variable index
-	OP_LOAD   // arg1: variable index
+	OP_LET   // arg1: variable index
+	OP_STORE // arg1: variable index
+	OP_LOAD  // arg1: variable index
 
 	OP_JUMP  // arg1: jump offset
 	OP_JUMPF // arg1: jump offset
@@ -30,83 +36,88 @@ const (
 	OP_ECHO
 )
 
+type OpCodeDef struct {
+	Code      OpCode
+	Name      string
+	ArgsCount int
+}
+
+var opCodeDefs = map[OpCode]OpCodeDef{
+	OP_CONSTANT: {OP_CONSTANT, "const", 1},
+	OP_POP:      {OP_POP, "pop", 0},
+	OP_CALL:     {OP_CALL, "call", 1},
+	OP_RET:      {OP_RET, "ret", 0},
+	OP_HALT:     {OP_HALT, "halt", 0},
+	OP_LET:      {OP_LET, "let", 1},
+	OP_STORE:    {OP_STORE, "store", 1},
+	OP_LOAD:     {OP_LOAD, "load", 1},
+	OP_JUMP:     {OP_JUMP, "jump", 1},
+	OP_JUMPF:    {OP_JUMPF, "jumpf", 1},
+	OP_ADD:      {OP_ADD, "add", 0},
+	OP_MUL:      {OP_MUL, "mul", 0},
+	OP_DIV:      {OP_DIV, "div", 0},
+	OP_MOD:      {OP_MOD, "mod", 0},
+	OP_SUB:      {OP_SUB, "sub", 0},
+	OP_LT:       {OP_LT, "lt", 0},
+	OP_EQ:       {OP_EQ, "eq", 0},
+	OP_ECHO:     {OP_ECHO, "echo", 0},
+	OP_LABEL:    {OP_ECHO, "label", 1},
+}
+
+type DecodedOpCode struct {
+	Op   OpCode
+	Addr int
+	Name string
+	Args []OpCode
+}
+
+func OpCodeIterator(instruction []OpCode, skip ...OpCode) iter.Seq2[int, DecodedOpCode] {
+	return func(yield func(int, DecodedOpCode) bool) {
+		k := 0
+
+		for i := 0; i < len(instruction); i++ {
+			res := DecodedOpCode{}
+			def, ok := opCodeDefs[instruction[i]]
+			if !ok {
+				panic(fmt.Sprintf("unknown instruction %d", instruction))
+			}
+			res.Name = def.Name
+			res.Op = instruction[i]
+			res.Addr = i
+
+			for range def.ArgsCount {
+				i++
+				res.Args = append(res.Args, instruction[i])
+			}
+
+			if slices.Contains(skip, res.Op) {
+				continue
+			}
+
+			if !yield(k, res) {
+				return
+			}
+			k++
+		}
+	}
+}
+
 func PrintOpcodes(instructions []OpCode) string {
 	var out string
 
-	for i := 0; i < len(instructions); i++ {
-		instr := instructions[i]
-		switch instr {
-		case OP_ADD:
-			out += "add\n"
-
-		case OP_MUL:
-			out += "mul\n"
-
-		case OP_DIV:
-			out += "div\n"
-
-		case OP_MOD:
-			out += "mod\n"
-
-		case OP_SUB:
-			out += "sub\n"
-
-		case OP_JUMP:
-			i++
-			op1 := instructions[i]
-			out += fmt.Sprintf("jump %d\n", op1)
-
-		case OP_JUMPF:
-			i++
-			op1 := instructions[i]
-			out += fmt.Sprintf("jumpf %d\n", op1)
-
-		case OP_CONSTANT:
-			i++
-			op1 := instructions[i]
-			out += fmt.Sprintf("const %d\n", op1)
-
-		case OP_LET:
-			i++
-			op1 := instructions[i]
-			out += fmt.Sprintf("let %d \n", op1)
-
-		case OP_ECHO:
-			out += fmt.Sprintf("echo\n")
-
-		case OP_LOAD:
-			i++
-			op1 := instructions[i]
-			out += fmt.Sprintf("load %d\n", op1)
-
-		case OP_ASSIGN:
-			i++
-			op1 := instructions[i]
-			out += fmt.Sprintf("assign %d\n", op1)
-
-		case OP_LT:
-			out += "lt\n"
-
-		case OP_EQ:
-			out += "eq\n"
-
-		case OP_POP:
-			out += "pop\n"
-
-		case OP_CALL:
-			i++
-			op1 := instructions[i]
-			out += fmt.Sprintf("call %d\n", op1)
-
-		case OP_RET:
-			out += "ret\n"
-
-		case OP_HALT:
-			out += "halt\n"
-
-		default:
-			out += fmt.Sprintf("unknown opcode %d\n", instr)
+	maxNameLength := 0
+	for _, instr := range OpCodeIterator(instructions) {
+		if len(instr.Name) > maxNameLength {
+			maxNameLength = len(instr.Name)
 		}
+	}
+
+	for _, instr := range OpCodeIterator(instructions) {
+		argsStr := ""
+		for _, arg := range instr.Args {
+			argsStr = fmt.Sprintf("%s%06d ", argsStr, arg)
+		}
+		out += fmt.Sprintf("%06d: %-*s %s\n", instr.Addr, maxNameLength, instr.Name, argsStr)
 	}
 
 	return out

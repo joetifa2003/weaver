@@ -4,29 +4,26 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pkg/profile"
-
 	"github.com/joetifa2003/weaver/compiler"
 	"github.com/joetifa2003/weaver/parser"
 	"github.com/joetifa2003/weaver/vm"
 )
 
 func main() {
-	defer profile.Start().Stop()
 	src := `
-	isEven := |n| n % 2 == 0	
-	evenNums := 0	
-	n := 10000000
+	isEven := |n| n % 2 == 0
 
 	i := 0
-	while i < n {
+	evenNums := 0
+
+	while i < 5000000 {
 		if isEven(i) {
 			evenNums = evenNums + 1
 		}
-		
+
 		i = i + 1
 	}
-	
+
 	echo evenNums
 	`
 
@@ -43,6 +40,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	_ = constants
 	fmt.Println("compiler took: ", time.Since(ct))
 
 	// fmt.Println(opcode.PrintOpcodes(mainFrame.Instructions))

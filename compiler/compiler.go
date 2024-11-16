@@ -10,8 +10,9 @@ import (
 )
 
 type Compiler struct {
-	frames    *ds.Stack[*Frame]
-	constants []value.Value
+	frames       *ds.Stack[*Frame]
+	constants    []value.Value
+	functionsIdx []int
 }
 
 func New() *Compiler {
@@ -38,8 +39,41 @@ func (c *Compiler) Compile(p ast.Program) (*Frame, []value.Value, error) {
 
 	mainFrame := c.popFrame()
 	mainFrame.Instructions = append(mainFrame.Instructions, opcode.OP_HALT)
+	mainFrame.Instructions = c.handleLabels(mainFrame.Instructions)
+
+	for _, f := range c.functionsIdx {
+		fn := c.constants[f].GetFunction()
+		fn.Instructions = c.handleLabels(fn.Instructions)
+	}
 
 	return mainFrame, c.constants, nil
+}
+
+func (c *Compiler) handleLabels(instructions []opcode.OpCode) []opcode.OpCode {
+	var newInstructions []opcode.OpCode
+
+	labels := map[opcode.OpCode]opcode.OpCode{} // label idx => instruction idx
+
+	for _, instr := range opcode.OpCodeIterator(instructions) {
+		if instr.Op == opcode.OP_LABEL {
+			labels[instr.Args[0]] = opcode.OpCode(instr.Addr)
+		}
+	}
+
+	for _, instr := range opcode.OpCodeIterator(instructions) {
+		switch instr.Op {
+		case opcode.OP_JUMP:
+			instr.Args[0] = labels[instr.Args[0]]
+
+		case opcode.OP_JUMPF:
+			instr.Args[0] = labels[instr.Args[0]]
+		}
+
+		newInstructions = append(newInstructions, instr.Op)
+		newInstructions = append(newInstructions, instr.Args...)
+	}
+
+	return newInstructions
 }
 
 func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
@@ -91,7 +125,7 @@ func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 			return nil, err
 		}
 		instructions = append(instructions, expr...)
-		instructions = append(instructions, opcode.OP_ASSIGN)
+		instructions = append(instructions, opcode.OP_STORE)
 		instructions = append(instructions, opcode.OpCode(c.resolveVar(s.Name)))
 
 		return instructions, nil
@@ -108,10 +142,15 @@ func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 			return nil, err
 		}
 
+		loopLabel := c.label()
+		falseLabel := c.label()
+
+		instructions = append(instructions, opcode.OP_LABEL, opcode.OpCode(loopLabel))
 		instructions = append(instructions, expr...)
-		instructions = append(instructions, opcode.OP_JUMPF, opcode.OpCode(len(body)+3))
+		instructions = append(instructions, opcode.OP_JUMPF, opcode.OpCode(falseLabel))
 		instructions = append(instructions, body...)
-		instructions = append(instructions, opcode.OP_JUMP, opcode.OpCode(-(len(body) + 2 + len(expr) + 1)))
+		instructions = append(instructions, opcode.OP_JUMP, opcode.OpCode(loopLabel))
+		instructions = append(instructions, opcode.OP_LABEL, opcode.OpCode(falseLabel))
 
 		return instructions, nil
 
@@ -127,9 +166,12 @@ func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 			return nil, err
 		}
 
+		falseLabel := c.label()
+
 		instructions = append(instructions, expr...)
-		instructions = append(instructions, opcode.OP_JUMPF, opcode.OpCode(len(body)+1))
+		instructions = append(instructions, opcode.OP_JUMPF, opcode.OpCode(falseLabel))
 		instructions = append(instructions, body...)
+		instructions = append(instructions, opcode.OP_LABEL, opcode.OpCode(falseLabel))
 
 		return instructions, nil
 
@@ -225,9 +267,12 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 			Instructions: frame.Instructions,
 		})
 
+		constant := c.defineConstant(fnValue)
+		c.functionsIdx = append(c.functionsIdx, constant)
+
 		return []opcode.OpCode{
 			opcode.OP_CONSTANT,
-			opcode.OpCode(c.defineConstant(fnValue)),
+			opcode.OpCode(constant),
 		}, nil
 
 	case ast.IdentExpr:
@@ -255,6 +300,15 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 	case ast.StringExpr:
 		value := value.Value{}
 		value.SetString(e.Value)
+		return []opcode.OpCode{
+			opcode.OP_CONSTANT,
+			opcode.OpCode(c.defineConstant(value)),
+		}, nil
+
+	case ast.BoolExpr:
+		value := value.Value{}
+		value.SetBool(e.Value)
+
 		return []opcode.OpCode{
 			opcode.OP_CONSTANT,
 			opcode.OpCode(c.defineConstant(value)),
@@ -315,4 +369,8 @@ func (c *Compiler) beginBlock() {
 
 func (c *Compiler) endBlock() {
 	c.frames.Peek().endBlock()
+}
+
+func (c *Compiler) label() int {
+	return c.frames.Peek().label()
 }

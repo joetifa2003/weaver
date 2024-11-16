@@ -67,7 +67,7 @@ func (v *VM) Run() {
 			v.stack[v.sp] = val
 			v.curFrame.ip += 2
 
-		case opcode.OP_ASSIGN:
+		case opcode.OP_STORE:
 			index := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+1])
 
 			v.stack[index] = v.stack[v.sp]
@@ -80,20 +80,24 @@ func (v *VM) Run() {
 			fmt.Println(value.String())
 			v.curFrame.ip += 1
 
+		case opcode.OP_LABEL:
+			v.curFrame.ip += 2
+
 		case opcode.OP_JUMP:
-			v.curFrame.ip++
-			v.curFrame.ip += int(v.curFrame.instructions[v.curFrame.ip])
+			newIp := int(v.curFrame.instructions[v.curFrame.ip+1])
+			v.curFrame.ip = newIp
 
 		case opcode.OP_JUMPF:
 			v.curFrame.ip++
+			newIp := int(v.curFrame.instructions[v.curFrame.ip])
+
 			operand := v.stack[v.sp]
 			v.sp--
-			offset := int(v.curFrame.instructions[v.curFrame.ip])
 
 			if operand.IsTruthy() {
 				v.curFrame.ip++
 			} else {
-				v.curFrame.ip += offset
+				v.curFrame.ip = newIp
 			}
 
 		case opcode.OP_LT:

@@ -41,6 +41,7 @@ const (
 	OP_LOAD_CONST_ADD       // arg1: constant index; arg2: variable index
 	OP_LOAD_CONST_ADD_STORE // arg1: constant index; arg2: variable index; arg3: variable index
 	OP_CONST_ADD            // arg1: constant index;
+	OP_LOAD_LOAD_LT         // arg1: variable index; arg2: variable index
 )
 
 type OpCodeDef struct {
@@ -72,6 +73,7 @@ var opCodeDefs = map[OpCode]OpCodeDef{
 	OP_LOAD_CONST_ADD:       {OP_LOAD_CONST_ADD, "lcadd", 2},
 	OP_LOAD_CONST_ADD_STORE: {OP_LOAD_CONST_ADD_STORE, "lcastore", 3},
 	OP_CONST_ADD:            {OP_CONST_ADD, "cadd", 1},
+	OP_LOAD_LOAD_LT:         {OP_LOAD_LOAD_LT, "lllt", 2},
 }
 
 type DecodedOpCode struct {

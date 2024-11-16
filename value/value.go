@@ -174,9 +174,7 @@ func (v Value) IsTruthy() bool {
 	}
 }
 
-func (v Value) Add(other Value) Value {
-	res := Value{}
-
+func (v Value) Add(other Value, res *Value) {
 	switch v.VType {
 	case ValueTypeInt:
 		switch other.VType {
@@ -199,6 +197,4 @@ func (v Value) Add(other Value) Value {
 	default:
 		panic(fmt.Sprintf("illegal operation %s + %s", v, other))
 	}
-
-	return res
 }

@@ -54,12 +54,6 @@ func (v *VM) Run() {
 			v.stack[v.sp] = v.constants[index]
 			v.curFrame.ip += 2
 
-		case opcode.OP_CONST_STORE:
-			constantIdx := int(v.curFrame.instructions[v.curFrame.ip+1])
-			variableIdx := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+2])
-			v.stack[variableIdx] = v.constants[constantIdx]
-			v.curFrame.ip += 3
-
 		case opcode.OP_LOAD:
 			index := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+1])
 			val := v.stack[index]
@@ -119,33 +113,12 @@ func (v *VM) Run() {
 
 			v.curFrame.ip++
 
-		case opcode.OP_LOAD_CONST_ADD_STORE:
-			constantIdx := int(v.curFrame.instructions[v.curFrame.ip+1])
-			variableIdx := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+2])
-			variableIdx2 := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+3])
-			v.stack[variableIdx2] = v.constants[constantIdx].Add(v.stack[variableIdx])
-			v.curFrame.ip += 4
-
-		case opcode.OP_LOAD_CONST_ADD:
-			constantIdx := int(v.curFrame.instructions[v.curFrame.ip+1])
-			variableIdx := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+2])
-			v.sp++
-			v.stack[v.sp] = v.constants[constantIdx].Add(v.stack[variableIdx])
-			v.curFrame.ip += 3
-
-		case opcode.OP_CONST_ADD:
-			constantIdx := int(v.curFrame.instructions[v.curFrame.ip+1])
-			right := v.constants[constantIdx]
-			left := v.stack[v.sp]
-			v.stack[v.sp] = left.Add(right)
-			v.curFrame.ip += 2
-
 		case opcode.OP_ADD:
 			right := v.stack[v.sp]
 			left := v.stack[v.sp-1]
 			v.sp--
+			left.Add(right, &v.stack[v.sp])
 
-			v.stack[v.sp] = left.Add(right)
 			v.curFrame.ip++
 
 		case opcode.OP_MUL:
@@ -201,6 +174,40 @@ func (v *VM) Run() {
 			v.sp = v.curFrame.stackOffset
 			v.stack[v.sp] = val
 			v.popFrame()
+
+		case opcode.OP_CONST_STORE:
+			constantIdx := int(v.curFrame.instructions[v.curFrame.ip+1])
+			variableIdx := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+2])
+			v.stack[variableIdx] = v.constants[constantIdx]
+			v.curFrame.ip += 3
+
+		case opcode.OP_LOAD_CONST_ADD_STORE:
+			constantIdx := int(v.curFrame.instructions[v.curFrame.ip+1])
+			variableIdx := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+2])
+			variableIdx2 := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+3])
+			v.constants[constantIdx].Add(v.stack[variableIdx], &v.stack[variableIdx2])
+			v.curFrame.ip += 4
+
+		case opcode.OP_LOAD_CONST_ADD:
+			constantIdx := int(v.curFrame.instructions[v.curFrame.ip+1])
+			variableIdx := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+2])
+			v.sp++
+			v.constants[constantIdx].Add(v.stack[variableIdx], &v.stack[v.sp])
+			v.curFrame.ip += 3
+
+		case opcode.OP_CONST_ADD:
+			constantIdx := int(v.curFrame.instructions[v.curFrame.ip+1])
+			right := v.constants[constantIdx]
+			left := v.stack[v.sp]
+			left.Add(right, &v.stack[v.sp])
+			v.curFrame.ip += 2
+
+		case opcode.OP_LOAD_LOAD_LT:
+			rightIdx := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+1])
+			leftIdx := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+2])
+			v.sp++
+			v.stack[v.sp].SetBool(v.stack[leftIdx].GetInt() < v.stack[rightIdx].GetInt())
+			v.curFrame.ip += 3
 
 		case opcode.OP_HALT:
 			return

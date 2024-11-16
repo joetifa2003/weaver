@@ -9,15 +9,25 @@ import (
 	"github.com/joetifa2003/weaver/parser"
 	"github.com/joetifa2003/weaver/value"
 	"github.com/joetifa2003/weaver/vm"
+	"github.com/pkg/profile"
 )
 
 func main() {
+	defer profile.Start().Stop()
 	src := `
-	isEven := |n| n % 2 == 0	
-	add := |a, b| a + b
+	i := 0
+	n := 10000000
+	even_nums := 0
 
-	a := 1 | add(1) | isEven()
-	echo a
+	while i < n {
+		if i % 2 == 0 {
+			even_nums = even_nums + 1
+		}
+
+		i = i + 1
+	}
+
+	echo even_nums
 	`
 
 	pt := time.Now()

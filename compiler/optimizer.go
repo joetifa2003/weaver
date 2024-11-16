@@ -72,6 +72,16 @@ var optimizers = []Optimizer{
 		},
 	},
 	{
+		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_LOAD), eq(opcode.OP_LT)),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			return []opcode.OpCode{
+				opcode.OP_LOAD_LOAD_LT,
+				doc[1].Args[0],
+				doc[0].Args[0],
+			}
+		},
+	},
+	{
 		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_CONST), eq(opcode.OP_ADD)),
 		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
 			return []opcode.OpCode{

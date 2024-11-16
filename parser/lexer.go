@@ -30,7 +30,7 @@ const (
 func newLexer() *lexer.RegexLexer {
 	return lexer.New(
 		[]lexer.Pattern{
-			{TokenType: TT_IDENT, Regex: "[a-zA-Z]+"},
+			{TokenType: TT_IDENT, Regex: "[a-zA-Z_]+"},
 			{TokenType: TT_FLOAT, Regex: "[0-9]+\\.[0-9]+"},
 			{TokenType: TT_INT, Regex: "[0-9]+"},
 			{TokenType: TT_STRING, Regex: `"(?:[^"\\]|\\.)*"`},

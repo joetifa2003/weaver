@@ -5,26 +5,19 @@ import (
 	"time"
 
 	"github.com/joetifa2003/weaver/compiler"
-	"github.com/joetifa2003/weaver/opcode"
 	"github.com/joetifa2003/weaver/parser"
-	"github.com/joetifa2003/weaver/value"
 	"github.com/joetifa2003/weaver/vm"
-	"github.com/pkg/profile"
 )
 
 func main() {
-	defer profile.Start().Stop()
 	src := `
-	i := 0
 	n := 10000000
 	even_nums := 0
 
-	while i < n {
+	for i := 0; i < n; i = i + 1 {
 		if i % 2 == 0 {
 			even_nums = even_nums + 1
 		}
-
-		i = i + 1
 	}
 
 	echo even_nums
@@ -45,14 +38,14 @@ func main() {
 	}
 	fmt.Println("compiler took: ", time.Since(ct))
 
-	fmt.Println(opcode.PrintOpcodes(mainFrame.Instructions))
-
-	for _, c := range constants {
-		if c.VType == value.ValueTypeFunction {
-			fn := c.GetFunction()
-			fmt.Println(opcode.PrintOpcodes(fn.Instructions))
-		}
-	}
+	// fmt.Println(opcode.PrintOpcodes(mainFrame.Instructions))
+	//
+	// for _, c := range constants {
+	// 	if c.VType == value.ValueTypeFunction {
+	// 		fn := c.GetFunction()
+	// 		fmt.Println(opcode.PrintOpcodes(fn.Instructions))
+	// 	}
+	// }
 
 	vt := time.Now()
 	vm := vm.New(constants, mainFrame)

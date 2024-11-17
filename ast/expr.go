@@ -58,3 +58,10 @@ type PipeExpr struct {
 }
 
 func (t PipeExpr) expr() {}
+
+type AssignExpr struct {
+	Name string
+	Expr Expr
+}
+
+func (t AssignExpr) expr() {}

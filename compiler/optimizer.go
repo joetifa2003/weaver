@@ -20,6 +20,33 @@ func eq(op opcode.OpCode) Rule {
 	}
 }
 
+func repeat(rule Rule, n int) Rule {
+	rules := make([]Rule, n)
+	for i := range rules {
+		rules[i] = rule
+	}
+	return seq(rules...)
+}
+
+func some(rule Rule, atLeast int) Rule {
+	return func(instructions []opcode.DecodedOpCode) (bool, int) {
+		someEaten := 0
+
+		for {
+			matched, eaten := rule(instructions[someEaten:])
+			if !matched {
+				if someEaten < atLeast {
+					return false, 0
+				}
+
+				return true, someEaten
+			}
+
+			someEaten += eaten
+		}
+	}
+}
+
 func seq(rules ...Rule) Rule {
 	return func(instructions []opcode.DecodedOpCode) (bool, int) {
 		if len(instructions) < len(rules) {
@@ -57,14 +84,26 @@ type Optimizer struct {
 	Fn  func([]opcode.DecodedOpCode) []opcode.OpCode
 }
 
-const MAX_SEQ_LEN = 4
-
 var optimizers = []Optimizer{
 	{
-		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_CONST), eq(opcode.OP_ADD), eq(opcode.OP_STORE)),
+		Seq: seq(eq(opcode.OP_STORE), eq(opcode.OP_POP)),
 		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
 			return []opcode.OpCode{
-				opcode.OP_LOAD_CONST_ADD_STORE,
+				opcode.OP_LET,
+				doc[0].Args[0],
+			}
+		},
+	},
+	{
+		Seq: seq(
+			eq(opcode.OP_LOAD),
+			eq(opcode.OP_CONST),
+			eq(opcode.OP_ADD),
+			eq(opcode.OP_LET),
+		),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			return []opcode.OpCode{
+				opcode.OP_LOAD_CONST_ADD_LET,
 				doc[1].Args[0],
 				doc[0].Args[0],
 				doc[3].Args[0],
@@ -72,7 +111,7 @@ var optimizers = []Optimizer{
 		},
 	},
 	{
-		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_LOAD), eq(opcode.OP_LT)),
+		Seq: seq(repeat(eq(opcode.OP_LOAD), 2), eq(opcode.OP_LT)),
 		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
 			return []opcode.OpCode{
 				opcode.OP_LOAD_LOAD_LT,
@@ -92,6 +131,19 @@ var optimizers = []Optimizer{
 		},
 	},
 	{
+		Seq: some(eq(opcode.OP_LOAD), 2),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			var res []opcode.OpCode
+			res = append(res, opcode.OP_LOADN, opcode.OpCode(len(doc)))
+
+			for _, instr := range doc {
+				res = append(res, instr.Args...)
+			}
+
+			return res
+		},
+	},
+	{
 		Seq: seq(eq(opcode.OP_CONST), eq(opcode.OP_ADD)),
 		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
 			return []opcode.OpCode{
@@ -101,10 +153,10 @@ var optimizers = []Optimizer{
 		},
 	},
 	{
-		Seq: seq(eq(opcode.OP_CONST), eq(opcode.OP_STORE)),
+		Seq: seq(eq(opcode.OP_CONST), eq(opcode.OP_LET)),
 		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
 			return []opcode.OpCode{
-				opcode.OP_CONST_STORE,
+				opcode.OP_CONST_LET,
 				doc[0].Args[0],
 				doc[1].Args[0],
 			}
@@ -112,33 +164,40 @@ var optimizers = []Optimizer{
 	},
 }
 
-func (c *Compiler) optimize(instructions []opcode.OpCode) []opcode.OpCode {
+func (c *Compiler) optimizePass(instructions []opcode.OpCode) ([]opcode.OpCode, bool) {
+	decodedInstructions := opcode.DecodeInstructions(instructions)
+	dirty := false
+
 	var optimized []opcode.OpCode
 
-	window := []opcode.DecodedOpCode{}
-	for _, instr := range opcode.OpCodeIterator(instructions) {
-		window = append(window, instr)
-
+loop:
+	for len(decodedInstructions) > 0 {
 		for _, opt := range optimizers {
-			matched, eaten := opt.Seq(window)
+			matched, eaten := opt.Seq(decodedInstructions)
 			if matched {
-				optimized = append(optimized, opt.Fn(window[:eaten])...)
-				window = window[eaten:]
+				optimized = append(optimized, opt.Fn(decodedInstructions[:eaten])...)
+				decodedInstructions = decodedInstructions[eaten:]
+				dirty = true
+				goto loop
 			}
 		}
 
-		if len(window) >= MAX_SEQ_LEN {
-			first := window[0]
-			optimized = append(optimized, first.Op)
-			optimized = append(optimized, first.Args...)
-			window = window[1:]
+		first := decodedInstructions[0]
+		optimized = append(optimized, first.Op)
+		optimized = append(optimized, first.Args...)
+		decodedInstructions = decodedInstructions[1:]
+	}
+
+	return optimized, dirty
+}
+
+func (c *Compiler) optimize(instructions []opcode.OpCode) []opcode.OpCode {
+	// return instructions
+	for {
+		optimized, dirty := c.optimizePass(instructions)
+		if !dirty {
+			return optimized
 		}
+		instructions = optimized
 	}
-
-	for _, instr := range window {
-		optimized = append(optimized, instr.Op)
-		optimized = append(optimized, instr.Args...)
-	}
-
-	return optimized
 }

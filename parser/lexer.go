@@ -39,6 +39,7 @@ func newLexer() *lexer.RegexLexer {
 			{TokenType: TT_SYMBOL, Regex: "}"},
 			{TokenType: TT_SYMBOL, Regex: "\\|"},
 			{TokenType: TT_SYMBOL, Regex: ","},
+			{TokenType: TT_SYMBOL, Regex: ";"},
 
 			{TokenType: TT_SYMBOL, Regex: "%"},
 			{TokenType: TT_PLUS, Regex: "\\+"},

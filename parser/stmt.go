@@ -37,17 +37,6 @@ func blockStmt() pargo.Parser[ast.Statement] {
 	)
 }
 
-func assignStmt() pargo.Parser[ast.Statement] {
-	return pargo.Sequence3(
-		pargo.TokenType(TT_IDENT),
-		pargo.Exactly("="),
-		expr(),
-		func(name string, _ string, expr ast.Expr) ast.Statement {
-			return ast.AssignStmt{Name: name, Expr: expr}
-		},
-	)
-}
-
 func whileStmt() pargo.Parser[ast.Statement] {
 	return pargo.Sequence3(
 		pargo.Exactly("while"),
@@ -55,6 +44,36 @@ func whileStmt() pargo.Parser[ast.Statement] {
 		blockStmt(),
 		func(_ string, condition ast.Expr, statement ast.Statement) ast.Statement {
 			return ast.WhileStmt{Condition: condition, Body: statement}
+		},
+	)
+}
+
+func forStmt() pargo.Parser[ast.Statement] {
+	return pargo.Sequence7(
+		pargo.Exactly("for"),
+		pargo.Lazy(stmt),
+		pargo.Exactly(";"),
+		pargo.Lazy(expr),
+		pargo.Exactly(";"),
+		pargo.Lazy(expr),
+		blockStmt(),
+		func(_ string, initStmt ast.Statement, _ string, condition ast.Expr, _ string, increment ast.Expr, body ast.Statement) ast.Statement {
+			return ast.BlockStmt{
+				Statements: []ast.Statement{
+					initStmt,
+					ast.WhileStmt{
+						Condition: condition,
+						Body: ast.BlockStmt{
+							Statements: []ast.Statement{
+								body,
+								ast.ExprStmt{
+									Expr: increment,
+								},
+							},
+						},
+					},
+				},
+			}
 		},
 	)
 }
@@ -94,10 +113,10 @@ func stmt() pargo.Parser[ast.Statement] {
 		varDeclStmt(),
 		blockStmt(),
 		echoStmt(),
-		assignStmt(),
 		whileStmt(),
 		ifStmt(),
 		returnStmt(),
+		forStmt(),
 
 		// keep this at the end
 		exprStmt(),

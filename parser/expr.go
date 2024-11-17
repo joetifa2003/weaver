@@ -102,6 +102,7 @@ func atom() pargo.Parser[ast.Expr] {
 		floatExpr(),
 		booleanExpr(),
 		stringExpr(),
+		assignExpr(),
 		identExpr(),
 		functionExpr(),
 		lambdaExpr(),
@@ -113,6 +114,17 @@ func identExpr() pargo.Parser[ast.Expr] {
 		pargo.TokenType(TT_IDENT),
 		func(s string) (ast.Expr, error) {
 			return ast.IdentExpr{Name: s}, nil
+		},
+	)
+}
+
+func assignExpr() pargo.Parser[ast.Expr] {
+	return pargo.Sequence3(
+		pargo.TokenType(TT_IDENT),
+		pargo.Exactly("="),
+		pargo.Lazy(expr),
+		func(name string, _ string, expr ast.Expr) ast.Expr {
+			return ast.AssignExpr{Name: name, Expr: expr}
 		},
 	)
 }

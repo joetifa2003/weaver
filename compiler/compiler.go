@@ -116,20 +116,8 @@ func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 			return nil, err
 		}
 		instructions = append(instructions, expr...)
-		instructions = append(instructions, opcode.OP_STORE)
+		instructions = append(instructions, opcode.OP_LET)
 		instructions = append(instructions, opcode.OpCode(c.defineVar(s.Name)))
-
-		return instructions, nil
-
-	case ast.AssignStmt:
-		var instructions []opcode.OpCode
-		expr, err := c.compileExpr(s.Expr)
-		if err != nil {
-			return nil, err
-		}
-		instructions = append(instructions, expr...)
-		instructions = append(instructions, opcode.OP_STORE)
-		instructions = append(instructions, opcode.OpCode(c.resolveVar(s.Name)))
 
 		return instructions, nil
 
@@ -343,6 +331,18 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 			opcode.OP_CONST,
 			opcode.OpCode(c.defineConstant(value)),
 		}, nil
+
+	case ast.AssignExpr:
+		var instructions []opcode.OpCode
+		expr, err := c.compileExpr(e.Expr)
+		if err != nil {
+			return nil, err
+		}
+		instructions = append(instructions, expr...)
+		instructions = append(instructions, opcode.OP_STORE)
+		instructions = append(instructions, opcode.OpCode(c.resolveVar(e.Name)))
+
+		return instructions, nil
 
 	case ast.CallExpr:
 		var instructions []opcode.OpCode

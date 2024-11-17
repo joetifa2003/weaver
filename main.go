@@ -5,7 +5,9 @@ import (
 	"time"
 
 	"github.com/joetifa2003/weaver/compiler"
+	"github.com/joetifa2003/weaver/opcode"
 	"github.com/joetifa2003/weaver/parser"
+	"github.com/joetifa2003/weaver/value"
 	"github.com/joetifa2003/weaver/vm"
 )
 
@@ -38,14 +40,14 @@ func main() {
 	}
 	fmt.Println("compiler took: ", time.Since(ct))
 
-	// fmt.Println(opcode.PrintOpcodes(mainFrame.Instructions))
-	//
-	// for _, c := range constants {
-	// 	if c.VType == value.ValueTypeFunction {
-	// 		fn := c.GetFunction()
-	// 		fmt.Println(opcode.PrintOpcodes(fn.Instructions))
-	// 	}
-	// }
+	fmt.Println(opcode.PrintOpcodes(mainFrame.Instructions))
+
+	for _, c := range constants {
+		if c.VType == value.ValueTypeFunction {
+			fn := c.GetFunction()
+			fmt.Println(opcode.PrintOpcodes(fn.Instructions))
+		}
+	}
 
 	vt := time.Now()
 	vm := vm.New(constants, mainFrame)

@@ -165,30 +165,30 @@ var optimizers = []Optimizer{
 }
 
 func (c *Compiler) optimizePass(instructions []opcode.OpCode) ([]opcode.OpCode, bool) {
-	decodedInstructions := opcode.DecodeInstructions(instructions)
 	dirty := false
 
-	var optimized []opcode.OpCode
+	for _, opt := range optimizers {
+		decodedInstructions := opcode.DecodeInstructions(instructions)
+		optimized := make([]opcode.OpCode, 0, len(instructions))
 
-loop:
-	for len(decodedInstructions) > 0 {
-		for _, opt := range optimizers {
+		for len(decodedInstructions) > 0 {
 			matched, eaten := opt.Seq(decodedInstructions)
 			if matched {
 				optimized = append(optimized, opt.Fn(decodedInstructions[:eaten])...)
 				decodedInstructions = decodedInstructions[eaten:]
 				dirty = true
-				goto loop
+			} else {
+				first := decodedInstructions[0]
+				optimized = append(optimized, first.Op)
+				optimized = append(optimized, first.Args...)
+				decodedInstructions = decodedInstructions[1:]
 			}
 		}
 
-		first := decodedInstructions[0]
-		optimized = append(optimized, first.Op)
-		optimized = append(optimized, first.Args...)
-		decodedInstructions = decodedInstructions[1:]
+		instructions = optimized
 	}
 
-	return optimized, dirty
+	return instructions, dirty
 }
 
 func (c *Compiler) optimize(instructions []opcode.OpCode) []opcode.OpCode {

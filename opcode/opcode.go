@@ -150,7 +150,7 @@ func PrintOpcodes(instructions []OpCode) string {
 		for _, arg := range instr.Args {
 			argsStr = fmt.Sprintf("%s%06d ", argsStr, arg)
 		}
-		out += fmt.Sprintf("%06d: %-*s %s\n", instr.Addr, maxNameLength, instr.Name, argsStr)
+		out += fmt.Sprintf("%06d: %-*s %s\n", instr.Addr, maxNameLength+10, instr.Name, argsStr)
 	}
 
 	return out

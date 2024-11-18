@@ -17,9 +17,9 @@ func main() {
 	even_nums := 0
 
 	for i := 0; i < n; i = i + 1 {
-		if i % 2 == 0 {
-			even_nums = even_nums + 1
-		}
+			if i % 2 == 0 {
+				even_nums = even_nums + 1
+			}
 	}
 
 	echo even_nums

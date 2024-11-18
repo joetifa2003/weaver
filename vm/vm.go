@@ -63,15 +63,14 @@ func (v *VM) Run() {
 
 		case opcode.OP_LOADN:
 			n := int(v.curFrame.instructions[v.curFrame.ip+1])
-			offset := v.sp
 
 			for i := range n {
 				index := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+2+i])
 				val := v.stack[index]
-				v.stack[offset+i+1] = val
+				v.sp++
+				v.stack[v.sp] = val
 			}
 			v.curFrame.ip += 2 + n
-			v.sp += n
 
 		case opcode.OP_LET:
 			index := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+1])

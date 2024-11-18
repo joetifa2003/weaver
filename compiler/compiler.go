@@ -240,18 +240,14 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 			return c.compilePipeExpr(e)
 		}
 
-		for i, operand := range e.Operands {
+		for _, operand := range e.Operands {
 			expr, err := c.compileExpr(operand)
 			if err != nil {
 				return nil, err
 			}
 			instructions = append(instructions, expr...)
-
-			if (i+1)%2 == 0 {
-				instructions = append(instructions, c.operatorOpcode(e.Operator))
-			}
 		}
-		if len(e.Operands)%2 != 0 {
+		for range len(e.Operands) - 1 {
 			instructions = append(instructions, c.operatorOpcode(e.Operator))
 		}
 

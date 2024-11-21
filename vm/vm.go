@@ -127,11 +127,76 @@ func (v *VM) Run() {
 
 			v.curFrame.ip++
 
+		case opcode.OP_LTE:
+			right := v.stack[v.sp]
+			left := v.stack[v.sp-1]
+			v.sp--
+
+			switch left.VType {
+			case value.ValueTypeInt:
+				switch right.VType {
+				case value.ValueTypeInt:
+					v.stack[v.sp].SetBool(left.GetInt() <= right.GetInt())
+				default:
+					panic(fmt.Sprintf("illegal operation %s < %s", left, right))
+				}
+			default:
+				panic(fmt.Sprintf("illegal operation %s < %s", left, right))
+			}
+
+			v.curFrame.ip++
+
+		case opcode.OP_GT:
+			right := v.stack[v.sp]
+			left := v.stack[v.sp-1]
+			v.sp--
+
+			switch left.VType {
+			case value.ValueTypeInt:
+				switch right.VType {
+				case value.ValueTypeInt:
+					v.stack[v.sp].SetBool(left.GetInt() > right.GetInt())
+				default:
+					panic(fmt.Sprintf("illegal operation %s < %s", left, right))
+				}
+			default:
+				panic(fmt.Sprintf("illegal operation %s < %s", left, right))
+			}
+
+			v.curFrame.ip++
+
+		case opcode.OP_GTE:
+			right := v.stack[v.sp]
+			left := v.stack[v.sp-1]
+			v.sp--
+
+			switch left.VType {
+			case value.ValueTypeInt:
+				switch right.VType {
+				case value.ValueTypeInt:
+					v.stack[v.sp].SetBool(left.GetInt() > right.GetInt())
+				default:
+					panic(fmt.Sprintf("illegal operation %s < %s", left, right))
+				}
+			default:
+				panic(fmt.Sprintf("illegal operation %s < %s", left, right))
+			}
+
+			v.curFrame.ip++
+
 		case opcode.OP_ADD:
 			right := v.stack[v.sp]
 			left := v.stack[v.sp-1]
 			v.sp--
 			left.Add(right, &v.stack[v.sp])
+
+			v.curFrame.ip++
+
+		case opcode.OP_SUB:
+			right := v.stack[v.sp]
+			left := v.stack[v.sp-1]
+			v.sp--
+			left.Sub(right, &v.stack[v.sp])
 
 			v.curFrame.ip++
 
@@ -154,6 +219,15 @@ func (v *VM) Run() {
 			v.curFrame.ip++
 
 		case opcode.OP_EQ:
+			right := v.stack[v.sp]
+			left := v.stack[v.sp-1]
+			v.sp--
+
+			v.stack[v.sp].SetBool(left.GetInt() == right.GetInt())
+
+			v.curFrame.ip++
+
+		case opcode.OP_NEQ:
 			right := v.stack[v.sp]
 			left := v.stack[v.sp-1]
 			v.sp--

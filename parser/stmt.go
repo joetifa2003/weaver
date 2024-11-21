@@ -79,12 +79,21 @@ func forStmt() pargo.Parser[ast.Statement] {
 }
 
 func ifStmt() pargo.Parser[ast.Statement] {
-	return pargo.Sequence3(
+	return pargo.Sequence4(
 		pargo.Exactly("if"),
 		expr(),
 		blockStmt(),
-		func(_ string, condition ast.Expr, body ast.Statement) ast.Statement {
-			return ast.IfStmt{Condition: condition, Body: body}
+		pargo.Optional(
+			pargo.Sequence2(
+				pargo.Exactly("else"),
+				pargo.OneOf(blockStmt(), pargo.Lazy(ifStmt)),
+				func(_ string, alternative ast.Statement) ast.Statement {
+					return alternative
+				},
+			),
+		),
+		func(_ string, condition ast.Expr, body ast.Statement, alternative *ast.Statement) ast.Statement {
+			return ast.IfStmt{Condition: condition, Body: body, Alternative: alternative}
 		},
 	)
 }

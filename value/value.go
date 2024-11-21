@@ -198,3 +198,28 @@ func (v Value) Add(other Value, res *Value) {
 		panic(fmt.Sprintf("illegal operation %s + %s", v, other))
 	}
 }
+
+func (v Value) Sub(other Value, res *Value) {
+	switch v.VType {
+	case ValueTypeInt:
+		switch other.VType {
+		case ValueTypeInt:
+			res.SetInt(v.GetInt() - other.GetInt())
+		case ValueTypeFloat:
+			res.SetFloat(float64(v.GetInt()) - other.GetFloat())
+		default:
+			panic(fmt.Sprintf("illegal operation %s - %s", v, other))
+		}
+	case ValueTypeFloat:
+		switch other.VType {
+		case ValueTypeInt:
+			res.SetFloat(v.GetFloat() - float64(other.GetInt()))
+		case ValueTypeFloat:
+			res.SetFloat(v.GetFloat() - other.GetFloat())
+		default:
+			panic(fmt.Sprintf("illegal operation %s - %s", v, other))
+		}
+	default:
+		panic(fmt.Sprintf("illegal operation %s - %s", v, other))
+	}
+}

@@ -15,11 +15,14 @@ func main() {
 	src := `
 	n := 10000000
 	even_nums := 0
+	odd_nums := 0
 
 	for i := 0; i < n; i = i + 1 {
-			if i % 2 == 0 {
-				even_nums = even_nums + 1
-			}
+		if i % 2 == 0 {
+			even_nums = even_nums + 1
+		} else if i % 2 == 0 {
+			odd_nums = odd_nums + 1
+		}
 	}
 
 	echo even_nums

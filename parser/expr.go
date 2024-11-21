@@ -34,15 +34,43 @@ func pipeExpr() pargo.Parser[ast.Expr] {
 
 func equalityExpr() pargo.Parser[ast.Expr] {
 	return binaryExpr(
-		lessThanExpr(),
+		nequalExpr(),
 		"==",
+	)
+}
+
+func nequalExpr() pargo.Parser[ast.Expr] {
+	return binaryExpr(
+		lessThanExpr(),
+		"!=",
 	)
 }
 
 func lessThanExpr() pargo.Parser[ast.Expr] {
 	return binaryExpr(
-		addExpr(),
+		lessThanEqualExpr(),
 		"<",
+	)
+}
+
+func lessThanEqualExpr() pargo.Parser[ast.Expr] {
+	return binaryExpr(
+		greaterThanEqualExpr(),
+		"<=",
+	)
+}
+
+func greaterThanEqualExpr() pargo.Parser[ast.Expr] {
+	return binaryExpr(
+		greaterThanExpr(),
+		">=",
+	)
+}
+
+func greaterThanExpr() pargo.Parser[ast.Expr] {
+	return binaryExpr(
+		addExpr(),
+		">",
 	)
 }
 

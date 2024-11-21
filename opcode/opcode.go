@@ -26,16 +26,17 @@ const (
 	OP_JUMP  // arg1: jump offset
 	OP_JUMPF // arg1: jump offset
 
-	OP_ADD
-	OP_MUL
-	OP_DIV
-	OP_MOD
-	OP_SUB
-	OP_LT
-	OP_LTE
-	OP_EQ
-	OP_GT
-	OP_GTE
+	OP_ADD // +
+	OP_MUL // *
+	OP_DIV // /
+	OP_MOD // %
+	OP_SUB // -
+	OP_LT  // <
+	OP_LTE // <=
+	OP_EQ  // ==
+	OP_GT  // >
+	OP_GTE // >=
+	OP_NEQ // !=
 
 	OP_ECHO
 
@@ -54,25 +55,31 @@ type OpCodeDef struct {
 }
 
 var opCodeDefs = map[OpCode]OpCodeDef{
-	OP_CONST:              {OP_CONST, "const", 1, false},
-	OP_POP:                {OP_POP, "pop", 0, false},
-	OP_CALL:               {OP_CALL, "call", 1, false},
-	OP_RET:                {OP_RET, "ret", 0, false},
-	OP_HALT:               {OP_HALT, "halt", 0, false},
-	OP_STORE:              {OP_STORE, "store", 1, false},
-	OP_LET:                {OP_LET, "let", 1, false},
-	OP_LOAD:               {OP_LOAD, "load", 1, false},
-	OP_JUMP:               {OP_JUMP, "jmp", 1, false},
-	OP_JUMPF:              {OP_JUMPF, "jmpf", 1, false},
-	OP_ADD:                {OP_ADD, "add", 0, false},
-	OP_MUL:                {OP_MUL, "mul", 0, false},
-	OP_DIV:                {OP_DIV, "div", 0, false},
-	OP_MOD:                {OP_MOD, "mod", 0, false},
-	OP_SUB:                {OP_SUB, "sub", 0, false},
-	OP_LT:                 {OP_LT, "lt", 0, false},
-	OP_EQ:                 {OP_EQ, "eq", 0, false},
+	OP_CONST: {OP_CONST, "const", 1, false},
+	OP_POP:   {OP_POP, "pop", 0, false},
+	OP_CALL:  {OP_CALL, "call", 1, false},
+	OP_RET:   {OP_RET, "ret", 0, false},
+	OP_HALT:  {OP_HALT, "halt", 0, false},
+	OP_STORE: {OP_STORE, "store", 1, false},
+	OP_LET:   {OP_LET, "let", 1, false},
+	OP_LOAD:  {OP_LOAD, "load", 1, false},
+	OP_JUMP:  {OP_JUMP, "jmp", 1, false},
+	OP_JUMPF: {OP_JUMPF, "jmpf", 1, false},
+	OP_ADD:   {OP_ADD, "add", 0, false},
+	OP_MUL:   {OP_MUL, "mul", 0, false},
+	OP_DIV:   {OP_DIV, "div", 0, false},
+	OP_MOD:   {OP_MOD, "mod", 0, false},
+	OP_SUB:   {OP_SUB, "sub", 0, false},
+	OP_LT:    {OP_LT, "lt", 0, false},
+	OP_LTE:   {OP_LTE, "lte", 0, false},
+	OP_GT:    {OP_LTE, "gt", 0, false},
+	OP_GTE:   {OP_LTE, "gte", 0, false},
+	OP_EQ:    {OP_EQ, "eq", 0, false},
+	OP_NEQ:   {OP_EQ, "neq", 0, false},
+
+	OP_LABEL: {OP_ECHO, "label", 1, false},
+
 	OP_ECHO:               {OP_ECHO, "echo", 0, false},
-	OP_LABEL:              {OP_ECHO, "label", 1, false},
 	OP_CONST_LET:          {OP_CONST_LET, "clet", 2, false},
 	OP_LOAD_CONST_ADD:     {OP_LOAD_CONST_ADD, "lcadd", 2, false},
 	OP_LOAD_CONST_ADD_LET: {OP_LOAD_CONST_ADD_LET, "lcalet", 3, false},
@@ -94,7 +101,7 @@ func OpCodeIterator(instruction []OpCode, skip ...OpCode) iter.Seq2[int, Decoded
 			res := DecodedOpCode{}
 			def, ok := opCodeDefs[instruction[i]]
 			if !ok {
-				panic(fmt.Sprintf("unknown instruction %d", instruction))
+				panic(fmt.Sprintf("unknown instruction %d", instruction[i]))
 			}
 			res.Name = def.Name
 			res.Op = instruction[i]

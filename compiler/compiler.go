@@ -59,7 +59,7 @@ func (c *Compiler) handleLabels(instructions []opcode.OpCode) []opcode.OpCode {
 
 	for _, instr := range opcode.OpCodeIterator(instructions) {
 		if instr.Op == opcode.OP_LABEL {
-			labels[instr.Args[0]] = opcode.OpCode(instr.Addr)
+			labels[instr.Args[0]] = opcode.OpCode(instr.Addr) + 2
 		}
 	}
 
@@ -157,12 +157,30 @@ func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 			return nil, err
 		}
 
-		falseLabel := c.label()
+		if s.Alternative == nil {
+			falseLabel := c.label()
 
-		instructions = append(instructions, expr...)
-		instructions = append(instructions, opcode.OP_JUMPF, opcode.OpCode(falseLabel))
-		instructions = append(instructions, body...)
-		instructions = append(instructions, opcode.OP_LABEL, opcode.OpCode(falseLabel))
+			instructions = append(instructions, expr...)
+			instructions = append(instructions, opcode.OP_JUMPF, opcode.OpCode(falseLabel))
+			instructions = append(instructions, body...)
+			instructions = append(instructions, opcode.OP_LABEL, opcode.OpCode(falseLabel))
+		} else {
+			lbl1 := c.label()
+			lbl2 := c.label()
+
+			alternative, err := c.compileStmt(*s.Alternative)
+			if err != nil {
+				return nil, err
+			}
+
+			instructions = append(instructions, expr...)
+			instructions = append(instructions, opcode.OP_JUMPF, opcode.OpCode(lbl1))
+			instructions = append(instructions, body...)
+			instructions = append(instructions, opcode.OP_JUMP, opcode.OpCode(lbl2))
+			instructions = append(instructions, opcode.OP_LABEL, opcode.OpCode(lbl1))
+			instructions = append(instructions, alternative...)
+			instructions = append(instructions, opcode.OP_LABEL, opcode.OpCode(lbl2))
+		}
 
 		return instructions, nil
 
@@ -202,6 +220,9 @@ func (c *Compiler) operatorOpcode(operator string) opcode.OpCode {
 	case "+":
 		return opcode.OP_ADD
 
+	case "-":
+		return opcode.OP_SUB
+
 	case "*":
 		return opcode.OP_MUL
 
@@ -213,6 +234,9 @@ func (c *Compiler) operatorOpcode(operator string) opcode.OpCode {
 
 	case "==":
 		return opcode.OP_EQ
+
+	case "!=":
+		return opcode.OP_NEQ
 
 	case "<":
 		return opcode.OP_LT

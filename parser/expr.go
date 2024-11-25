@@ -22,7 +22,21 @@ func binaryExpr(operand pargo.Parser[ast.Expr], op string) pargo.Parser[ast.Expr
 }
 
 func expr() pargo.Parser[ast.Expr] {
-	return pipeExpr()
+	return orExpr()
+}
+
+func orExpr() pargo.Parser[ast.Expr] {
+	return binaryExpr(
+		andExpr(),
+		"||",
+	)
+}
+
+func andExpr() pargo.Parser[ast.Expr] {
+	return binaryExpr(
+		pipeExpr(),
+		"&&",
+	)
 }
 
 func pipeExpr() pargo.Parser[ast.Expr] {
@@ -104,8 +118,21 @@ func mulExpr() pargo.Parser[ast.Expr] {
 
 func divExpr() pargo.Parser[ast.Expr] {
 	return binaryExpr(
-		callExpr(),
+		notExpr(),
 		"/",
+	)
+}
+
+func notExpr() pargo.Parser[ast.Expr] {
+	return pargo.OneOf(
+		pargo.Sequence2(
+			pargo.Exactly("!"),
+			pargo.Lazy(notExpr),
+			func(_ string, expr ast.Expr) ast.Expr {
+				return ast.UnaryExpr{Operator: "!", Expr: expr}
+			},
+		),
+		callExpr(),
 	)
 }
 

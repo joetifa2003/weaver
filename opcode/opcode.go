@@ -37,6 +37,9 @@ const (
 	OP_GT  // >
 	OP_GTE // >=
 	OP_NEQ // !=
+	OP_OR  // ||
+	OP_AND // &&
+	OP_NOT // !
 
 	OP_ECHO
 
@@ -76,6 +79,9 @@ var opCodeDefs = map[OpCode]OpCodeDef{
 	OP_GTE:   {OP_LTE, "gte", 0, false},
 	OP_EQ:    {OP_EQ, "eq", 0, false},
 	OP_NEQ:   {OP_EQ, "neq", 0, false},
+	OP_OR:    {OP_EQ, "or", 0, false},
+	OP_AND:   {OP_AND, "and", 0, false},
+	OP_NOT:   {OP_AND, "not", 0, false},
 
 	OP_LABEL: {OP_ECHO, "label", 1, false},
 

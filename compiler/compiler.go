@@ -215,46 +215,6 @@ func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 	}
 }
 
-func (c *Compiler) operatorOpcode(operator string) opcode.OpCode {
-	switch operator {
-	case "+":
-		return opcode.OP_ADD
-
-	case "-":
-		return opcode.OP_SUB
-
-	case "*":
-		return opcode.OP_MUL
-
-	case "%":
-		return opcode.OP_MOD
-
-	case "/":
-		return opcode.OP_DIV
-
-	case "==":
-		return opcode.OP_EQ
-
-	case "!=":
-		return opcode.OP_NEQ
-
-	case "<":
-		return opcode.OP_LT
-
-	case "<=":
-		return opcode.OP_LTE
-
-	case ">":
-		return opcode.OP_GT
-
-	case ">=":
-		return opcode.OP_GTE
-
-	default:
-		panic(fmt.Sprintf("unimplemented operator %s", operator))
-	}
-}
-
 func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 	switch e := e.(type) {
 	case ast.BinaryExpr:
@@ -272,8 +232,20 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 			instructions = append(instructions, expr...)
 		}
 		for range len(e.Operands) - 1 {
-			instructions = append(instructions, c.operatorOpcode(e.Operator))
+			instructions = append(instructions, c.binOperatorOpcode(e.Operator))
 		}
+
+		return instructions, nil
+
+	case ast.UnaryExpr:
+		var instructions []opcode.OpCode
+
+		expr, err := c.compileExpr(e.Expr)
+		if err != nil {
+			return nil, err
+		}
+		instructions = append(instructions, expr...)
+		instructions = append(instructions, c.unaryOperatorOpcode(e.Operator))
 
 		return instructions, nil
 
@@ -401,6 +373,65 @@ func (c *Compiler) compilePipeExpr(e ast.BinaryExpr) ([]opcode.OpCode, error) {
 	}
 
 	return c.compileExpr(left)
+}
+
+func (c *Compiler) binOperatorOpcode(operator string) opcode.OpCode {
+	switch operator {
+	case "+":
+		return opcode.OP_ADD
+
+	case "-":
+		return opcode.OP_SUB
+
+	case "*":
+		return opcode.OP_MUL
+
+	case "%":
+		return opcode.OP_MOD
+
+	case "/":
+		return opcode.OP_DIV
+
+	case "==":
+		return opcode.OP_EQ
+
+	case "!=":
+		return opcode.OP_NEQ
+
+	case "<":
+		return opcode.OP_LT
+
+	case "<=":
+		return opcode.OP_LTE
+
+	case ">":
+		return opcode.OP_GT
+
+	case ">=":
+		return opcode.OP_GTE
+
+	case "||":
+		return opcode.OP_OR
+
+	case "&&":
+		return opcode.OP_AND
+
+	case "!":
+		return opcode.OP_NOT
+
+	default:
+		panic(fmt.Sprintf("unimplemented operator %s", operator))
+	}
+}
+
+func (c *Compiler) unaryOperatorOpcode(operator string) opcode.OpCode {
+	switch operator {
+	case "!":
+		return opcode.OP_NOT
+
+	default:
+		panic(fmt.Sprintf("unimplemented operator %s", operator))
+	}
 }
 
 func (c *Compiler) defineVar(name string) int {

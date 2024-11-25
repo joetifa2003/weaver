@@ -192,6 +192,36 @@ func (v *VM) Run() {
 
 			v.curFrame.ip++
 
+		case opcode.OP_OR:
+			right := v.stack[v.sp]
+			left := v.stack[v.sp-1]
+			v.sp--
+			if left.IsTruthy() {
+				v.stack[v.sp] = left
+			} else {
+				v.stack[v.sp] = right
+			}
+
+			v.curFrame.ip++
+
+		case opcode.OP_AND:
+			right := v.stack[v.sp]
+			left := v.stack[v.sp-1]
+			v.sp--
+
+			if left.IsTruthy() {
+				v.stack[v.sp] = right
+			} else {
+				v.stack[v.sp] = left
+			}
+
+			v.curFrame.ip++
+
+		case opcode.OP_NOT:
+			right := v.stack[v.sp]
+			v.stack[v.sp].SetBool(!right.IsTruthy())
+			v.curFrame.ip++
+
 		case opcode.OP_SUB:
 			right := v.stack[v.sp]
 			left := v.stack[v.sp-1]

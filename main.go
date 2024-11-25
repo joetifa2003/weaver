@@ -20,12 +20,13 @@ func main() {
 	for i := 0; i < n; i = i + 1 {
 		if i % 2 == 0 {
 			even_nums = even_nums + 1
-		} else if i % 2 == 0 {
+		} else {
 			odd_nums = odd_nums + 1
 		}
 	}
 
 	echo even_nums
+	echo odd_nums
 	`
 
 	pt := time.Now()

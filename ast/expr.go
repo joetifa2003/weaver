@@ -65,3 +65,10 @@ type AssignExpr struct {
 }
 
 func (t AssignExpr) expr() {}
+
+type UnaryExpr struct {
+	Operator string
+	Expr     Expr
+}
+
+func (t UnaryExpr) expr() {}

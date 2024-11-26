@@ -131,19 +131,6 @@ var optimizers = []Optimizer{
 		},
 	},
 	{
-		Seq: some(eq(opcode.OP_LOAD), 2),
-		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
-			var res []opcode.OpCode
-			res = append(res, opcode.OP_LOADN, opcode.OpCode(len(doc)))
-
-			for _, instr := range doc {
-				res = append(res, instr.Args...)
-			}
-
-			return res
-		},
-	},
-	{
 		Seq: seq(eq(opcode.OP_CONST), eq(opcode.OP_ADD)),
 		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
 			return []opcode.OpCode{

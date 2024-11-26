@@ -69,27 +69,6 @@ func TestOptimizer(t *testing.T) {
 				opcode.OpCode(1),
 			},
 		},
-		{
-			name: "loadn",
-			in: []opcode.OpCode{
-				opcode.OP_LOAD,
-				opcode.OpCode(0),
-				opcode.OP_LOAD,
-				opcode.OpCode(1),
-				opcode.OP_LOAD,
-				opcode.OpCode(2),
-				opcode.OP_LOAD,
-				opcode.OpCode(3),
-			},
-			out: []opcode.OpCode{
-				opcode.OP_LOADN,
-				opcode.OpCode(4),
-				opcode.OpCode(0),
-				opcode.OpCode(1),
-				opcode.OpCode(2),
-				opcode.OpCode(3),
-			},
-		},
 	}
 
 	for _, tc := range testCases {

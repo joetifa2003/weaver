@@ -28,14 +28,14 @@ func expr() pargo.Parser[ast.Expr] {
 func orExpr() pargo.Parser[ast.Expr] {
 	return binaryExpr(
 		andExpr(),
-		"||",
+		"or",
 	)
 }
 
 func andExpr() pargo.Parser[ast.Expr] {
 	return binaryExpr(
 		pipeExpr(),
-		"&&",
+		"and",
 	)
 }
 
@@ -184,25 +184,32 @@ func assignExpr() pargo.Parser[ast.Expr] {
 	)
 }
 
-func functionExpr() pargo.Parser[ast.Expr] {
-	return pargo.Sequence4(
+func paramList() pargo.Parser[[]string] {
+	return pargo.Sequence3(
 		pargo.Exactly("|"),
 		pargo.ManySep(pargo.TokenType(TT_IDENT), pargo.Exactly(",")),
 		pargo.Exactly("|"),
+		func(_ string, params []string, _ string) []string {
+			return params
+		},
+	)
+}
+
+func functionExpr() pargo.Parser[ast.Expr] {
+	return pargo.Sequence2(
+		paramList(),
 		blockStmt(),
-		func(_ string, params []string, _ string, body ast.Statement) ast.Expr {
+		func(params []string, body ast.Statement) ast.Expr {
 			return ast.FunctionExpr{Params: params, Body: body}
 		},
 	)
 }
 
 func lambdaExpr() pargo.Parser[ast.Expr] {
-	return pargo.Sequence4(
-		pargo.Exactly("|"),
-		pargo.ManySep(pargo.TokenType(TT_IDENT), pargo.Exactly(",")),
-		pargo.Exactly("|"),
+	return pargo.Sequence2(
+		paramList(),
 		pargo.Lazy(expr),
-		func(_ string, params []string, _ string, expr ast.Expr) ast.Expr {
+		func(params []string, expr ast.Expr) ast.Expr {
 			return ast.FunctionExpr{
 				Params: params,
 				Body: ast.ReturnStmt{

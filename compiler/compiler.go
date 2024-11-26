@@ -410,10 +410,10 @@ func (c *Compiler) binOperatorOpcode(operator string) opcode.OpCode {
 	case ">=":
 		return opcode.OP_GTE
 
-	case "||":
+	case "or":
 		return opcode.OP_OR
 
-	case "&&":
+	case "and":
 		return opcode.OP_AND
 
 	case "!":

@@ -70,8 +70,13 @@ func (v *Value) GetFloat() float64 {
 	return *interpret[float64](&v.primitive)
 }
 
+func (v *Value) SetObject(o map[string]Value) {
+	v.VType = ValueTypeObject
+	v.nonPrimitive = unsafe.Pointer(&o)
+}
+
 func (v *Value) GetObject() map[string]Value {
-	if v.VType != ValueTypeString {
+	if v.VType != ValueTypeObject {
 		panic("Value.GetObject(): not an object")
 	}
 
@@ -168,7 +173,7 @@ func (v Value) String() string {
 		return "nil"
 
 	case ValueTypeObject:
-		return "object"
+		return fmt.Sprint(v.GetObject())
 
 	case ValueTypeBool:
 		return fmt.Sprint(v.GetBool())

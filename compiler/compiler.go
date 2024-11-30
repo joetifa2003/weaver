@@ -14,6 +14,7 @@ type Compiler struct {
 	frames       *ds.Stack[*Frame]
 	constants    []value.Value
 	functionsIdx []int
+	labelCounter int
 }
 
 func New() *Compiler {
@@ -504,5 +505,7 @@ func (c *Compiler) endBlock() {
 }
 
 func (c *Compiler) label() int {
-	return c.frames.Peek().label()
+	cc := c.labelCounter
+	c.labelCounter++
+	return cc
 }

@@ -11,7 +11,6 @@ type Frame struct {
 	Vars         []*Var
 	Instructions []opcode.OpCode
 	Blocks       *ds.Stack[*Block]
-	labelsIdx    int
 }
 
 func NewFrame() *Frame {
@@ -61,11 +60,4 @@ func (c *Frame) beginBlock() {
 
 func (c *Frame) endBlock() {
 	c.Blocks.Pop()
-}
-
-func (c *Frame) label() int {
-	idx := c.labelsIdx
-	c.labelsIdx++
-
-	return idx
 }

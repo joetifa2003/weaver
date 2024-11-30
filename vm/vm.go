@@ -206,6 +206,21 @@ func (v *VM) Run() {
 
 			v.curFrame.ip++
 
+		case opcode.OP_OBJ:
+			v.sp++
+			v.stack[v.sp].SetObject(map[string]value.Value{})
+			v.curFrame.ip++
+
+		case opcode.OP_OPUSH:
+			key := v.stack[v.sp]
+			v.sp--
+			value := v.stack[v.sp]
+			v.sp--
+			obj := v.stack[v.sp].GetObject()
+			obj[key.GetString()] = value
+
+			v.curFrame.ip++
+
 		case opcode.OP_ARRAY:
 			v.sp++
 			v.stack[v.sp].SetArray(nil)

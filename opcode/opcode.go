@@ -25,6 +25,9 @@ const (
 	OP_JUMP  // arg1: jump offset
 	OP_JUMPF // arg1: jump offset
 
+	OP_ARRAY // initialize array
+	OP_PUSH  // push value to array
+
 	OP_ADD // +
 	OP_MUL // *
 	OP_DIV // /
@@ -80,6 +83,8 @@ var opCodeDefs = map[OpCode]OpCodeDef{
 	OP_OR:    {OP_EQ, "or", 0},
 	OP_AND:   {OP_AND, "and", 0},
 	OP_NOT:   {OP_AND, "not", 0},
+	OP_PUSH:  {OP_AND, "push", 0},
+	OP_ARRAY: {OP_AND, "arr", 0},
 
 	OP_LABEL: {OP_ECHO, "label", 1},
 

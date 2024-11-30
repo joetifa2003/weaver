@@ -10,13 +10,14 @@ import (
 type ValueType int
 
 const (
-	ValueTypeInt ValueType = iota
+	ValueTypeNil ValueType = iota
+	ValueTypeInt
 	ValueTypeFloat
 	ValueTypeString
 	ValueTypeObject
 	ValueTypeBool
 	ValueTypeFunction
-	ValueTypeNil
+	ValueTypeArray
 )
 
 func (t ValueType) String() string {
@@ -35,6 +36,8 @@ func (t ValueType) String() string {
 		return "function"
 	case ValueTypeNil:
 		return "nil"
+	case ValueTypeArray:
+		return "array"
 	default:
 		panic(fmt.Sprintf("unimplemented %T", t))
 	}
@@ -81,6 +84,19 @@ func (v *Value) GetBool() bool {
 	}
 
 	return *interpret[bool](&v.primitive)
+}
+
+func (v *Value) GetArray() []Value {
+	if v.VType != ValueTypeArray {
+		panic("Value.GetArray(): not an array")
+	}
+
+	return *(*[]Value)(v.nonPrimitive)
+}
+
+func (v *Value) SetArray(a []Value) {
+	v.VType = ValueTypeArray
+	v.nonPrimitive = unsafe.Pointer(&a)
 }
 
 func (v *Value) SetBool(b bool) {
@@ -135,23 +151,35 @@ func (v *Value) GetString() string {
 
 func (v Value) String() string {
 	switch v.VType {
+
 	case ValueTypeString:
 		str := v.GetString()
 		return str
+
 	case ValueTypeInt:
 		integer := v.GetInt()
 		return fmt.Sprint(integer)
+
 	case ValueTypeFloat:
 		float := v.GetFloat()
 		return fmt.Sprint(float)
+
 	case ValueTypeNil:
 		return "nil"
+
 	case ValueTypeObject:
 		return "object"
+
 	case ValueTypeBool:
 		return fmt.Sprint(v.GetBool())
+
 	case ValueTypeFunction:
 		return "function"
+
+	case ValueTypeArray:
+		arr := v.GetArray()
+		return fmt.Sprint(arr)
+
 	default:
 		panic(fmt.Sprintf("Value.String(): unimplemented %T", v.VType))
 	}

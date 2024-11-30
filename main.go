@@ -13,6 +13,8 @@ import (
 
 func main() {
 	src := `
+	arr := [[1], [2, 3], [4, 5]]
+	echo arr
 	n := 10000000
 	even_nums := 0
 	odd_nums := 0

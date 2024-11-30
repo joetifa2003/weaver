@@ -72,3 +72,9 @@ type UnaryExpr struct {
 }
 
 func (t UnaryExpr) expr() {}
+
+type ArrayExpr struct {
+	Exprs []Expr
+}
+
+func (t ArrayExpr) expr() {}

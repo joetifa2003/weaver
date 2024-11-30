@@ -355,6 +355,21 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 		instructions = append(instructions, opcode.OP_CALL, opcode.OpCode(len(e.Args)))
 
 		return instructions, nil
+
+	case ast.ArrayExpr:
+		var instructions []opcode.OpCode
+
+		instructions = append(instructions, opcode.OP_ARRAY)
+		for _, expr := range e.Exprs {
+			expr, err := c.compileExpr(expr)
+			if err != nil {
+				return nil, err
+			}
+			instructions = append(instructions, expr...)
+			instructions = append(instructions, opcode.OP_PUSH)
+		}
+
+		return instructions, nil
 	}
 
 	panic(fmt.Sprintf("unimplemented %T", e))

@@ -206,6 +206,21 @@ func (v *VM) Run() {
 
 			v.curFrame.ip++
 
+		case opcode.OP_ARRAY:
+			v.sp++
+			v.stack[v.sp].SetArray(nil)
+
+			v.curFrame.ip++
+
+		case opcode.OP_PUSH:
+			val := v.stack[v.sp]
+			v.sp--
+			arr := v.stack[v.sp].GetArray()
+			arr = append(arr, val)
+			v.stack[v.sp].SetArray(arr)
+
+			v.curFrame.ip++
+
 		case opcode.OP_NOT:
 			right := v.stack[v.sp]
 			v.stack[v.sp].SetBool(!right.IsTruthy())

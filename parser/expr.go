@@ -162,6 +162,7 @@ func atom() pargo.Parser[ast.Expr] {
 		functionExpr(),
 		lambdaExpr(),
 		arrayExpr(),
+		objectExpr(),
 	)
 }
 
@@ -281,6 +282,48 @@ func arrayExpr() pargo.Parser[ast.Expr] {
 		pargo.Exactly("]"),
 		func(_ string, exprs []ast.Expr, _ string) ast.Expr {
 			return ast.ArrayExpr{Exprs: exprs}
+		},
+	)
+}
+
+func objectExpr() pargo.Parser[ast.Expr] {
+	return pargo.Sequence3(
+		pargo.Exactly("{"),
+		objectKV(),
+		pargo.Exactly("}"),
+		func(_ string, kv map[string]ast.Expr, _ string) ast.Expr {
+			return ast.ObjectExpr{KVs: kv}
+		},
+	)
+}
+
+type kv struct {
+	key   string
+	value ast.Expr
+}
+
+func objectKV() pargo.Parser[map[string]ast.Expr] {
+	return pargo.Map(
+		pargo.ManySep(
+			pargo.Sequence3(
+				pargo.OneOf(
+					pargo.TokenType(TT_IDENT),
+					pargo.TokenType(TT_STRING),
+				),
+				pargo.Exactly(":"),
+				pargo.Lazy(expr),
+				func(key string, _ string, expr ast.Expr) kv {
+					return kv{key, expr}
+				},
+			),
+			pargo.Exactly(","),
+		),
+		func(kvs []kv) (map[string]ast.Expr, error) {
+			m := map[string]ast.Expr{}
+			for _, kv := range kvs {
+				m[kv.key] = kv.value
+			}
+			return m, nil
 		},
 	)
 }

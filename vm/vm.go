@@ -212,7 +212,7 @@ func (v *VM) Run() {
 
 			v.curFrame.ip++
 
-		case opcode.OP_PUSH:
+		case opcode.OP_APUSH:
 			val := v.stack[v.sp]
 			v.sp--
 			arr := v.stack[v.sp].GetArray()

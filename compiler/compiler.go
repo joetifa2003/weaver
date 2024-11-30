@@ -366,7 +366,28 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 				return nil, err
 			}
 			instructions = append(instructions, expr...)
-			instructions = append(instructions, opcode.OP_PUSH)
+			instructions = append(instructions, opcode.OP_APUSH)
+		}
+
+		return instructions, nil
+
+	case ast.ObjectExpr:
+		var instructions []opcode.OpCode
+		instructions = append(instructions, opcode.OP_OBJ)
+
+		for key, value := range e.KVs {
+			exprInstructions, err := c.compileExpr(value)
+			if err != nil {
+				return nil, err
+			}
+			keyInstructions, err := c.compileExpr(ast.StringExpr{Value: key})
+			if err != nil {
+				return nil, err
+			}
+
+			instructions = append(instructions, exprInstructions...)
+			instructions = append(instructions, keyInstructions...)
+			instructions = append(instructions, opcode.OP_OPUSH)
 		}
 
 		return instructions, nil

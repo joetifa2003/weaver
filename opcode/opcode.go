@@ -26,7 +26,10 @@ const (
 	OP_JUMPF // arg1: jump offset
 
 	OP_ARRAY // initialize array
-	OP_PUSH  // push value to array
+	OP_APUSH // push value to array
+
+	OP_OBJ   // initialize object
+	OP_OPUSH // push value to object
 
 	OP_ADD // +
 	OP_MUL // *
@@ -83,8 +86,10 @@ var opCodeDefs = map[OpCode]OpCodeDef{
 	OP_OR:    {OP_EQ, "or", 0},
 	OP_AND:   {OP_AND, "and", 0},
 	OP_NOT:   {OP_AND, "not", 0},
-	OP_PUSH:  {OP_AND, "push", 0},
+	OP_APUSH: {OP_AND, "apsh", 0},
 	OP_ARRAY: {OP_AND, "arr", 0},
+	OP_OBJ:   {OP_AND, "obj", 0},
+	OP_OPUSH: {OP_AND, "opsh", 0},
 
 	OP_LABEL: {OP_ECHO, "label", 1},
 

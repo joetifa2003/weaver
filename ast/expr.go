@@ -78,3 +78,9 @@ type ArrayExpr struct {
 }
 
 func (t ArrayExpr) expr() {}
+
+type ObjectExpr struct {
+	KVs map[string]Expr
+}
+
+func (t ObjectExpr) expr() {}

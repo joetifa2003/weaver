@@ -332,8 +332,12 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 			return nil, err
 		}
 		instructions = append(instructions, expr...)
-		instructions = append(instructions, opcode.OP_STORE)
-		instructions = append(instructions, opcode.OpCode(c.resolveVar(e.Name)))
+
+		switch e := e.Assignee.(type) {
+		case ast.IdentExpr:
+			instructions = append(instructions, opcode.OP_STORE)
+			instructions = append(instructions, opcode.OpCode(c.resolveVar(e.Name)))
+		}
 
 		return instructions, nil
 

@@ -13,12 +13,17 @@ import (
 
 func main() {
 	src := `
+	a := [1, 2, 3]
+	echo a[0]
+
 	n := 10000000
 	even_nums := 0
 	odd_nums := 0
 
+	is_even := |x| x % 2 == 0
+
 	for i := 0; i < n; i = i + 1 {
-		if i % 2 == 0 {
+		if is_even(i) {
 			even_nums = even_nums + 1
 		} else {
 			odd_nums = odd_nums + 1

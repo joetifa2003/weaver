@@ -60,8 +60,8 @@ type PipeExpr struct {
 func (t PipeExpr) expr() {}
 
 type AssignExpr struct {
-	Name string
-	Expr Expr
+	Assignee Expr
+	Expr     Expr
 }
 
 func (t AssignExpr) expr() {}
@@ -84,3 +84,10 @@ type ObjectExpr struct {
 }
 
 func (t ObjectExpr) expr() {}
+
+type ArrayIndexExpr struct {
+	Expr  Expr
+	Index Expr
+}
+
+func (t ArrayIndexExpr) expr() {}

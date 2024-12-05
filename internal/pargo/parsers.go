@@ -156,6 +156,7 @@ func Optional[T any](p Parser[T]) Parser[*T] {
 
 func ManySep[T any, S any](p Parser[T], separator Parser[S]) Parser[[]T] {
 	return Sequence2(
+		Optional(p),
 		Many(
 			Sequence2(
 				p,
@@ -165,12 +166,11 @@ func ManySep[T any, S any](p Parser[T], separator Parser[S]) Parser[[]T] {
 				},
 			),
 		),
-		Optional(p),
-		func(a []T, b *T) []T {
+		func(b *T, a []T) []T {
 			if b == nil {
 				return a
 			}
-			return append(a, *b)
+			return append([]T{*b}, a...)
 		},
 	)
 }

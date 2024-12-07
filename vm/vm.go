@@ -236,6 +236,15 @@ func (v *VM) Run() {
 
 			v.curFrame.ip++
 
+		case opcode.OP_AINDEX:
+			index := v.stack[v.sp].GetInt()
+			arr := v.stack[v.sp-1].GetArray()
+
+			val := arr[index]
+			v.stack[v.sp] = val
+
+			v.curFrame.ip++
+
 		case opcode.OP_NOT:
 			right := v.stack[v.sp]
 			v.stack[v.sp].SetBool(!right.IsTruthy())

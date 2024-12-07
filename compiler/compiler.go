@@ -238,6 +238,30 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 
 		return instructions, nil
 
+	case ast.PostFixExpr:
+		var instructions []opcode.OpCode
+
+		expr, err := c.compileExpr(e.Expr)
+		if err != nil {
+			return nil, err
+		}
+
+		instructions = append(instructions, expr...)
+
+		for _, op := range e.Ops {
+			switch op := op.(type) {
+			case ast.ArrayIndexExpr:
+				expr, err := c.compileExpr(op.Index)
+				if err != nil {
+					return nil, err
+				}
+				instructions = append(instructions, expr...)
+				instructions = append(instructions, opcode.OP_AINDEX)
+			}
+		}
+
+		return instructions, nil
+
 	case ast.UnaryExpr:
 		var instructions []opcode.OpCode
 

@@ -25,8 +25,9 @@ const (
 	OP_JUMP  // arg1: jump offset
 	OP_JUMPF // arg1: jump offset
 
-	OP_ARRAY // initialize array
-	OP_APUSH // push value to array
+	OP_ARRAY  // initialize array
+	OP_APUSH  // push value to array
+	OP_AINDEX // push array value at index to stack
 
 	OP_OBJ   // initialize object
 	OP_OPUSH // push value to object
@@ -62,32 +63,34 @@ type OpCodeDef struct {
 }
 
 var opCodeDefs = map[OpCode]OpCodeDef{
-	OP_CONST: {OP_CONST, "const", 1},
-	OP_POP:   {OP_POP, "pop", 0},
-	OP_CALL:  {OP_CALL, "call", 1},
-	OP_RET:   {OP_RET, "ret", 0},
-	OP_HALT:  {OP_HALT, "halt", 0},
-	OP_STORE: {OP_STORE, "store", 1},
-	OP_LET:   {OP_LET, "let", 1},
-	OP_LOAD:  {OP_LOAD, "load", 1},
-	OP_JUMP:  {OP_JUMP, "jmp", 1},
-	OP_JUMPF: {OP_JUMPF, "jmpf", 1},
-	OP_ADD:   {OP_ADD, "add", 0},
-	OP_MUL:   {OP_MUL, "mul", 0},
-	OP_DIV:   {OP_DIV, "div", 0},
-	OP_MOD:   {OP_MOD, "mod", 0},
-	OP_SUB:   {OP_SUB, "sub", 0},
-	OP_LT:    {OP_LT, "lt", 0},
-	OP_LTE:   {OP_LTE, "lte", 0},
-	OP_GT:    {OP_LTE, "gt", 0},
-	OP_GTE:   {OP_LTE, "gte", 0},
-	OP_EQ:    {OP_EQ, "eq", 0},
-	OP_NEQ:   {OP_EQ, "neq", 0},
-	OP_OR:    {OP_EQ, "or", 0},
-	OP_AND:   {OP_AND, "and", 0},
-	OP_NOT:   {OP_AND, "not", 0},
-	OP_APUSH: {OP_AND, "apsh", 0},
-	OP_ARRAY: {OP_AND, "arr", 0},
+	OP_CONST:  {OP_CONST, "const", 1},
+	OP_POP:    {OP_POP, "pop", 0},
+	OP_CALL:   {OP_CALL, "call", 1},
+	OP_RET:    {OP_RET, "ret", 0},
+	OP_HALT:   {OP_HALT, "halt", 0},
+	OP_STORE:  {OP_STORE, "store", 1},
+	OP_LET:    {OP_LET, "let", 1},
+	OP_LOAD:   {OP_LOAD, "load", 1},
+	OP_JUMP:   {OP_JUMP, "jmp", 1},
+	OP_JUMPF:  {OP_JUMPF, "jmpf", 1},
+	OP_ADD:    {OP_ADD, "add", 0},
+	OP_MUL:    {OP_MUL, "mul", 0},
+	OP_DIV:    {OP_DIV, "div", 0},
+	OP_MOD:    {OP_MOD, "mod", 0},
+	OP_SUB:    {OP_SUB, "sub", 0},
+	OP_LT:     {OP_LT, "lt", 0},
+	OP_LTE:    {OP_LTE, "lte", 0},
+	OP_GT:     {OP_LTE, "gt", 0},
+	OP_GTE:    {OP_LTE, "gte", 0},
+	OP_EQ:     {OP_EQ, "eq", 0},
+	OP_NEQ:    {OP_EQ, "neq", 0},
+	OP_OR:     {OP_EQ, "or", 0},
+	OP_AND:    {OP_AND, "and", 0},
+	OP_NOT:    {OP_AND, "not", 0},
+	OP_APUSH:  {OP_AND, "apsh", 0},
+	OP_ARRAY:  {OP_AND, "arr", 0},
+	OP_AINDEX: {OP_AINDEX, "aindex", 0},
+
 	OP_OBJ:   {OP_AND, "obj", 0},
 	OP_OPUSH: {OP_AND, "opsh", 0},
 

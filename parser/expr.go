@@ -163,18 +163,31 @@ func assignExpr() pargo.Parser[ast.Expr] {
 				return ast.AssignExpr{Assignee: assignee, Expr: expr}
 			},
 		),
-		arrayIndexExpr(),
+		postFixExpr(),
 	)
 }
 
-func arrayIndexExpr() pargo.Parser[ast.Expr] {
-	return pargo.Sequence4(
+func postFixExpr() pargo.Parser[ast.Expr] {
+	return pargo.Sequence2(
 		atom(),
-		pargo.Exactly("["),
-		pargo.Lazy(expr),
-		pargo.Exactly("]"),
-		func(expr ast.Expr, _ string, index ast.Expr, _ string) ast.Expr {
-			return ast.ArrayIndexExpr{Expr: expr, Index: index}
+		pargo.Many(
+			pargo.OneOf(
+				pargo.Sequence3(
+					pargo.Exactly("["),
+					pargo.Lazy(expr),
+					pargo.Exactly("]"),
+					func(_ string, expr ast.Expr, _ string) ast.PostFixOp {
+						return ast.ArrayIndexExpr{Index: expr}
+					},
+				),
+			),
+		),
+		func(expr ast.Expr, ops []ast.PostFixOp) ast.Expr {
+			if len(ops) == 0 {
+				return expr
+			}
+
+			return ast.PostFixExpr{Expr: expr, Ops: ops}
 		},
 	)
 }

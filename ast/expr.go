@@ -85,9 +85,19 @@ type ObjectExpr struct {
 
 func (t ObjectExpr) expr() {}
 
+type PostFixExpr struct {
+	Expr Expr
+	Ops  []PostFixOp
+}
+
+func (t PostFixExpr) expr() {}
+
+type PostFixOp interface {
+	postFixOp()
+}
+
 type ArrayIndexExpr struct {
-	Expr  Expr
 	Index Expr
 }
 
-func (t ArrayIndexExpr) expr() {}
+func (t ArrayIndexExpr) postFixOp() {}

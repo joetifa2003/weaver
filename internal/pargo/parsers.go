@@ -159,9 +159,9 @@ func ManySep[T any, S any](p Parser[T], separator Parser[S]) Parser[[]T] {
 		Optional(p),
 		Many(
 			Sequence2(
-				p,
 				separator,
-				func(a T, _ S) T {
+				p,
+				func(_ S, a T) T {
 					return a
 				},
 			),

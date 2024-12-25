@@ -13,26 +13,34 @@ import (
 
 func main() {
 	src := `
-	a := [1, 2, 3]
-	echo a[0]
+	arr := [[0, 1]]
 
-	n := 10000000
-	even_nums := 0
-	odd_nums := 0
-
-	is_even := |x| x % 2 == 0
-
-	for i := 0; i < n; i = i + 1 {
-		if is_even(i) {
-			even_nums = even_nums + 1
-		} else {
-			odd_nums = odd_nums + 1
-		}
+	obj := {
+		"a": "Hello world",
+		"b": arr
 	}
 
-	echo even_nums
-	echo odd_nums
+	echo obj.b[0][1]
 	`
+
+	// src := `
+	// n := 10000000
+	// even_nums := 0
+	// odd_nums := 0
+	//
+	// is_even := |x| x % 2 == 0
+	//
+	// for i := 0; i < n; i = i + 1 {
+	// 	if is_even(i) {
+	// 		even_nums = even_nums + 1
+	// 	} else {
+	// 		odd_nums = odd_nums + 1
+	// 	}
+	// }
+	//
+	// echo even_nums
+	// echo odd_nums
+	// `
 
 	pt := time.Now()
 	p, err := parser.Parse(src)

@@ -96,8 +96,8 @@ type PostFixOp interface {
 	postFixOp()
 }
 
-type ArrayIndexExpr struct {
+type IndexExpr struct {
 	Index Expr
 }
 
-func (t ArrayIndexExpr) postFixOp() {}
+func (t IndexExpr) postFixOp() {}

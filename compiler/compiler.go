@@ -225,6 +225,10 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 			return c.compilePipeExpr(e)
 		}
 
+		if e.Operator == "." {
+			return c.compileDotExpr(e)
+		}
+
 		for _, operand := range e.Operands {
 			expr, err := c.compileExpr(operand)
 			if err != nil {
@@ -250,13 +254,13 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 
 		for _, op := range e.Ops {
 			switch op := op.(type) {
-			case ast.ArrayIndexExpr:
+			case ast.IndexExpr:
 				expr, err := c.compileExpr(op.Index)
 				if err != nil {
 					return nil, err
 				}
 				instructions = append(instructions, expr...)
-				instructions = append(instructions, opcode.OP_AINDEX)
+				instructions = append(instructions, opcode.OP_INDEX)
 			}
 		}
 
@@ -423,6 +427,24 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 	}
 
 	panic(fmt.Sprintf("unimplemented %T", e))
+}
+
+func (c *Compiler) compileDotExpr(e ast.BinaryExpr) ([]opcode.OpCode, error) {
+	left := ast.PostFixExpr{
+		Expr: e.Operands[0],
+		Ops:  []ast.PostFixOp{},
+	}
+
+	for _, right := range e.Operands[1:] {
+		switch right := right.(type) {
+		case ast.IdentExpr:
+			left.Ops = append(left.Ops, ast.IndexExpr{Index: ast.StringExpr{Value: right.Name}})
+		default:
+			return nil, errors.New("right operand of dot must be an identifier")
+		}
+	}
+
+	return c.compileExpr(left)
 }
 
 func (c *Compiler) compilePipeExpr(e ast.BinaryExpr) ([]opcode.OpCode, error) {

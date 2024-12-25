@@ -236,12 +236,19 @@ func (v *VM) Run() {
 
 			v.curFrame.ip++
 
-		case opcode.OP_AINDEX:
-			index := v.stack[v.sp].GetInt()
-			arr := v.stack[v.sp-1].GetArray()
+		case opcode.OP_INDEX:
+			index := v.stack[v.sp]
+			arr := v.stack[v.sp-1]
+			v.sp--
 
-			val := arr[index]
-			v.stack[v.sp] = val
+			switch arr.VType {
+			case value.ValueTypeArray:
+				val := arr.GetArray()[index.GetInt()]
+				v.stack[v.sp] = val
+			case value.ValueTypeObject:
+				val := arr.GetObject()[index.GetString()]
+				v.stack[v.sp] = val
+			}
 
 			v.curFrame.ip++
 

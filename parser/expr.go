@@ -136,6 +136,7 @@ func notExpr() pargo.Parser[ast.Expr] {
 	)
 }
 
+// TODO: handle this in postfix expr
 func callExpr() pargo.Parser[ast.Expr] {
 	return pargo.OneOf(
 		pargo.Sequence4(
@@ -169,7 +170,7 @@ func assignExpr() pargo.Parser[ast.Expr] {
 
 func postFixExpr() pargo.Parser[ast.Expr] {
 	return pargo.Sequence2(
-		atom(),
+		dotExpr(),
 		pargo.Many(
 			pargo.OneOf(
 				pargo.Sequence3(
@@ -177,7 +178,7 @@ func postFixExpr() pargo.Parser[ast.Expr] {
 					pargo.Lazy(expr),
 					pargo.Exactly("]"),
 					func(_ string, expr ast.Expr, _ string) ast.PostFixOp {
-						return ast.ArrayIndexExpr{Index: expr}
+						return ast.IndexExpr{Index: expr}
 					},
 				),
 			),
@@ -189,6 +190,13 @@ func postFixExpr() pargo.Parser[ast.Expr] {
 
 			return ast.PostFixExpr{Expr: expr, Ops: ops}
 		},
+	)
+}
+
+func dotExpr() pargo.Parser[ast.Expr] {
+	return binaryExpr(
+		atom(),
+		".",
 	)
 }
 

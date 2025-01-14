@@ -13,14 +13,18 @@ import (
 
 func main() {
 	src := `
-	arr := [[0, 1]]
+	arr := [[0, 1, 3]]
 
 	obj := {
 		"a": "Hello world",
 		"b": arr
 	}
 
-	echo obj.b[0][1]
+	len(arr) 		|> echo()
+	len(arr[0]) |> echo()
+	len(obj) 		|> echo()
+
+	nums := [1, 2, 3]
 	`
 
 	// src := `

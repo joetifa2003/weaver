@@ -41,16 +41,16 @@ func (c *Frame) defineVar(name string) int {
 	return len(c.Vars) - 1
 }
 
-func (c *Frame) resolve(name string) int {
+func (c *Frame) resolve(name string) (int, error) {
 	for _, b := range c.Blocks.Iter() {
 		for _, v := range b.Vars {
 			if v.Name == name {
-				return v.Index
+				return v.Index, nil
 			}
 		}
 	}
 
-	panic(fmt.Sprintf("variable %s not found", name))
+	return -1, fmt.Errorf("%w: %s", ErrVarNotFound, name)
 }
 
 func (c *Frame) beginBlock() {

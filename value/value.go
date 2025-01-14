@@ -18,6 +18,7 @@ const (
 	ValueTypeBool
 	ValueTypeFunction
 	ValueTypeArray
+	ValueTypeNativeFunction
 )
 
 func (t ValueType) String() string {
@@ -38,6 +39,8 @@ func (t ValueType) String() string {
 		return "nil"
 	case ValueTypeArray:
 		return "array"
+	case ValueTypeNativeFunction:
+		return "native function"
 	default:
 		panic(fmt.Sprintf("unimplemented %T", t))
 	}
@@ -154,6 +157,21 @@ func (v *Value) GetString() string {
 	return *(*string)(v.nonPrimitive)
 }
 
+type NativeFunction func(args ...Value) Value
+
+func (v *Value) GetNativeFunction() NativeFunction {
+	if v.VType != ValueTypeNativeFunction {
+		panic("Value.GetNativeFunction(): not a native function")
+	}
+
+	return *(*NativeFunction)(v.nonPrimitive)
+}
+
+func (v *Value) SetNativeFunction(f NativeFunction) {
+	v.VType = ValueTypeNativeFunction
+	v.nonPrimitive = unsafe.Pointer(&f)
+}
+
 func (v Value) String() string {
 	switch v.VType {
 
@@ -185,6 +203,9 @@ func (v Value) String() string {
 		arr := v.GetArray()
 		return fmt.Sprint(arr)
 
+	case ValueTypeNativeFunction:
+		return "native function"
+
 	default:
 		panic(fmt.Sprintf("Value.String(): unimplemented %T", v.VType))
 	}
@@ -202,6 +223,8 @@ func (v Value) IsTruthy() bool {
 		return len(v.GetString()) != 0
 	case ValueTypeObject:
 		return len(v.GetObject()) != 0
+	case ValueTypeArray:
+		return len(v.GetArray()) != 0
 	default:
 		panic(fmt.Sprintf("Value.IsTruthy(): unimplemented %T", v.VType))
 	}

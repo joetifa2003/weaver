@@ -17,6 +17,7 @@ type Frame struct {
 	instructions []opcode.OpCode
 	numVars      int
 	stackOffset  int
+	haltAfter    bool
 }
 
 type VM struct {
@@ -43,6 +44,10 @@ func New(constants []value.Value, mainFrame *compiler.Frame) *VM {
 	}, 0)
 
 	return vm
+}
+
+func (v *VM) runFunction(f *Frame, numArgs int) {
+
 }
 
 func (v *VM) Run() {
@@ -310,23 +315,36 @@ func (v *VM) Run() {
 			callee := v.stack[v.sp]
 			v.sp--
 
-			fn := callee.GetFunction()
-			frame := &Frame{
-				instructions: fn.Instructions,
-				numVars:      fn.NumVars,
-				ip:           0,
-				stackOffset:  v.sp - numArgs + 1,
+			switch callee.VType {
+			case value.ValueTypeFunction:
+				fn := callee.GetFunction()
+				frame := &Frame{
+					instructions: fn.Instructions,
+					numVars:      fn.NumVars,
+					ip:           0,
+					stackOffset:  v.sp - numArgs + 1,
+				}
+				v.curFrame.ip += 2
+				v.pushFrame(frame, numArgs)
+			case value.ValueTypeNativeFunction:
+				fn := callee.GetNativeFunction()
+				args := v.stack[v.sp-numArgs+1 : v.sp+1]
+				r := fn(args...)
+				v.sp = v.sp - numArgs + 1
+				v.stack[v.sp] = r
+
+				v.curFrame.ip += 2
 			}
-
-			v.curFrame.ip += 2
-
-			v.pushFrame(frame, numArgs)
 
 		case opcode.OP_RET:
 			val := v.stack[v.sp]
 			v.sp = v.curFrame.stackOffset
 			v.stack[v.sp] = val
+			heltAfter := v.curFrame.haltAfter
 			v.popFrame()
+			if heltAfter {
+				return
+			}
 
 		case opcode.OP_CONST_LET:
 			constantIdx := int(v.curFrame.instructions[v.curFrame.ip+1])
@@ -368,6 +386,16 @@ func (v *VM) Run() {
 		default:
 			panic(fmt.Sprintf("unimplemented %s", v.curFrame.instructions[v.curFrame.ip]))
 		}
+	}
+}
+
+func (v *VM) getFunctionFrame(f value.Value, numArgs int) *Frame {
+	fn := f.GetFunction()
+	return &Frame{
+		instructions: fn.Instructions,
+		numVars:      fn.NumVars,
+		ip:           0,
+		stackOffset:  v.sp - numArgs + 1,
 	}
 }
 

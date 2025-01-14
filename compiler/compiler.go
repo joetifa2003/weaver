@@ -315,10 +315,25 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 		}, nil
 
 	case ast.IdentExpr:
-		return []opcode.OpCode{
-			opcode.OP_LOAD,
-			opcode.OpCode(c.resolveVar(e.Name)),
-		}, nil
+		idx, err := c.resolveVar(e.Name)
+		if err == nil {
+			return []opcode.OpCode{
+				opcode.OP_LOAD,
+				opcode.OpCode(idx),
+			}, nil
+		}
+
+		if f, ok := builtInFunctions[e.Name]; ok {
+			fVal := value.Value{}
+			fVal.SetNativeFunction(f)
+
+			return []opcode.OpCode{
+				opcode.OP_CONST,
+				opcode.OpCode(c.defineConstant(fVal)),
+			}, nil
+		}
+
+		return nil, err
 
 	case ast.IntExpr:
 		value := value.Value{}
@@ -364,7 +379,11 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 		switch e := e.Assignee.(type) {
 		case ast.IdentExpr:
 			instructions = append(instructions, opcode.OP_STORE)
-			instructions = append(instructions, opcode.OpCode(c.resolveVar(e.Name)))
+			idx, err := c.resolveVar(e.Name)
+			if err != nil {
+				return nil, err
+			}
+			instructions = append(instructions, opcode.OpCode(idx))
 		}
 
 		return instructions, nil
@@ -525,7 +544,7 @@ func (c *Compiler) defineVar(name string) int {
 	return c.frames.Peek().defineVar(name)
 }
 
-func (c *Compiler) resolveVar(name string) int {
+func (c *Compiler) resolveVar(name string) (int, error) {
 	return c.frames.Peek().resolve(name)
 }
 

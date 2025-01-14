@@ -7,24 +7,16 @@ import (
 	"github.com/joetifa2003/weaver/compiler"
 	"github.com/joetifa2003/weaver/opcode"
 	"github.com/joetifa2003/weaver/parser"
-	"github.com/joetifa2003/weaver/value"
 	"github.com/joetifa2003/weaver/vm"
 )
 
 func main() {
 	src := `
-	arr := [[0, 1, 3]]
-
-	obj := {
-		"a": "Hello world",
-		"b": arr
+	for i := 0; i < 10000; i = i + 1 {
+		[1, 2, 3] 
+			| map(|x| x + 1)
+			| filter(|x| x % 2 == 0)
 	}
-
-	len(arr) 		|> echo()
-	len(arr[0]) |> echo()
-	len(obj) 		|> echo()
-
-	nums := [1, 2, 3]
 	`
 
 	// src := `
@@ -64,14 +56,14 @@ func main() {
 	fmt.Println(opcode.PrintOpcodes(mainFrame.Instructions))
 
 	for _, c := range constants {
-		if c.VType == value.ValueTypeFunction {
+		if c.VType == vm.ValueTypeFunction {
 			fn := c.GetFunction()
 			fmt.Println(opcode.PrintOpcodes(fn.Instructions))
 		}
 	}
 
 	vt := time.Now()
-	vm := vm.New(constants, mainFrame)
+	vm := vm.New(constants, mainFrame.Instructions, len(mainFrame.Vars))
 	vm.Run()
 	fmt.Println("vm took: ", time.Since(vt))
 }

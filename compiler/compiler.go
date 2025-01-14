@@ -7,28 +7,28 @@ import (
 	"github.com/joetifa2003/weaver/ast"
 	"github.com/joetifa2003/weaver/internal/pkg/ds"
 	"github.com/joetifa2003/weaver/opcode"
-	"github.com/joetifa2003/weaver/value"
+	"github.com/joetifa2003/weaver/vm"
 )
 
 type Compiler struct {
 	frames       *ds.Stack[*Frame]
-	constants    []value.Value
+	constants    []vm.Value
 	functionsIdx []int
 	labelCounter int
 }
 
 func New() *Compiler {
-	nilValue := value.Value{}
+	nilValue := vm.Value{}
 	nilValue.SetNil()
 	return &Compiler{
 		frames: &ds.Stack[*Frame]{},
-		constants: []value.Value{
+		constants: []vm.Value{
 			nilValue,
 		},
 	}
 }
 
-func (c *Compiler) Compile(p ast.Program) (*Frame, []value.Value, error) {
+func (c *Compiler) Compile(p ast.Program) (*Frame, []vm.Value, error) {
 	c.pushFrame()
 
 	for _, s := range p.Statements {
@@ -300,8 +300,8 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 
 		frame := c.popFrame()
 
-		fnValue := value.Value{}
-		fnValue.SetFunction(value.FunctionValue{
+		fnValue := vm.Value{}
+		fnValue.SetFunction(vm.FunctionValue{
 			NumVars:      len(frame.Vars),
 			Instructions: frame.Instructions,
 		})
@@ -324,7 +324,7 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 		}
 
 		if f, ok := builtInFunctions[e.Name]; ok {
-			fVal := value.Value{}
+			fVal := vm.Value{}
 			fVal.SetNativeFunction(f)
 
 			return []opcode.OpCode{
@@ -336,7 +336,7 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 		return nil, err
 
 	case ast.IntExpr:
-		value := value.Value{}
+		value := vm.Value{}
 		value.SetInt(e.Value)
 		return []opcode.OpCode{
 			opcode.OP_CONST,
@@ -344,7 +344,7 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 		}, nil
 
 	case ast.FloatExpr:
-		value := value.Value{}
+		value := vm.Value{}
 		value.SetFloat(e.Value)
 		return []opcode.OpCode{
 			opcode.OP_CONST,
@@ -352,7 +352,7 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 		}, nil
 
 	case ast.StringExpr:
-		value := value.Value{}
+		value := vm.Value{}
 		value.SetString(e.Value)
 		return []opcode.OpCode{
 			opcode.OP_CONST,
@@ -360,7 +360,7 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 		}, nil
 
 	case ast.BoolExpr:
-		value := value.Value{}
+		value := vm.Value{}
 		value.SetBool(e.Value)
 
 		return []opcode.OpCode{
@@ -548,7 +548,7 @@ func (c *Compiler) resolveVar(name string) (int, error) {
 	return c.frames.Peek().resolve(name)
 }
 
-func (c *Compiler) defineConstant(v value.Value) int {
+func (c *Compiler) defineConstant(v vm.Value) int {
 	c.constants = append(c.constants, v)
 	return len(c.constants) - 1
 }

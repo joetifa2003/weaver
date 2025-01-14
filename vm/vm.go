@@ -3,9 +3,7 @@ package vm
 import (
 	"fmt"
 
-	"github.com/joetifa2003/weaver/compiler"
 	"github.com/joetifa2003/weaver/opcode"
-	"github.com/joetifa2003/weaver/value"
 )
 
 const MaxStack = 1024
@@ -21,16 +19,16 @@ type Frame struct {
 }
 
 type VM struct {
-	stack     [MaxStack]value.Value
+	stack     [MaxStack]Value
 	callStack [MaxCallStack]*Frame
-	constants []value.Value
+	constants []Value
 	curFrame  *Frame
 
 	sp int
 	fp int
 }
 
-func New(constants []value.Value, mainFrame *compiler.Frame) *VM {
+func New(constants []Value, instructions []opcode.OpCode, vars int) *VM {
 	vm := &VM{
 		constants: constants,
 		sp:        -1,
@@ -38,16 +36,33 @@ func New(constants []value.Value, mainFrame *compiler.Frame) *VM {
 	}
 
 	vm.pushFrame(&Frame{
-		instructions: mainFrame.Instructions,
-		numVars:      len(mainFrame.Vars),
+		instructions: instructions,
+		numVars:      vars,
 		ip:           0,
 	}, 0)
 
 	return vm
 }
 
-func (v *VM) runFunction(f *Frame, numArgs int) {
+func (v *VM) RunFunction(f Value, args ...Value) Value {
+	fn := f.GetFunction()
+	for _, arg := range args {
+		v.sp++
+		v.stack[v.sp] = arg
+	}
+	v.pushFrame(&Frame{
+		instructions: fn.Instructions,
+		numVars:      fn.NumVars,
+		ip:           0,
+		haltAfter:    true,
+		stackOffset:  v.sp - len(args) + 1,
+	}, len(args))
+	v.Run()
 
+	retVal := v.stack[v.sp]
+	v.sp--
+
+	return retVal
 }
 
 func (v *VM) Run() {
@@ -108,9 +123,9 @@ func (v *VM) Run() {
 			v.sp--
 
 			switch left.VType {
-			case value.ValueTypeInt:
+			case ValueTypeInt:
 				switch right.VType {
-				case value.ValueTypeInt:
+				case ValueTypeInt:
 					v.stack[v.sp].SetBool(left.GetInt() < right.GetInt())
 				default:
 					panic(fmt.Sprintf("illegal operation %s < %s", left, right))
@@ -127,9 +142,9 @@ func (v *VM) Run() {
 			v.sp--
 
 			switch left.VType {
-			case value.ValueTypeInt:
+			case ValueTypeInt:
 				switch right.VType {
-				case value.ValueTypeInt:
+				case ValueTypeInt:
 					v.stack[v.sp].SetBool(left.GetInt() <= right.GetInt())
 				default:
 					panic(fmt.Sprintf("illegal operation %s < %s", left, right))
@@ -146,9 +161,9 @@ func (v *VM) Run() {
 			v.sp--
 
 			switch left.VType {
-			case value.ValueTypeInt:
+			case ValueTypeInt:
 				switch right.VType {
-				case value.ValueTypeInt:
+				case ValueTypeInt:
 					v.stack[v.sp].SetBool(left.GetInt() > right.GetInt())
 				default:
 					panic(fmt.Sprintf("illegal operation %s < %s", left, right))
@@ -165,9 +180,9 @@ func (v *VM) Run() {
 			v.sp--
 
 			switch left.VType {
-			case value.ValueTypeInt:
+			case ValueTypeInt:
 				switch right.VType {
-				case value.ValueTypeInt:
+				case ValueTypeInt:
 					v.stack[v.sp].SetBool(left.GetInt() > right.GetInt())
 				default:
 					panic(fmt.Sprintf("illegal operation %s < %s", left, right))
@@ -213,7 +228,7 @@ func (v *VM) Run() {
 
 		case opcode.OP_OBJ:
 			v.sp++
-			v.stack[v.sp].SetObject(map[string]value.Value{})
+			v.stack[v.sp].SetObject(map[string]Value{})
 			v.curFrame.ip++
 
 		case opcode.OP_OPUSH:
@@ -247,10 +262,10 @@ func (v *VM) Run() {
 			v.sp--
 
 			switch arr.VType {
-			case value.ValueTypeArray:
+			case ValueTypeArray:
 				val := arr.GetArray()[index.GetInt()]
 				v.stack[v.sp] = val
-			case value.ValueTypeObject:
+			case ValueTypeObject:
 				val := arr.GetObject()[index.GetString()]
 				v.stack[v.sp] = val
 			}
@@ -316,7 +331,7 @@ func (v *VM) Run() {
 			v.sp--
 
 			switch callee.VType {
-			case value.ValueTypeFunction:
+			case ValueTypeFunction:
 				fn := callee.GetFunction()
 				frame := &Frame{
 					instructions: fn.Instructions,
@@ -326,10 +341,10 @@ func (v *VM) Run() {
 				}
 				v.curFrame.ip += 2
 				v.pushFrame(frame, numArgs)
-			case value.ValueTypeNativeFunction:
+			case ValueTypeNativeFunction:
 				fn := callee.GetNativeFunction()
 				args := v.stack[v.sp-numArgs+1 : v.sp+1]
-				r := fn(args...)
+				r := fn(v, args...)
 				v.sp = v.sp - numArgs + 1
 				v.stack[v.sp] = r
 
@@ -389,7 +404,7 @@ func (v *VM) Run() {
 	}
 }
 
-func (v *VM) getFunctionFrame(f value.Value, numArgs int) *Frame {
+func (v *VM) getFunctionFrame(f Value, numArgs int) *Frame {
 	fn := f.GetFunction()
 	return &Frame{
 		instructions: fn.Instructions,
@@ -404,7 +419,7 @@ func (v *VM) pushFrame(f *Frame, args int) {
 
 	for range f.numVars - args {
 		v.sp++
-		val := value.Value{}
+		val := Value{}
 		val.SetNil()
 		v.stack[v.sp] = val
 	}

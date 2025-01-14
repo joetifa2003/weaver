@@ -1,4 +1,4 @@
-package value
+package vm
 
 import (
 	"fmt"
@@ -157,7 +157,7 @@ func (v *Value) GetString() string {
 	return *(*string)(v.nonPrimitive)
 }
 
-type NativeFunction func(args ...Value) Value
+type NativeFunction func(v *VM, args ...Value) Value
 
 func (v *Value) GetNativeFunction() NativeFunction {
 	if v.VType != ValueTypeNativeFunction {

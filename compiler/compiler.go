@@ -554,7 +554,7 @@ func (c *Compiler) defineConstant(v vm.Value) int {
 }
 
 func (c *Compiler) pushFrame() {
-	c.frames.Push(NewFrame())
+	c.frames.Push(NewFrame(c.frames.Peek()))
 }
 
 func (c *Compiler) popFrame() *Frame {

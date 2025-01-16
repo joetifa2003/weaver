@@ -12,12 +12,16 @@ import (
 
 func main() {
 	src := `
-	for i := 0; i < 10000; i = i + 1 {
-		[1, 2, 3] 
-			| map(|x| x + 1)
-			| filter(|x| x % 2 == 0)
-	}
+	adder := |x| |y| x + y
 	`
+
+	// src := `
+	// for i := 0; i < 100; i = i + 1 {
+	// 	[1, 2, 3]
+	// 		| map(|x| x + 1)
+	// 		| filter(|x| x % 2 == 0)
+	// }
+	// `
 
 	// src := `
 	// n := 10000000

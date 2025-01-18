@@ -11,9 +11,11 @@ const MaxStack = 1024
 const MaxCallStack = 1024
 
 type Frame struct {
-	ip           int
+	ip int
+	// TODO: Embed the function value in the frame
 	instructions []opcode.OpCode
 	numVars      int
+	freeVars     []Value
 	stackOffset  int
 	haltAfter    bool
 }
@@ -53,6 +55,7 @@ func (v *VM) RunFunction(f Value, args ...Value) Value {
 	v.pushFrame(&Frame{
 		instructions: fn.Instructions,
 		numVars:      fn.NumVars,
+		freeVars:     fn.FreeVars,
 		ip:           0,
 		haltAfter:    true,
 		stackOffset:  v.sp - len(args) + 1,
@@ -74,9 +77,34 @@ func (v *VM) Run() {
 			v.stack[v.sp] = v.constants[index]
 			v.curFrame.ip += 2
 
+		case opcode.OP_FUNC:
+			constantIndex := int(v.curFrame.instructions[v.curFrame.ip+1])
+			freeVarsCount := int(v.curFrame.instructions[v.curFrame.ip+2])
+			var freeVars []Value
+
+			for range freeVarsCount {
+				freeVars = append(freeVars, v.stack[v.sp])
+				v.sp--
+			}
+
+			fn := *v.constants[constantIndex].GetFunction()
+			fn.FreeVars = freeVars
+			v.sp++
+			v.stack[v.sp].SetFunction(fn)
+
+			v.curFrame.ip += 3
+
 		case opcode.OP_LOAD:
 			index := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+1])
 			val := v.stack[index]
+			v.sp++
+			v.stack[v.sp] = val
+			v.curFrame.ip += 2
+
+		case opcode.OP_LOAD_FREE:
+			index := int(v.curFrame.instructions[v.curFrame.ip+1])
+			val := v.curFrame.freeVars[index]
+
 			v.sp++
 			v.stack[v.sp] = val
 			v.curFrame.ip += 2
@@ -336,6 +364,7 @@ func (v *VM) Run() {
 				frame := &Frame{
 					instructions: fn.Instructions,
 					numVars:      fn.NumVars,
+					freeVars:     fn.FreeVars,
 					ip:           0,
 					stackOffset:  v.sp - numArgs + 1,
 				}

@@ -309,18 +309,23 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 		constant := c.defineConstant(fnValue)
 		c.functionsIdx = append(c.functionsIdx, constant)
 
-		return []opcode.OpCode{
-			opcode.OP_CONST,
+		var instructions []opcode.OpCode
+
+		for _, freeVar := range frame.FreeVars {
+			instructions = append(instructions, freeVar.Parent.load()...)
+		}
+		instructions = append(instructions,
+			opcode.OP_FUNC,
 			opcode.OpCode(constant),
-		}, nil
+			opcode.OpCode(len(frame.FreeVars)),
+		)
+
+		return instructions, nil
 
 	case ast.IdentExpr:
-		idx, err := c.resolveVar(e.Name)
+		v, err := c.resolveVar(e.Name)
 		if err == nil {
-			return []opcode.OpCode{
-				opcode.OP_LOAD,
-				opcode.OpCode(idx),
-			}, nil
+			return v.load(), nil
 		}
 
 		if f, ok := builtInFunctions[e.Name]; ok {
@@ -378,12 +383,11 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 
 		switch e := e.Assignee.(type) {
 		case ast.IdentExpr:
-			instructions = append(instructions, opcode.OP_STORE)
-			idx, err := c.resolveVar(e.Name)
+			v, err := c.resolveVar(e.Name)
 			if err != nil {
 				return nil, err
 			}
-			instructions = append(instructions, opcode.OpCode(idx))
+			instructions = append(instructions, v.store()...)
 		}
 
 		return instructions, nil
@@ -544,7 +548,7 @@ func (c *Compiler) defineVar(name string) int {
 	return c.frames.Peek().defineVar(name)
 }
 
-func (c *Compiler) resolveVar(name string) (int, error) {
+func (c *Compiler) resolveVar(name string) (*Var, error) {
 	return c.frames.Peek().resolve(name)
 }
 

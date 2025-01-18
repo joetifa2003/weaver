@@ -18,7 +18,11 @@ func (s *Stack[T]) Pop() T {
 }
 
 func (s *Stack[T]) Peek() T {
-	return s.data[len(s.data)-1]
+	var z T
+	if len(s.data) > 0 {
+		z = s.data[len(s.data)-1]
+	}
+	return z
 }
 
 func (s *Stack[T]) Len() int {

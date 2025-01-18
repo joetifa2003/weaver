@@ -33,9 +33,54 @@ const (
 )
 
 type Var struct {
-	Scope VarScope
-	Name  string
-	Index int
+	Scope  VarScope
+	Name   string
+	Index  int
+	Parent *Var
+}
+
+func (v *Var) load() []opcode.OpCode {
+	switch v.Scope {
+	case VarScopeLocal:
+		return []opcode.OpCode{
+			opcode.OP_LOAD,
+			opcode.OpCode(v.Index),
+		}
+	case VarScopeFree:
+		return []opcode.OpCode{
+			opcode.OP_LOAD_FREE,
+			opcode.OpCode(v.Index),
+		}
+	case VarScopeGlobal:
+		return []opcode.OpCode{
+			opcode.OP_LOAD_GLOBAL,
+			opcode.OpCode(v.Index),
+		}
+	default:
+		panic(fmt.Sprintf("unknown scope %d", v.Scope))
+	}
+}
+
+func (v *Var) store() []opcode.OpCode {
+	switch v.Scope {
+	case VarScopeLocal:
+		return []opcode.OpCode{
+			opcode.OP_STORE,
+			opcode.OpCode(v.Index),
+		}
+	case VarScopeFree:
+		return []opcode.OpCode{
+			opcode.OP_STORE_FREE,
+			opcode.OpCode(v.Index),
+		}
+	case VarScopeGlobal:
+		return []opcode.OpCode{
+			opcode.OP_STORE_GLOBAL,
+			opcode.OpCode(v.Index),
+		}
+	default:
+		panic(fmt.Sprintf("unknown scope %d", v.Scope))
+	}
 }
 
 type Block struct {
@@ -47,14 +92,14 @@ func (c *Frame) addInstructions(instructions []opcode.OpCode) {
 }
 
 func (c *Frame) defineVar(name string) int {
-	v := &Var{Name: name, Index: len(c.Vars)}
+	v := &Var{Name: name, Index: len(c.Vars), Scope: VarScopeLocal}
 	c.Vars = append(c.Vars, v)
 	c.Blocks.Peek().Vars = append(c.Blocks.Peek().Vars, v)
 	return len(c.Vars) - 1
 }
 
-func (c *Frame) defineFreeVar(name string, parentIdx int) *Var {
-	v := &Var{Name: name, Index: len(c.FreeVars)}
+func (c *Frame) defineFreeVar(name string, parent *Var) *Var {
+	v := &Var{Name: name, Index: len(c.FreeVars), Scope: VarScopeFree, Parent: parent}
 	c.FreeVars = append(c.FreeVars, v)
 	return v
 }
@@ -75,12 +120,12 @@ func (c *Frame) resolve(name string) (*Var, error) {
 	}
 
 	if c.Parent != nil {
-		idx, err := c.Parent.resolve(name)
-		if err == nil {
+		v, err := c.Parent.resolve(name)
+		if err != nil {
 			return nil, err
 		}
 
-		return c.defineFreeVar(name), nil
+		return c.defineFreeVar(name, v), nil
 	}
 
 	return nil, fmt.Errorf("%w: %s", ErrVarNotFound, name)

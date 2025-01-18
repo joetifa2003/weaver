@@ -129,6 +129,7 @@ func (v *Value) SetNil() {
 type FunctionValue struct {
 	NumVars      int
 	Instructions []opcode.OpCode
+	FreeVars     []Value
 }
 
 func (v *Value) SetFunction(f FunctionValue) {

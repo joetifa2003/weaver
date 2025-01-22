@@ -12,8 +12,13 @@ import (
 
 func main() {
 	src := `
-		x := [1, 2, 3]
-		x | push(4)	| len() | echo()
+		for i := 0; i < 10; i = i + 1 {
+			if i % 2 == 0 {
+				continue
+			}
+
+			echo(i)
+		}	
 	`
 
 	// src := `

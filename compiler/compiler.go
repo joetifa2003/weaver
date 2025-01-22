@@ -11,12 +11,17 @@ import (
 )
 
 type Compiler struct {
-	frames       *ds.Stack[*Frame]
-	constants    []vm.Value
-	functionsIdx []int
-	labelCounter int
-
+	frames              *ds.Stack[*Frame]
+	constants           []vm.Value
+	functionsIdx        []int
+	labelCounter        int
+	loopContext         *ds.Stack[loopContext]
 	optimizationEnabled bool
+}
+
+type loopContext struct {
+	loopStart int
+	loopEnd   int
 }
 
 type CompilerOption func(*Compiler)
@@ -32,7 +37,8 @@ func New(opts ...CompilerOption) *Compiler {
 	nilValue.SetNil()
 
 	c := &Compiler{
-		frames: &ds.Stack[*Frame]{},
+		frames:      &ds.Stack[*Frame]{},
+		loopContext: &ds.Stack[loopContext]{},
 		constants: []vm.Value{
 			nilValue,
 		},
@@ -145,6 +151,11 @@ func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 		return instructions, nil
 
 	case ast.WhileStmt:
+		loopLabel := c.label()
+		falseLabel := c.label()
+
+		c.beginLoop(loopLabel, falseLabel)
+
 		var instructions []opcode.OpCode
 		expr, err := c.compileExpr(s.Condition)
 		if err != nil {
@@ -156,8 +167,7 @@ func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 			return nil, err
 		}
 
-		loopLabel := c.label()
-		falseLabel := c.label()
+		c.endLoop()
 
 		instructions = append(instructions, opcode.OP_LABEL, opcode.OpCode(loopLabel))
 		instructions = append(instructions, expr...)
@@ -167,6 +177,20 @@ func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 		instructions = append(instructions, opcode.OP_LABEL, opcode.OpCode(falseLabel))
 
 		return instructions, nil
+
+	case ast.BreakStmt:
+		loop := c.currentLoop()
+		return []opcode.OpCode{
+			opcode.OP_JUMP,
+			opcode.OpCode(loop.loopEnd),
+		}, nil
+
+	case ast.ContinueStmt:
+		loop := c.currentLoop()
+		return []opcode.OpCode{
+			opcode.OP_JUMP,
+			opcode.OpCode(loop.loopStart),
+		}, nil
 
 	case ast.IfStmt:
 		var instructions []opcode.OpCode
@@ -616,4 +640,19 @@ func (c *Compiler) label() int {
 	cc := c.labelCounter
 	c.labelCounter++
 	return cc
+}
+
+func (c *Compiler) beginLoop(begin int, end int) {
+	c.loopContext.Push(loopContext{
+		loopStart: begin,
+		loopEnd:   end,
+	})
+}
+
+func (c *Compiler) endLoop() {
+	c.loopContext.Pop()
+}
+
+func (c *Compiler) currentLoop() loopContext {
+	return c.loopContext.Peek()
 }

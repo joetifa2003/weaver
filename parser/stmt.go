@@ -117,6 +117,24 @@ func exprStmt() pargo.Parser[ast.Statement] {
 	)
 }
 
+func continueStmt() pargo.Parser[ast.Statement] {
+	return pargo.Sequence(
+		func(_ string) ast.Statement {
+			return ast.ContinueStmt{}
+		},
+		pargo.Exactly("continue"),
+	)
+}
+
+func breakStmt() pargo.Parser[ast.Statement] {
+	return pargo.Sequence(
+		func(_ string) ast.Statement {
+			return ast.BreakStmt{}
+		},
+		pargo.Exactly("break"),
+	)
+}
+
 func stmt() pargo.Parser[ast.Statement] {
 	return pargo.OneOf(
 		varDeclStmt(),
@@ -126,6 +144,8 @@ func stmt() pargo.Parser[ast.Statement] {
 		ifStmt(),
 		returnStmt(),
 		forStmt(),
+		continueStmt(),
+		breakStmt(),
 
 		// keep this at the end
 		exprStmt(),

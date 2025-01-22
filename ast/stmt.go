@@ -47,3 +47,11 @@ type ExprStmt struct {
 }
 
 func (t ExprStmt) stmt() {}
+
+type ContinueStmt struct{}
+
+func (t ContinueStmt) stmt() {}
+
+type BreakStmt struct{}
+
+func (t BreakStmt) stmt() {}

@@ -428,7 +428,7 @@ func (v *VM) Run() {
 			return
 
 		default:
-			panic(fmt.Sprintf("unimplemented %s", v.curFrame.instructions[v.curFrame.ip]))
+			panic(fmt.Sprintf("unimplemented %d", v.curFrame.instructions[v.curFrame.ip]))
 		}
 	}
 }

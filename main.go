@@ -12,10 +12,9 @@ import (
 
 func main() {
 	src := `
-		adder := |x| |y| x + y	
-		addFive := adder(5)
-		
-		10 | addFive() | echo() // prints 15
+		x := [1, 2, 3]
+		x[0] = 2
+		echo(x[0])
 	`
 
 	// src := `

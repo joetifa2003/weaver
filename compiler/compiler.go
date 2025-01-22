@@ -15,17 +15,35 @@ type Compiler struct {
 	constants    []vm.Value
 	functionsIdx []int
 	labelCounter int
+
+	optimizationEnabled bool
 }
 
-func New() *Compiler {
+type CompilerOption func(*Compiler)
+
+func WithOptimization(enabled bool) CompilerOption {
+	return func(c *Compiler) {
+		c.optimizationEnabled = enabled
+	}
+}
+
+func New(opts ...CompilerOption) *Compiler {
 	nilValue := vm.Value{}
 	nilValue.SetNil()
-	return &Compiler{
+
+	c := &Compiler{
 		frames: &ds.Stack[*Frame]{},
 		constants: []vm.Value{
 			nilValue,
 		},
+		optimizationEnabled: true,
 	}
+
+	for _, opt := range opts {
+		opt(c)
+	}
+
+	return c
 }
 
 func (c *Compiler) Compile(p ast.Program) (*Frame, []vm.Value, error) {
@@ -41,12 +59,16 @@ func (c *Compiler) Compile(p ast.Program) (*Frame, []vm.Value, error) {
 
 	mainFrame := c.popFrame()
 	mainFrame.Instructions = append(mainFrame.Instructions, opcode.OP_HALT)
-	mainFrame.Instructions = c.optimize(mainFrame.Instructions)
+	if c.optimizationEnabled {
+		mainFrame.Instructions = c.optimize(mainFrame.Instructions)
+	}
 	mainFrame.Instructions = c.handleLabels(mainFrame.Instructions)
 
 	for _, f := range c.functionsIdx {
 		fn := c.constants[f].GetFunction()
-		fn.Instructions = c.optimize(fn.Instructions)
+		if c.optimizationEnabled {
+			fn.Instructions = c.optimize(fn.Instructions)
+		}
 		fn.Instructions = c.handleLabels(fn.Instructions)
 	}
 
@@ -388,6 +410,7 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 				return nil, err
 			}
 			instructions = append(instructions, v.store()...)
+		case ast.PostFixExpr:
 		}
 
 		return instructions, nil

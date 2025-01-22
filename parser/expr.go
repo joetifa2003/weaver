@@ -155,9 +155,7 @@ func callExpr() pargo.Parser[ast.Expr] {
 func assignExpr() pargo.Parser[ast.Expr] {
 	return pargo.OneOf(
 		pargo.Sequence3(
-			pargo.OneOf(
-				identExpr(),
-			),
+			postFixExpr(),
 			pargo.Exactly("="),
 			pargo.Lazy(expr),
 			func(assignee ast.Expr, _ string, expr ast.Expr) ast.Expr {

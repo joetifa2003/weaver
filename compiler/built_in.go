@@ -76,4 +76,16 @@ var builtInFunctions = map[string]vm.NativeFunction{
 
 		return result
 	},
+	"assert": func(v *vm.VM, args ...vm.Value) (res vm.Value) {
+		if len(args) != 1 {
+			panic("assert() takes exactly 1 argument")
+		}
+
+		val := args[0]
+		if !val.IsTruthy() {
+			panic("assertion failed")
+		}
+
+		return
+	},
 }

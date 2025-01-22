@@ -247,10 +247,6 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 			return c.compilePipeExpr(e)
 		}
 
-		if e.Operator == "." {
-			return c.compileDotExpr(e)
-		}
-
 		for _, operand := range e.Operands {
 			expr, err := c.compileExpr(operand)
 			if err != nil {
@@ -267,22 +263,38 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 	case ast.PostFixExpr:
 		var instructions []opcode.OpCode
 
-		expr, err := c.compileExpr(e.Expr)
+		lhs, err := c.compileExpr(e.Expr)
 		if err != nil {
 			return nil, err
 		}
 
-		instructions = append(instructions, expr...)
+		instructions = append(instructions, lhs...)
 
 		for _, op := range e.Ops {
 			switch op := op.(type) {
-			case ast.IndexExpr:
+			case ast.IndexOp:
 				expr, err := c.compileExpr(op.Index)
 				if err != nil {
 					return nil, err
 				}
 				instructions = append(instructions, expr...)
 				instructions = append(instructions, opcode.OP_INDEX)
+
+			case ast.DotOp:
+				val := vm.Value{}
+				val.SetString(op.Index)
+				instructions = append(instructions, opcode.OP_CONST, opcode.OpCode(c.defineConstant(val)))
+				instructions = append(instructions, opcode.OP_INDEX)
+
+			case ast.CallOp:
+				for _, arg := range op.Args {
+					expr, err := c.compileExpr(arg)
+					if err != nil {
+						return nil, err
+					}
+					instructions = append(instructions, expr...)
+				}
+				instructions = append(instructions, opcode.OP_CALL, opcode.OpCode(len(op.Args)))
 			}
 		}
 
@@ -411,27 +423,37 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 			}
 			instructions = append(instructions, v.store()...)
 		case ast.PostFixExpr:
-		}
-
-		return instructions, nil
-
-	case ast.CallExpr:
-		var instructions []opcode.OpCode
-
-		for _, arg := range e.Args {
-			expr, err := c.compileExpr(arg)
+			assignee, err := c.compileExpr(ast.PostFixExpr{
+				Expr: e.Expr,
+				Ops:  e.Ops[:len(e.Ops)-1],
+			})
 			if err != nil {
 				return nil, err
 			}
-			instructions = append(instructions, expr...)
-		}
+			instructions = append(instructions, assignee...)
 
-		callee, err := c.compileExpr(e.Callee)
-		if err != nil {
-			return nil, err
+			assignToIdx := e.Ops[len(e.Ops)-1]
+			switch assignToIdx := assignToIdx.(type) {
+			case ast.IndexOp:
+				idx, err := c.compileExpr(assignToIdx.Index)
+				if err != nil {
+					return nil, err
+				}
+				instructions = append(instructions, idx...)
+				instructions = append(instructions, opcode.OP_STORE_IDX)
+			case ast.DotOp:
+				idx, err := c.compileExpr(ast.StringExpr{Value: assignToIdx.Index})
+				if err != nil {
+					return nil, err
+				}
+				instructions = append(instructions, idx...)
+				instructions = append(instructions, opcode.OP_STORE_IDX)
+			default:
+				return nil, fmt.Errorf("invalid index type: %T", assignToIdx)
+			}
+		default:
+			return nil, fmt.Errorf("invalid expr type: %T", e)
 		}
-		instructions = append(instructions, callee...)
-		instructions = append(instructions, opcode.OP_CALL, opcode.OpCode(len(e.Args)))
 
 		return instructions, nil
 
@@ -475,34 +497,24 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 	panic(fmt.Sprintf("unimplemented %T", e))
 }
 
-func (c *Compiler) compileDotExpr(e ast.BinaryExpr) ([]opcode.OpCode, error) {
-	left := ast.PostFixExpr{
-		Expr: e.Operands[0],
-		Ops:  []ast.PostFixOp{},
-	}
-
-	for _, right := range e.Operands[1:] {
-		switch right := right.(type) {
-		case ast.IdentExpr:
-			left.Ops = append(left.Ops, ast.IndexExpr{Index: ast.StringExpr{Value: right.Name}})
-		default:
-			return nil, errors.New("right operand of dot must be an identifier")
-		}
-	}
-
-	return c.compileExpr(left)
-}
+var pipeErr = errors.New("right operand of pipe must be a call expression")
 
 func (c *Compiler) compilePipeExpr(e ast.BinaryExpr) ([]opcode.OpCode, error) {
 	left := e.Operands[0]
 	for _, right := range e.Operands[1:] {
-		switch right := right.(type) {
-		case ast.CallExpr:
-			right.Args = append([]ast.Expr{left}, right.Args...)
-			left = right
-		default:
-			return nil, errors.New("right operand of pipe must be a call expression")
+		right, ok := right.(ast.PostFixExpr)
+		if !ok {
+			return nil, pipeErr
 		}
+
+		lastOp, ok := right.Ops[len(right.Ops)-1].(ast.CallOp)
+		if !ok {
+			return nil, pipeErr
+		}
+
+		lastOp.Args = append([]ast.Expr{left}, lastOp.Args...)
+		right.Ops[len(right.Ops)-1] = lastOp
+		left = right
 	}
 
 	return c.compileExpr(left)

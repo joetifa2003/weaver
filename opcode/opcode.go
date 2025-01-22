@@ -25,6 +25,7 @@ const (
 	OP_LOAD         // arg1: variable index
 	OP_LOAD_FREE    // arg1: variable index
 	OP_LOAD_GLOBAL  // arg1: variable index
+	OP_STORE_IDX
 
 	OP_JUMP  // arg1: jump offset
 	OP_JUMPF // arg1: jump offset
@@ -101,6 +102,7 @@ var opCodeDefs = map[OpCode]OpCodeDef{
 	OP_ARRAY:        {OP_AND, "arr", 0},
 	OP_INDEX:        {OP_INDEX, "idx", 0},
 	OP_FUNC:         {OP_INDEX, "func", 2},
+	OP_STORE_IDX:    {OP_INDEX, "storeidx", 0},
 
 	OP_OBJ:   {OP_AND, "obj", 0},
 	OP_OPUSH: {OP_AND, "opsh", 0},

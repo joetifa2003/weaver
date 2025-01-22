@@ -353,10 +353,33 @@ func (v *VM) Run() {
 			v.sp--
 			v.curFrame.ip++
 
+		case opcode.OP_STORE_IDX:
+			idx := v.stack[v.sp]
+			assignee := v.stack[v.sp-1]
+			val := v.stack[v.sp-2]
+
+			switch assignee.VType {
+			case ValueTypeArray:
+				assignee.GetArray()[idx.GetInt()] = val
+			case ValueTypeObject:
+				assignee.GetObject()[idx.String()] = val
+			}
+
+			v.sp -= 2
+			v.stack[v.sp] = assignee
+			v.curFrame.ip++
+
 		case opcode.OP_CALL:
+			// stack state
+			// callee        <- return address
+			// args1         <- stackOffset
+			// args2
+			// ...
+			// argsN
 			numArgs := int(v.curFrame.instructions[v.curFrame.ip+1])
-			callee := v.stack[v.sp]
-			v.sp--
+			calleeIdx := v.sp - numArgs
+			argsBegin := calleeIdx + 1
+			callee := v.stack[calleeIdx]
 
 			switch callee.VType {
 			case ValueTypeFunction:
@@ -366,15 +389,15 @@ func (v *VM) Run() {
 					numVars:      fn.NumVars,
 					freeVars:     fn.FreeVars,
 					ip:           0,
-					stackOffset:  v.sp - numArgs + 1,
+					stackOffset:  argsBegin,
 				}
 				v.curFrame.ip += 2
 				v.pushFrame(frame, numArgs)
 			case ValueTypeNativeFunction:
 				fn := callee.GetNativeFunction()
-				args := v.stack[v.sp-numArgs+1 : v.sp+1]
+				args := v.stack[argsBegin : argsBegin+numArgs]
 				r := fn(v, args...)
-				v.sp = v.sp - numArgs + 1
+				v.sp = calleeIdx
 				v.stack[v.sp] = r
 
 				v.curFrame.ip += 2
@@ -382,7 +405,7 @@ func (v *VM) Run() {
 
 		case opcode.OP_RET:
 			val := v.stack[v.sp]
-			v.sp = v.curFrame.stackOffset
+			v.sp = v.curFrame.stackOffset - 1
 			v.stack[v.sp] = val
 			heltAfter := v.curFrame.haltAfter
 			v.popFrame()

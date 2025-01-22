@@ -132,22 +132,6 @@ func notExpr() pargo.Parser[ast.Expr] {
 				return ast.UnaryExpr{Operator: "!", Expr: expr}
 			},
 		),
-		callExpr(),
-	)
-}
-
-// TODO: handle this in postfix expr
-func callExpr() pargo.Parser[ast.Expr] {
-	return pargo.OneOf(
-		pargo.Sequence4(
-			atom(),
-			pargo.Exactly("("),
-			pargo.ManySep(pargo.Lazy(expr), pargo.Exactly(",")),
-			pargo.Exactly(")"),
-			func(callee ast.Expr, _ string, args []ast.Expr, _ string) ast.Expr {
-				return ast.CallExpr{Callee: callee, Args: args}
-			},
-		),
 		assignExpr(),
 	)
 }
@@ -168,17 +152,12 @@ func assignExpr() pargo.Parser[ast.Expr] {
 
 func postFixExpr() pargo.Parser[ast.Expr] {
 	return pargo.Sequence2(
-		dotExpr(),
+		atom(),
 		pargo.Many(
 			pargo.OneOf(
-				pargo.Sequence3(
-					pargo.Exactly("["),
-					pargo.Lazy(expr),
-					pargo.Exactly("]"),
-					func(_ string, expr ast.Expr, _ string) ast.PostFixOp {
-						return ast.IndexExpr{Index: expr}
-					},
-				),
+				postFixIndexOp(),
+				postFixCallOp(),
+				postFixDotOp(),
 			),
 		),
 		func(expr ast.Expr, ops []ast.PostFixOp) ast.Expr {
@@ -191,10 +170,37 @@ func postFixExpr() pargo.Parser[ast.Expr] {
 	)
 }
 
-func dotExpr() pargo.Parser[ast.Expr] {
-	return binaryExpr(
-		atom(),
-		".",
+func postFixIndexOp() pargo.Parser[ast.PostFixOp] {
+	return pargo.Sequence3(
+		pargo.Exactly("["),
+		pargo.Lazy(expr),
+		pargo.Exactly("]"),
+		func(_ string, expr ast.Expr, _ string) ast.PostFixOp {
+			return ast.IndexOp{Index: expr}
+		},
+	)
+}
+
+func postFixCallOp() pargo.Parser[ast.PostFixOp] {
+	return pargo.Sequence3(
+		pargo.Exactly("("),
+		pargo.ManySep(pargo.Lazy(expr), pargo.Exactly(",")),
+		pargo.Exactly(")"),
+		func(_ string, args []ast.Expr, _ string) ast.PostFixOp {
+			return ast.CallOp{Args: args}
+		},
+	)
+}
+
+func postFixDotOp() pargo.Parser[ast.PostFixOp] {
+	return pargo.Sequence2(
+		pargo.Exactly("."),
+		pargo.TokenType(TT_IDENT),
+		func(_ string, ident string) ast.PostFixOp {
+			return ast.DotOp{
+				Index: ident,
+			}
+		},
 	)
 }
 

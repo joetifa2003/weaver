@@ -105,6 +105,46 @@ func TestVM(t *testing.T) {
 				| len() 
 			l == 2 | assert()
 		`,
+		9: `
+			a := 1
+			b := 2
+
+			x := [1, 2, 3]
+			l := x 
+				| map(|x| x + a) 
+				| filter(|x| x % b == 0) 
+				| len() 
+			l == 2 | assert()
+		`,
+		10: `
+			x := [1, 2, 3]
+			x[0] = 2
+			x[0] == 2 | assert()
+		`,
+		11: `
+			x := [[1], [2], [3]]
+			x[0][0] = 2
+			x[0][0] == 2 | assert()
+		`,
+		12: `
+			x := { a: 1 }
+			x["a"] = 2
+			x.a == 2 | assert()
+		`,
+		13: `
+			x := { a: 1 }
+			x.a = 2
+			x.a == 2 | assert()
+		`,
+		14: `
+			x := [{a: [9]}]
+			x[0].a[0] == 9 | assert()
+		`,
+		15: `
+			x := [{a: [9]}]
+			x[0].a[0] = 41
+			x[0].a[0] == 41 | assert()
+		`,
 	}
 
 	for i, tc := range tests {

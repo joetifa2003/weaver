@@ -46,13 +46,6 @@ type FunctionExpr struct {
 
 func (t FunctionExpr) expr() {}
 
-type CallExpr struct {
-	Callee Expr
-	Args   []Expr
-}
-
-func (t CallExpr) expr() {}
-
 type PipeExpr struct {
 	Exprs []Expr
 }
@@ -96,8 +89,20 @@ type PostFixOp interface {
 	postFixOp()
 }
 
-type IndexExpr struct {
+type IndexOp struct {
 	Index Expr
 }
 
-func (t IndexExpr) postFixOp() {}
+func (t IndexOp) postFixOp() {}
+
+type DotOp struct {
+	Index string
+}
+
+func (t DotOp) postFixOp() {}
+
+type CallOp struct {
+	Args []Expr
+}
+
+func (t CallOp) postFixOp() {}

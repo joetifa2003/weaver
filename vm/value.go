@@ -94,12 +94,12 @@ func (v *Value) GetBool() bool {
 	return *interpret[bool](&v.primitive)
 }
 
-func (v *Value) GetArray() []Value {
+func (v *Value) GetArray() *[]Value {
 	if v.VType != ValueTypeArray {
 		panic("Value.GetArray(): not an array")
 	}
 
-	return *(*[]Value)(v.nonPrimitive)
+	return (*[]Value)(v.nonPrimitive)
 }
 
 func (v *Value) SetArray(a []Value) {
@@ -201,7 +201,7 @@ func (v Value) String() string {
 		return "function"
 
 	case ValueTypeArray:
-		arr := v.GetArray()
+		arr := *v.GetArray()
 		return fmt.Sprint(arr)
 
 	case ValueTypeNativeFunction:
@@ -225,7 +225,7 @@ func (v Value) IsTruthy() bool {
 	case ValueTypeObject:
 		return len(v.GetObject()) != 0
 	case ValueTypeArray:
-		return len(v.GetArray()) != 0
+		return len(*v.GetArray()) != 0
 	default:
 		panic(fmt.Sprintf("Value.IsTruthy(): unimplemented %T", v.VType))
 	}

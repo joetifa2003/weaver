@@ -145,6 +145,15 @@ func TestVM(t *testing.T) {
 			x[0].a[0] = 41
 			x[0].a[0] == 41 | assert()
 		`,
+		16: `
+			x := [1, 2, 3]
+			x | push(4)
+			assert(len(x) == 4)
+			x[0] == 1 | assert()
+			x[1] == 2 | assert()
+			x[2] == 3 | assert()
+			x[3] == 4 | assert()
+		`,
 	}
 
 	for i, tc := range tests {

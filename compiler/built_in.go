@@ -27,7 +27,7 @@ var builtInFunctions = map[string]vm.NativeFunction{
 
 		switch val.VType {
 		case vm.ValueTypeArray:
-			res.SetInt(len(val.GetArray()))
+			res.SetInt(len(*val.GetArray()))
 		case vm.ValueTypeString:
 			res.SetInt(len(val.GetString()))
 		case vm.ValueTypeObject:
@@ -38,12 +38,24 @@ var builtInFunctions = map[string]vm.NativeFunction{
 
 		return
 	},
+	"push": func(v *vm.VM, args ...vm.Value) vm.Value {
+		if len(args) != 2 {
+			panic("expected 1 arg")
+		}
+
+		arr := args[0].GetArray()
+		val := args[1]
+
+		*arr = append(*arr, val)
+
+		return args[0]
+	},
 	"map": func(v *vm.VM, args ...vm.Value) (res vm.Value) {
 		if len(args) != 2 {
 			panic("map() takes exactly 2 arguments")
 		}
 
-		arr := args[0].GetArray()
+		arr := *args[0].GetArray()
 		fn := args[1]
 
 		newArr := make([]vm.Value, len(arr))
@@ -61,7 +73,7 @@ var builtInFunctions = map[string]vm.NativeFunction{
 			panic("filter() takes exactly 2 arguments")
 		}
 
-		arr := args[0].GetArray()
+		arr := *args[0].GetArray()
 		fn := args[1]
 
 		newArr := make([]vm.Value, 0)

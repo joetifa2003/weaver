@@ -279,8 +279,7 @@ func (v *VM) Run() {
 			val := v.stack[v.sp]
 			v.sp--
 			arr := v.stack[v.sp].GetArray()
-			arr = append(arr, val)
-			v.stack[v.sp].SetArray(arr)
+			*arr = append(*arr, val)
 
 			v.curFrame.ip++
 
@@ -291,7 +290,7 @@ func (v *VM) Run() {
 
 			switch arr.VType {
 			case ValueTypeArray:
-				val := arr.GetArray()[index.GetInt()]
+				val := (*arr.GetArray())[index.GetInt()]
 				v.stack[v.sp] = val
 			case ValueTypeObject:
 				val := arr.GetObject()[index.GetString()]
@@ -360,7 +359,7 @@ func (v *VM) Run() {
 
 			switch assignee.VType {
 			case ValueTypeArray:
-				assignee.GetArray()[idx.GetInt()] = val
+				(*assignee.GetArray())[idx.GetInt()] = val
 			case ValueTypeObject:
 				assignee.GetObject()[idx.String()] = val
 			}

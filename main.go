@@ -12,9 +12,8 @@ import (
 
 func main() {
 	src := `
-		x := { a: 1 }
-		x.a = 2
-		x.a == 2 | assert()
+		x := [1, 2, 3]
+		x | push(4)	| len() | echo()
 	`
 
 	// src := `

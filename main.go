@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/joetifa2003/weaver/compiler"
+	"github.com/joetifa2003/weaver/ir"
 	"github.com/joetifa2003/weaver/opcode"
 	"github.com/joetifa2003/weaver/parser"
 	"github.com/joetifa2003/weaver/vm"
@@ -12,13 +13,23 @@ import (
 
 func main() {
 	src := `
-		for i := 0; i < 10; i = i + 1 {
+		n := 5000000
+		even_nums := 0
+		odd_nums := 0
+
+		i := 0
+		while i < n {
 			if i % 2 == 0 {
-				continue
+				even_nums = even_nums + 1
+			}	else {
+				odd_nums  = odd_nums + 1
 			}
 
-			echo(i)
-		}	
+			i = i + 1
+		}
+
+		even_nums | echo()
+		odd_nums  | echo()
 	`
 
 	// src := `
@@ -55,9 +66,19 @@ func main() {
 	}
 	fmt.Println("parser took: ", time.Since(pt))
 
+	irc := ir.NewCompiler()
+	if err != nil {
+		panic(err)
+	}
+
+	ircr, err := irc.Compile(p)
+	if err != nil {
+		panic(err)
+	}
+
 	ct := time.Now()
 	c := compiler.New()
-	mainFrame, constants, err := c.Compile(p)
+	mainFrame, constants, err := c.Compile(ircr)
 	if err != nil {
 		panic(err)
 	}

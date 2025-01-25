@@ -16,16 +16,6 @@ func varDeclStmt() pargo.Parser[ast.Statement] {
 	)
 }
 
-func echoStmt() pargo.Parser[ast.Statement] {
-	return pargo.Sequence2(
-		pargo.Exactly("echo"),
-		expr(),
-		func(_ string, expr ast.Expr) ast.Statement {
-			return ast.EchoStmt{Expr: expr}
-		},
-	)
-}
-
 func blockStmt() pargo.Parser[ast.Statement] {
 	return pargo.Sequence3(
 		pargo.Exactly("{"),
@@ -58,21 +48,11 @@ func forStmt() pargo.Parser[ast.Statement] {
 		pargo.Lazy(expr),
 		blockStmt(),
 		func(_ string, initStmt ast.Statement, _ string, condition ast.Expr, _ string, increment ast.Expr, body ast.Statement) ast.Statement {
-			return ast.BlockStmt{
-				Statements: []ast.Statement{
-					initStmt,
-					ast.WhileStmt{
-						Condition: condition,
-						Body: ast.BlockStmt{
-							Statements: []ast.Statement{
-								body,
-								ast.ExprStmt{
-									Expr: increment,
-								},
-							},
-						},
-					},
-				},
+			return ast.ForStmt{
+				InitStmt:  initStmt,
+				Condition: condition,
+				Increment: increment,
+				Body:      body,
 			}
 		},
 	)
@@ -139,7 +119,6 @@ func stmt() pargo.Parser[ast.Statement] {
 	return pargo.OneOf(
 		varDeclStmt(),
 		blockStmt(),
-		echoStmt(),
 		whileStmt(),
 		ifStmt(),
 		returnStmt(),

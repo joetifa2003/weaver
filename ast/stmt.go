@@ -9,12 +9,6 @@ type LetStmt struct {
 
 func (t LetStmt) stmt() {}
 
-type EchoStmt struct {
-	Expr Expr
-}
-
-func (t EchoStmt) stmt() {}
-
 type BlockStmt struct {
 	Statements []Statement
 }
@@ -27,6 +21,15 @@ type WhileStmt struct {
 }
 
 func (t WhileStmt) stmt() {}
+
+type ForStmt struct {
+	InitStmt  Statement
+	Condition Expr
+	Increment Expr
+	Body      Statement
+}
+
+func (t ForStmt) stmt() {}
 
 type IfStmt struct {
 	Condition   Expr

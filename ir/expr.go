@@ -32,15 +32,30 @@ type IdentExpr struct {
 
 func (t IdentExpr) expr() {}
 
-type AssignExpr struct {
+type IdxAssignExpr struct {
 	Assignee Expr
-	Expr     Expr
+	Index    Expr
+	Value    Expr
 }
 
-func (t AssignExpr) expr() {}
+func (t IdxAssignExpr) expr() {}
+
+type VarAssignExpr struct {
+	Name  string
+	Value Expr
+}
+
+func (t VarAssignExpr) expr() {}
+
+type UnaryOp int
+
+const (
+	UnaryOpNot UnaryOp = iota
+	UnaryOpNegate
+)
 
 type UnaryExpr struct {
-	Operator string
+	Operator UnaryOp
 	Expr     Expr
 }
 
@@ -65,9 +80,27 @@ type FunctionExpr struct {
 
 func (t FunctionExpr) expr() {}
 
+type BinaryOp int
+
+const (
+	BinaryOpAdd BinaryOp = iota
+	BinaryOpSub
+	BinaryOpMul
+	BinaryOpDiv
+	BinaryOpMod
+	BinaryOpEq
+	BinaryOpNeq
+	BinaryOpGt
+	BinaryOpLt
+	BinaryOpGte
+	BinaryOpLte
+	BinaryOpAnd
+	BinaryOpOr
+)
+
 type BinaryExpr struct {
 	Operands []Expr
-	Operator string
+	Operator BinaryOp
 }
 
 func (t BinaryExpr) expr() {}
@@ -83,8 +116,14 @@ type PostFixOp interface {
 	postFixOp()
 }
 
-type IndexExpr struct {
+type IndexOp struct {
 	Index Expr
 }
 
-func (t IndexExpr) postFixOp() {}
+func (t IndexOp) postFixOp() {}
+
+type CallOp struct {
+	Args []Expr
+}
+
+func (t CallOp) postFixOp() {}

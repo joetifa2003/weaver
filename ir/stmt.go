@@ -16,8 +16,7 @@ type BlockStmt struct {
 func (t BlockStmt) stmt() {}
 
 type LoopStmt struct {
-	Condition Expr
-	Body      Statement
+	Body Statement
 }
 
 func (t LoopStmt) stmt() {}
@@ -35,3 +34,17 @@ type ReturnStmt struct {
 }
 
 func (t ReturnStmt) stmt() {}
+
+type ExpressionStmt struct {
+	Expr Expr
+}
+
+func (t ExpressionStmt) stmt() {}
+
+type ContinueStmt struct{}
+
+func (t ContinueStmt) stmt() {}
+
+type BreakStmt struct{}
+
+func (t BreakStmt) stmt() {}

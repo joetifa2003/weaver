@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/joetifa2003/weaver/compiler"
+	"github.com/joetifa2003/weaver/ir"
 	"github.com/joetifa2003/weaver/parser"
 	"github.com/joetifa2003/weaver/vm"
 )
@@ -163,8 +164,16 @@ func TestVM(t *testing.T) {
 				if err != nil {
 					t.Fatal(fmt.Errorf("failed to parse: %w", err))
 				}
+
+				irc := ir.NewCompiler()
+
+				ircr, err := irc.Compile(p)
+				if err != nil {
+					t.Fatal(fmt.Errorf("failed to compile ir: %w", err))
+				}
+
 				c := compiler.New(compiler.WithOptimization(opt))
-				frame, constants, err := c.Compile(p)
+				frame, constants, err := c.Compile(ircr)
 				if err != nil {
 					t.Fatal(fmt.Errorf("failed to compile: %w", err))
 				}

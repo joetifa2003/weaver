@@ -253,11 +253,9 @@ func lambdaExpr() pargo.Parser[ast.Expr] {
 		paramList(),
 		pargo.Lazy(expr),
 		func(params []string, expr ast.Expr) ast.Expr {
-			return ast.FunctionExpr{
+			return ast.LambdaExpr{
 				Params: params,
-				Body: ast.ReturnStmt{
-					Expr: expr,
-				},
+				Expr:   expr,
 			}
 		},
 	)

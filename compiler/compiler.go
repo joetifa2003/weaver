@@ -1,11 +1,10 @@
 package compiler
 
 import (
-	"errors"
 	"fmt"
 
-	"github.com/joetifa2003/weaver/ast"
 	"github.com/joetifa2003/weaver/internal/pkg/ds"
+	"github.com/joetifa2003/weaver/ir"
 	"github.com/joetifa2003/weaver/opcode"
 	"github.com/joetifa2003/weaver/vm"
 )
@@ -52,10 +51,10 @@ func New(opts ...CompilerOption) *Compiler {
 	return c
 }
 
-func (c *Compiler) Compile(p ast.Program) (*Frame, []vm.Value, error) {
+func (c *Compiler) Compile(p []ir.Statement) (*Frame, []vm.Value, error) {
 	c.pushFrame()
 
-	for _, s := range p.Statements {
+	for _, s := range p {
 		instructions, err := c.compileStmt(s)
 		if err != nil {
 			return nil, nil, err
@@ -108,9 +107,9 @@ func (c *Compiler) handleLabels(instructions []opcode.OpCode) []opcode.OpCode {
 	return newInstructions
 }
 
-func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
+func (c *Compiler) compileStmt(s ir.Statement) ([]opcode.OpCode, error) {
 	switch s := s.(type) {
-	case ast.BlockStmt:
+	case ir.BlockStmt:
 		c.beginBlock()
 
 		instructions := []opcode.OpCode{}
@@ -126,19 +125,7 @@ func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 
 		return instructions, nil
 
-	case ast.EchoStmt:
-		expr, err := c.compileExpr(s.Expr)
-		if err != nil {
-			return nil, err
-		}
-
-		var instructions []opcode.OpCode
-		instructions = append(instructions, expr...)
-		instructions = append(instructions, opcode.OP_ECHO)
-
-		return instructions, nil
-
-	case ast.LetStmt:
+	case ir.LetStmt:
 		var instructions []opcode.OpCode
 		expr, err := c.compileExpr(s.Expr)
 		if err != nil {
@@ -150,18 +137,13 @@ func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 
 		return instructions, nil
 
-	case ast.WhileStmt:
-		loopLabel := c.label()
-		falseLabel := c.label()
+	case ir.LoopStmt:
+		loopBegin := c.label()
+		loopEnd := c.label()
 
-		c.beginLoop(loopLabel, falseLabel)
+		c.beginLoop(loopBegin, loopEnd)
 
 		var instructions []opcode.OpCode
-		expr, err := c.compileExpr(s.Condition)
-		if err != nil {
-			return nil, err
-		}
-
 		body, err := c.compileStmt(s.Body)
 		if err != nil {
 			return nil, err
@@ -169,30 +151,28 @@ func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 
 		c.endLoop()
 
-		instructions = append(instructions, opcode.OP_LABEL, opcode.OpCode(loopLabel))
-		instructions = append(instructions, expr...)
-		instructions = append(instructions, opcode.OP_JUMPF, opcode.OpCode(falseLabel))
+		instructions = append(instructions, opcode.OP_LABEL, opcode.OpCode(loopBegin))
 		instructions = append(instructions, body...)
-		instructions = append(instructions, opcode.OP_JUMP, opcode.OpCode(loopLabel))
-		instructions = append(instructions, opcode.OP_LABEL, opcode.OpCode(falseLabel))
+		instructions = append(instructions, opcode.OP_JUMP, opcode.OpCode(loopBegin))
+		instructions = append(instructions, opcode.OP_LABEL, opcode.OpCode(loopEnd))
 
 		return instructions, nil
 
-	case ast.BreakStmt:
+	case ir.BreakStmt:
 		loop := c.currentLoop()
 		return []opcode.OpCode{
 			opcode.OP_JUMP,
 			opcode.OpCode(loop.loopEnd),
 		}, nil
 
-	case ast.ContinueStmt:
+	case ir.ContinueStmt:
 		loop := c.currentLoop()
 		return []opcode.OpCode{
 			opcode.OP_JUMP,
 			opcode.OpCode(loop.loopStart),
 		}, nil
 
-	case ast.IfStmt:
+	case ir.IfStmt:
 		var instructions []opcode.OpCode
 		expr, err := c.compileExpr(s.Condition)
 		if err != nil {
@@ -231,7 +211,7 @@ func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 
 		return instructions, nil
 
-	case ast.ExprStmt:
+	case ir.ExpressionStmt:
 		var instructions []opcode.OpCode
 
 		expr, err := c.compileExpr(s.Expr)
@@ -244,7 +224,7 @@ func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 
 		return instructions, nil
 
-	case ast.ReturnStmt:
+	case ir.ReturnStmt:
 		var instructions []opcode.OpCode
 
 		expr, err := c.compileExpr(s.Expr)
@@ -262,14 +242,10 @@ func (c *Compiler) compileStmt(s ast.Statement) ([]opcode.OpCode, error) {
 	}
 }
 
-func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
+func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 	switch e := e.(type) {
-	case ast.BinaryExpr:
+	case ir.BinaryExpr:
 		var instructions []opcode.OpCode
-
-		if e.Operator == "|" {
-			return c.compilePipeExpr(e)
-		}
 
 		for _, operand := range e.Operands {
 			expr, err := c.compileExpr(operand)
@@ -284,7 +260,7 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 
 		return instructions, nil
 
-	case ast.PostFixExpr:
+	case ir.PostFixExpr:
 		var instructions []opcode.OpCode
 
 		lhs, err := c.compileExpr(e.Expr)
@@ -296,7 +272,7 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 
 		for _, op := range e.Ops {
 			switch op := op.(type) {
-			case ast.IndexOp:
+			case ir.IndexOp:
 				expr, err := c.compileExpr(op.Index)
 				if err != nil {
 					return nil, err
@@ -304,13 +280,7 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 				instructions = append(instructions, expr...)
 				instructions = append(instructions, opcode.OP_INDEX)
 
-			case ast.DotOp:
-				val := vm.Value{}
-				val.SetString(op.Index)
-				instructions = append(instructions, opcode.OP_CONST, opcode.OpCode(c.defineConstant(val)))
-				instructions = append(instructions, opcode.OP_INDEX)
-
-			case ast.CallOp:
+			case ir.CallOp:
 				for _, arg := range op.Args {
 					expr, err := c.compileExpr(arg)
 					if err != nil {
@@ -324,7 +294,7 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 
 		return instructions, nil
 
-	case ast.UnaryExpr:
+	case ir.UnaryExpr:
 		var instructions []opcode.OpCode
 
 		expr, err := c.compileExpr(e.Expr)
@@ -336,7 +306,7 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 
 		return instructions, nil
 
-	case ast.FunctionExpr:
+	case ir.FunctionExpr:
 		c.pushFrame()
 
 		for _, param := range e.Params {
@@ -380,7 +350,7 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 
 		return instructions, nil
 
-	case ast.IdentExpr:
+	case ir.IdentExpr:
 		v, err := c.resolveVar(e.Name)
 		if err == nil {
 			return v.load(), nil
@@ -398,7 +368,7 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 
 		return nil, err
 
-	case ast.IntExpr:
+	case ir.IntExpr:
 		value := vm.Value{}
 		value.SetInt(e.Value)
 		return []opcode.OpCode{
@@ -406,7 +376,7 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 			opcode.OpCode(c.defineConstant(value)),
 		}, nil
 
-	case ast.FloatExpr:
+	case ir.FloatExpr:
 		value := vm.Value{}
 		value.SetFloat(e.Value)
 		return []opcode.OpCode{
@@ -414,7 +384,7 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 			opcode.OpCode(c.defineConstant(value)),
 		}, nil
 
-	case ast.StringExpr:
+	case ir.StringExpr:
 		value := vm.Value{}
 		value.SetString(e.Value)
 		return []opcode.OpCode{
@@ -422,7 +392,7 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 			opcode.OpCode(c.defineConstant(value)),
 		}, nil
 
-	case ast.BoolExpr:
+	case ir.BoolExpr:
 		value := vm.Value{}
 		value.SetBool(e.Value)
 
@@ -431,57 +401,50 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 			opcode.OpCode(c.defineConstant(value)),
 		}, nil
 
-	case ast.AssignExpr:
+	case ir.VarAssignExpr:
 		var instructions []opcode.OpCode
-		expr, err := c.compileExpr(e.Expr)
+
+		expr, err := c.compileExpr(e.Value)
 		if err != nil {
 			return nil, err
 		}
 		instructions = append(instructions, expr...)
 
-		switch e := e.Assignee.(type) {
-		case ast.IdentExpr:
-			v, err := c.resolveVar(e.Name)
-			if err != nil {
-				return nil, err
-			}
-			instructions = append(instructions, v.store()...)
-		case ast.PostFixExpr:
-			assignee, err := c.compileExpr(ast.PostFixExpr{
-				Expr: e.Expr,
-				Ops:  e.Ops[:len(e.Ops)-1],
-			})
-			if err != nil {
-				return nil, err
-			}
-			instructions = append(instructions, assignee...)
-
-			assignToIdx := e.Ops[len(e.Ops)-1]
-			switch assignToIdx := assignToIdx.(type) {
-			case ast.IndexOp:
-				idx, err := c.compileExpr(assignToIdx.Index)
-				if err != nil {
-					return nil, err
-				}
-				instructions = append(instructions, idx...)
-				instructions = append(instructions, opcode.OP_STORE_IDX)
-			case ast.DotOp:
-				idx, err := c.compileExpr(ast.StringExpr{Value: assignToIdx.Index})
-				if err != nil {
-					return nil, err
-				}
-				instructions = append(instructions, idx...)
-				instructions = append(instructions, opcode.OP_STORE_IDX)
-			default:
-				return nil, fmt.Errorf("invalid index type: %T", assignToIdx)
-			}
-		default:
-			return nil, fmt.Errorf("invalid expr type: %T", e)
+		v, err := c.resolveVar(e.Name)
+		if err != nil {
+			return nil, err
 		}
+
+		instructions = append(instructions, v.store()...)
 
 		return instructions, nil
 
-	case ast.ArrayExpr:
+	case ir.IdxAssignExpr:
+		var instructions []opcode.OpCode
+
+		assignee, err := c.compileExpr(e.Assignee)
+		if err != nil {
+			return nil, err
+		}
+
+		idx, err := c.compileExpr(e.Index)
+		if err != nil {
+			return nil, err
+		}
+
+		val, err := c.compileExpr(e.Value)
+		if err != nil {
+			return nil, err
+		}
+
+		instructions = append(instructions, val...)
+		instructions = append(instructions, assignee...)
+		instructions = append(instructions, idx...)
+		instructions = append(instructions, opcode.OP_STORE_IDX)
+
+		return instructions, nil
+
+	case ir.ArrayExpr:
 		var instructions []opcode.OpCode
 
 		instructions = append(instructions, opcode.OP_ARRAY)
@@ -496,7 +459,7 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 
 		return instructions, nil
 
-	case ast.ObjectExpr:
+	case ir.ObjectExpr:
 		var instructions []opcode.OpCode
 		instructions = append(instructions, opcode.OP_OBJ)
 
@@ -505,7 +468,7 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 			if err != nil {
 				return nil, err
 			}
-			keyInstructions, err := c.compileExpr(ast.StringExpr{Value: key})
+			keyInstructions, err := c.compileExpr(ir.StringExpr{Value: key})
 			if err != nil {
 				return nil, err
 			}
@@ -521,81 +484,55 @@ func (c *Compiler) compileExpr(e ast.Expr) ([]opcode.OpCode, error) {
 	panic(fmt.Sprintf("unimplemented %T", e))
 }
 
-var pipeErr = errors.New("right operand of pipe must be a call expression")
-
-func (c *Compiler) compilePipeExpr(e ast.BinaryExpr) ([]opcode.OpCode, error) {
-	left := e.Operands[0]
-	for _, right := range e.Operands[1:] {
-		right, ok := right.(ast.PostFixExpr)
-		if !ok {
-			return nil, pipeErr
-		}
-
-		lastOp, ok := right.Ops[len(right.Ops)-1].(ast.CallOp)
-		if !ok {
-			return nil, pipeErr
-		}
-
-		lastOp.Args = append([]ast.Expr{left}, lastOp.Args...)
-		right.Ops[len(right.Ops)-1] = lastOp
-		left = right
-	}
-
-	return c.compileExpr(left)
-}
-
-func (c *Compiler) binOperatorOpcode(operator string) opcode.OpCode {
+func (c *Compiler) binOperatorOpcode(operator ir.BinaryOp) opcode.OpCode {
 	switch operator {
-	case "+":
+	case ir.BinaryOpAdd:
 		return opcode.OP_ADD
 
-	case "-":
+	case ir.BinaryOpSub:
 		return opcode.OP_SUB
 
-	case "*":
+	case ir.BinaryOpMul:
 		return opcode.OP_MUL
 
-	case "%":
+	case ir.BinaryOpMod:
 		return opcode.OP_MOD
 
-	case "/":
+	case ir.BinaryOpDiv:
 		return opcode.OP_DIV
 
-	case "==":
+	case ir.BinaryOpEq:
 		return opcode.OP_EQ
 
-	case "!=":
+	case ir.BinaryOpNeq:
 		return opcode.OP_NEQ
 
-	case "<":
+	case ir.BinaryOpLt:
 		return opcode.OP_LT
 
-	case "<=":
+	case ir.BinaryOpLte:
 		return opcode.OP_LTE
 
-	case ">":
+	case ir.BinaryOpGt:
 		return opcode.OP_GT
 
-	case ">=":
+	case ir.BinaryOpGte:
 		return opcode.OP_GTE
 
-	case "or":
+	case ir.BinaryOpOr:
 		return opcode.OP_OR
 
-	case "and":
+	case ir.BinaryOpAnd:
 		return opcode.OP_AND
-
-	case "!":
-		return opcode.OP_NOT
 
 	default:
 		panic(fmt.Sprintf("unimplemented operator %s", operator))
 	}
 }
 
-func (c *Compiler) unaryOperatorOpcode(operator string) opcode.OpCode {
+func (c *Compiler) unaryOperatorOpcode(operator ir.UnaryOp) opcode.OpCode {
 	switch operator {
-	case "!":
+	case ir.UnaryOpNot:
 		return opcode.OP_NOT
 
 	default:

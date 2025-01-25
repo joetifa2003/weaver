@@ -46,6 +46,13 @@ type FunctionExpr struct {
 
 func (t FunctionExpr) expr() {}
 
+type LambdaExpr struct {
+	Params []string
+	Expr   Expr
+}
+
+func (t LambdaExpr) expr() {}
+
 type PipeExpr struct {
 	Exprs []Expr
 }

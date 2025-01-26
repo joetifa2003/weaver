@@ -58,3 +58,15 @@ func (t ContinueStmt) stmt() {}
 type BreakStmt struct{}
 
 func (t BreakStmt) stmt() {}
+
+type MatchStmt struct {
+	Expr  Expr
+	Cases []MatchCase
+}
+
+func (t MatchStmt) stmt() {}
+
+type MatchCase struct {
+	Expr Expr
+	Body Statement
+}

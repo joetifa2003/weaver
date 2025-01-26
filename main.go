@@ -13,23 +13,7 @@ import (
 
 func main() {
 	src := `
-		n := 5000000
-		even_nums := 0
-		odd_nums := 0
-
-		i := 0
-		while i < n {
-			if i % 2 == 0 {
-				even_nums = even_nums + 1
-			}	else {
-				odd_nums  = odd_nums + 1
-			}
-
-			i = i + 1
-		}
-
-		even_nums | echo()
-		odd_nums  | echo()
+		
 	`
 
 	// src := `

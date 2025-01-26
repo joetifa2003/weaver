@@ -155,6 +155,37 @@ func TestVM(t *testing.T) {
 			x[2] == 3 | assert()
 			x[3] == 4 | assert()
 		`,
+		17: `
+		x := 0
+		y := 5
+		match x {
+			0 => {
+				match y {
+					0 => {
+						false | assert()
+					},
+					1 => {
+						false | assert()
+					},
+					2 => {
+						false | assert()
+					},
+					4 => {
+						true | assert()
+					}
+				}
+			},
+			1 => {
+				false | assert()
+			},
+			2 => {
+				false | assert()
+			},
+			3 => {
+				false | assert()
+			}
+		}
+		`,
 	}
 
 	for i, tc := range tests {

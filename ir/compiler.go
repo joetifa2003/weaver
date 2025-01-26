@@ -105,8 +105,8 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 		}
 
 		return LoopStmt{
-			Body: BlockStmt{
-				Statements: []Statement{
+			BlockStmt{
+				[]Statement{
 					IfStmt{
 						Condition: UnaryExpr{
 							Expr:     cond,
@@ -144,8 +144,8 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 			Statements: []Statement{
 				init,
 				LoopStmt{
-					Body: BlockStmt{
-						Statements: []Statement{
+					BlockStmt{
+						[]Statement{
 							IfStmt{
 								Condition: UnaryExpr{
 									Expr:     cond,
@@ -155,7 +155,7 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 							},
 							body,
 							ExpressionStmt{
-								Expr: incr,
+								incr,
 							},
 						},
 					},
@@ -163,9 +163,77 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 			},
 		}, nil
 
+	case ast.MatchStmt:
+		res := BlockStmt{}
+
+		expr, err := c.CompileExpr(s.Expr)
+		if err != nil {
+			return nil, err
+		}
+
+		res.Statements = append(res.Statements,
+			LetStmt{
+				Name: "__$e",
+				Expr: expr,
+			},
+		)
+
+		if len(s.Cases) == 0 {
+			return res, nil
+		}
+
+		currentCase, err := c.compileMatchCase(s.Cases[0], "__$e")
+		if err != nil {
+			return nil, err
+		}
+
+		for _, m := range s.Cases[1:] {
+			ifStmt, err := c.compileMatchCase(m, "__$e")
+			if err != nil {
+				return nil, err
+			}
+
+			ifStmt.Alternative = stmtPointer(currentCase)
+			currentCase = ifStmt
+		}
+
+		res.Statements = append(res.Statements, currentCase)
+
+		return res, nil
+
 	default:
 		panic(fmt.Sprintf("unimplemented %T", s))
 	}
+}
+
+func stmtPointer(s Statement) *Statement {
+	return &s
+}
+
+func (c *Compiler) compileMatchCase(m ast.MatchCase, exprName string) (IfStmt, error) {
+	var res IfStmt
+
+	expr, err := c.CompileExpr(m.Expr)
+	if err != nil {
+		return res, err
+	}
+
+	body, err := c.CompileStmt(m.Body)
+	if err != nil {
+		return res, err
+	}
+
+	res.Condition = BinaryExpr{
+		Operator: BinaryOpEq,
+		Operands: []Expr{
+			IdentExpr{Name: exprName},
+			expr,
+		},
+	}
+
+	res.Body = body
+
+	return res, nil
 }
 
 func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {

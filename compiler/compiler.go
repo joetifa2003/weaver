@@ -85,13 +85,17 @@ func (c *Compiler) handleLabels(instructions []opcode.OpCode) []opcode.OpCode {
 
 	labels := map[opcode.OpCode]opcode.OpCode{} // label idx => instruction idx
 
+	instrIdx := 0
 	for _, instr := range opcode.OpCodeIterator(instructions) {
 		if instr.Op == opcode.OP_LABEL {
-			labels[instr.Args[0]] = opcode.OpCode(instr.Addr) + 2
+			labels[instr.Args[0]] = opcode.OpCode(instrIdx)
+			continue
 		}
+
+		instrIdx += 1 + len(instr.Args)
 	}
 
-	for _, instr := range opcode.OpCodeIterator(instructions) {
+	for _, instr := range opcode.OpCodeIterator(instructions, opcode.OP_LABEL) {
 		switch instr.Op {
 		case opcode.OP_JUMP:
 			instr.Args[0] = labels[instr.Args[0]]

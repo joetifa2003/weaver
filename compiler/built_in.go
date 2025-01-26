@@ -100,4 +100,14 @@ var builtInFunctions = map[string]vm.NativeFunction{
 
 		return
 	},
+	"type": func(v *vm.VM, args ...vm.Value) (res vm.Value) {
+		if len(args) != 1 {
+			panic("type() takes exactly 1 argument")
+		}
+
+		val := args[0]
+		res.SetString(val.VType.String())
+
+		return
+	},
 }

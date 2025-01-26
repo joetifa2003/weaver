@@ -280,3 +280,233 @@ func (v Value) Sub(other Value, res *Value) {
 		panic(fmt.Sprintf("illegal operation %s - %s", v, other))
 	}
 }
+
+func (v Value) Mul(other Value, res *Value) {
+	switch v.VType {
+	case ValueTypeInt:
+		switch other.VType {
+		case ValueTypeInt:
+			res.SetInt(v.GetInt() * other.GetInt())
+		case ValueTypeFloat:
+			res.SetFloat(float64(v.GetInt()) * other.GetFloat())
+		default:
+			panic(fmt.Sprintf("illegal operation %s * %s", v, other))
+		}
+	case ValueTypeFloat:
+		switch other.VType {
+		case ValueTypeInt:
+			res.SetFloat(v.GetFloat() * float64(other.GetInt()))
+		case ValueTypeFloat:
+			res.SetFloat(v.GetFloat() * other.GetFloat())
+		default:
+			panic(fmt.Sprintf("illegal operation %s * %s", v, other))
+		}
+	default:
+		panic(fmt.Sprintf("illegal operation %s * %s", v, other))
+	}
+}
+
+func (v Value) Div(other Value, res *Value) {
+	switch v.VType {
+	case ValueTypeInt:
+		switch other.VType {
+		case ValueTypeInt:
+			res.SetFloat(float64(v.GetInt()) / float64(other.GetInt()))
+		case ValueTypeFloat:
+			res.SetFloat(float64(v.GetInt()) / other.GetFloat())
+		default:
+			panic(fmt.Sprintf("illegal operation %s / %s", v, other))
+		}
+
+	case ValueTypeFloat:
+		switch other.VType {
+		case ValueTypeInt:
+			res.SetFloat(v.GetFloat() / float64(other.GetInt()))
+		case ValueTypeFloat:
+			res.SetFloat(v.GetFloat() / other.GetFloat())
+		default:
+			panic(fmt.Sprintf("illegal operation %s / %s", v, other))
+		}
+	default:
+		panic(fmt.Sprintf("illegal operation %s / %s", v, other))
+	}
+}
+
+func (v Value) Mod(other Value, res *Value) {
+	switch v.VType {
+	case ValueTypeInt:
+		switch other.VType {
+		case ValueTypeInt:
+			res.SetInt(v.GetInt() % other.GetInt())
+		case ValueTypeFloat:
+			res.SetInt(v.GetInt() % int(other.GetFloat()))
+		default:
+			panic(fmt.Sprintf("illegal operation %s %% %s", v, other))
+		}
+
+	case ValueTypeFloat:
+		switch other.VType {
+		case ValueTypeInt:
+			res.SetInt(int(v.GetFloat()) % other.GetInt())
+		case ValueTypeFloat:
+			res.SetInt(int(v.GetFloat()) % int(other.GetFloat()))
+		default:
+			panic(fmt.Sprintf("illegal operation %s %% %s", v, other))
+		}
+	default:
+		panic(fmt.Sprintf("illegal operation %s %% %s", v, other))
+	}
+}
+
+func (v Value) LessThan(other Value, res *Value) {
+	switch v.VType {
+	case ValueTypeInt:
+		switch other.VType {
+		case ValueTypeInt:
+			res.SetBool(v.GetInt() < other.GetInt())
+		case ValueTypeFloat:
+			res.SetBool(float64(v.GetInt()) < other.GetFloat())
+		default:
+			panic(fmt.Sprintf("illegal operation %s < %s", v, other))
+		}
+	case ValueTypeFloat:
+		switch other.VType {
+		case ValueTypeInt:
+			res.SetBool(v.GetFloat() < float64(other.GetInt()))
+		case ValueTypeFloat:
+			res.SetBool(v.GetFloat() < other.GetFloat())
+		default:
+			panic(fmt.Sprintf("illegal operation %s < %s", v, other))
+		}
+	default:
+		panic(fmt.Sprintf("illegal operation %s < %s", v, other))
+	}
+}
+
+func (v Value) LessThanEqual(other Value, res *Value) {
+	switch v.VType {
+	case ValueTypeInt:
+		switch other.VType {
+		case ValueTypeInt:
+			res.SetBool(v.GetInt() <= other.GetInt())
+		case ValueTypeFloat:
+			res.SetBool(float64(v.GetInt()) <= other.GetFloat())
+		default:
+			panic(fmt.Sprintf("illegal operation %s <= %s", v, other))
+		}
+	case ValueTypeFloat:
+		switch other.VType {
+		case ValueTypeInt:
+			res.SetBool(v.GetFloat() <= float64(other.GetInt()))
+		case ValueTypeFloat:
+			res.SetBool(v.GetFloat() <= other.GetFloat())
+		default:
+			panic(fmt.Sprintf("illegal operation %s <= %s", v, other))
+		}
+	default:
+		panic(fmt.Sprintf("illegal operation %s <= %s", v, other))
+	}
+}
+
+func (v Value) GreaterThan(other Value, res *Value) {
+	switch v.VType {
+	case ValueTypeInt:
+		switch other.VType {
+		case ValueTypeInt:
+			res.SetBool(v.GetInt() > other.GetInt())
+		case ValueTypeFloat:
+			res.SetBool(float64(v.GetInt()) > other.GetFloat())
+		default:
+			panic(fmt.Sprintf("illegal operation %s > %s", v, other))
+		}
+	case ValueTypeFloat:
+		switch other.VType {
+		case ValueTypeInt:
+			res.SetBool(v.GetFloat() > float64(other.GetInt()))
+		case ValueTypeFloat:
+			res.SetBool(v.GetFloat() > other.GetFloat())
+		default:
+			panic(fmt.Sprintf("illegal operation %s > %s", v, other))
+		}
+	default:
+		panic(fmt.Sprintf("illegal operation %s > %s", v, other))
+	}
+}
+
+func (v Value) GreaterThanEqual(other Value, res *Value) {
+	switch v.VType {
+	case ValueTypeInt:
+		switch other.VType {
+		case ValueTypeInt:
+			res.SetBool(v.GetInt() >= other.GetInt())
+		case ValueTypeFloat:
+			res.SetBool(float64(v.GetInt()) >= other.GetFloat())
+		default:
+			panic(fmt.Sprintf("illegal operation %s >= %s", v, other))
+		}
+	case ValueTypeFloat:
+		switch other.VType {
+		case ValueTypeInt:
+			res.SetBool(v.GetFloat() >= float64(other.GetInt()))
+		case ValueTypeFloat:
+			res.SetBool(v.GetFloat() >= other.GetFloat())
+		default:
+			panic(fmt.Sprintf("illegal operation %s >= %s", v, other))
+		}
+	default:
+		panic(fmt.Sprintf("illegal operation %s >= %s", v, other))
+	}
+}
+
+// TODO: implement object equality
+func (v Value) Equal(other Value, res *Value) {
+	if v.VType != other.VType {
+		res.SetBool(false)
+		return
+	}
+
+	switch v.VType {
+	case ValueTypeNil:
+		res.SetBool(true)
+	case ValueTypeInt:
+		res.SetBool(v.GetInt() == other.GetInt())
+	case ValueTypeFloat:
+		res.SetBool(v.GetFloat() == other.GetFloat())
+	case ValueTypeString:
+		res.SetBool(v.GetString() == other.GetString())
+	case ValueTypeArray:
+		res.SetBool(v.GetArray() == other.GetArray())
+	case ValueTypeBool:
+		res.SetBool(v.GetBool() == other.GetBool())
+	case ValueTypeFunction:
+		res.SetBool(v.GetFunction() == other.GetFunction())
+	default:
+		res.SetBool(false)
+	}
+}
+
+func (v Value) NotEqual(other Value, res *Value) {
+	if v.VType != other.VType {
+		res.SetBool(true)
+		return
+	}
+
+	switch v.VType {
+	case ValueTypeNil:
+		res.SetBool(false)
+	case ValueTypeInt:
+		res.SetBool(v.GetInt() != other.GetInt())
+	case ValueTypeFloat:
+		res.SetBool(v.GetFloat() != other.GetFloat())
+	case ValueTypeString:
+		res.SetBool(v.GetString() != other.GetString())
+	case ValueTypeArray:
+		res.SetBool(v.GetArray() != other.GetArray())
+	case ValueTypeBool:
+		res.SetBool(v.GetBool() != other.GetBool())
+	case ValueTypeFunction:
+		res.SetBool(v.GetFunction() != other.GetFunction())
+	default:
+		res.SetBool(true)
+	}
+}

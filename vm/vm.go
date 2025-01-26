@@ -71,6 +71,124 @@ func (v *VM) RunFunction(f Value, args ...Value) Value {
 func (v *VM) Run() {
 	for {
 		switch v.curFrame.instructions[v.curFrame.ip] {
+		case opcode.OP_ADD:
+			right := v.stack[v.sp]
+			left := v.stack[v.sp-1]
+			v.sp--
+			left.Add(right, &v.stack[v.sp])
+
+			v.curFrame.ip++
+
+		case opcode.OP_SUB:
+			right := v.stack[v.sp]
+			left := v.stack[v.sp-1]
+			v.sp--
+			left.Sub(right, &v.stack[v.sp])
+
+			v.curFrame.ip++
+
+		case opcode.OP_MUL:
+			right := v.stack[v.sp]
+			left := v.stack[v.sp-1]
+			v.sp--
+
+			left.Mul(right, &v.stack[v.sp])
+
+			v.curFrame.ip++
+
+		case opcode.OP_MOD:
+			right := v.stack[v.sp]
+			left := v.stack[v.sp-1]
+			v.sp--
+
+			left.Mod(right, &v.stack[v.sp])
+
+			v.curFrame.ip++
+
+		case opcode.OP_EQ:
+			right := v.stack[v.sp]
+			left := v.stack[v.sp-1]
+			v.sp--
+
+			left.Equal(right, &v.stack[v.sp])
+
+			v.curFrame.ip++
+
+		case opcode.OP_NEQ:
+			right := v.stack[v.sp]
+			left := v.stack[v.sp-1]
+			v.sp--
+
+			left.NotEqual(right, &v.stack[v.sp])
+
+			v.curFrame.ip++
+
+		case opcode.OP_LT:
+			right := v.stack[v.sp]
+			left := v.stack[v.sp-1]
+			v.sp--
+
+			left.LessThan(right, &v.stack[v.sp])
+
+			v.curFrame.ip++
+
+		case opcode.OP_LTE:
+			right := v.stack[v.sp]
+			left := v.stack[v.sp-1]
+			v.sp--
+
+			left.LessThanEqual(right, &v.stack[v.sp])
+
+			v.curFrame.ip++
+
+		case opcode.OP_GT:
+			right := v.stack[v.sp]
+			left := v.stack[v.sp-1]
+			v.sp--
+
+			left.GreaterThan(right, &v.stack[v.sp])
+
+			v.curFrame.ip++
+
+		case opcode.OP_GTE:
+			right := v.stack[v.sp]
+			left := v.stack[v.sp-1]
+			v.sp--
+
+			left.GreaterThanEqual(right, &v.stack[v.sp])
+
+			v.curFrame.ip++
+
+		case opcode.OP_NOT:
+			right := v.stack[v.sp]
+			v.stack[v.sp].SetBool(!right.IsTruthy())
+			v.curFrame.ip++
+
+		case opcode.OP_OR:
+			right := v.stack[v.sp]
+			left := v.stack[v.sp-1]
+			v.sp--
+			if left.IsTruthy() {
+				v.stack[v.sp] = left
+			} else {
+				v.stack[v.sp] = right
+			}
+
+			v.curFrame.ip++
+
+		case opcode.OP_AND:
+			right := v.stack[v.sp]
+			left := v.stack[v.sp-1]
+			v.sp--
+
+			if left.IsTruthy() {
+				v.stack[v.sp] = right
+			} else {
+				v.stack[v.sp] = left
+			}
+
+			v.curFrame.ip++
+
 		case opcode.OP_CONST:
 			index := v.curFrame.instructions[v.curFrame.ip+1]
 			v.sp++
@@ -127,9 +245,6 @@ func (v *VM) Run() {
 			fmt.Println(value.String())
 			v.curFrame.ip += 1
 
-		case opcode.OP_LABEL:
-			v.curFrame.ip += 2
-
 		case opcode.OP_JUMP:
 			newIp := int(v.curFrame.instructions[v.curFrame.ip+1])
 			v.curFrame.ip = newIp
@@ -155,115 +270,6 @@ func (v *VM) Run() {
 			} else {
 				v.curFrame.ip += 2
 			}
-
-		case opcode.OP_LT:
-			right := v.stack[v.sp]
-			left := v.stack[v.sp-1]
-			v.sp--
-
-			switch left.VType {
-			case ValueTypeInt:
-				switch right.VType {
-				case ValueTypeInt:
-					v.stack[v.sp].SetBool(left.GetInt() < right.GetInt())
-				default:
-					panic(fmt.Sprintf("illegal operation %s < %s", left, right))
-				}
-			default:
-				panic(fmt.Sprintf("illegal operation %s < %s", left, right))
-			}
-
-			v.curFrame.ip++
-
-		case opcode.OP_LTE:
-			right := v.stack[v.sp]
-			left := v.stack[v.sp-1]
-			v.sp--
-
-			switch left.VType {
-			case ValueTypeInt:
-				switch right.VType {
-				case ValueTypeInt:
-					v.stack[v.sp].SetBool(left.GetInt() <= right.GetInt())
-				default:
-					panic(fmt.Sprintf("illegal operation %s < %s", left, right))
-				}
-			default:
-				panic(fmt.Sprintf("illegal operation %s < %s", left, right))
-			}
-
-			v.curFrame.ip++
-
-		case opcode.OP_GT:
-			right := v.stack[v.sp]
-			left := v.stack[v.sp-1]
-			v.sp--
-
-			switch left.VType {
-			case ValueTypeInt:
-				switch right.VType {
-				case ValueTypeInt:
-					v.stack[v.sp].SetBool(left.GetInt() > right.GetInt())
-				default:
-					panic(fmt.Sprintf("illegal operation %s < %s", left, right))
-				}
-			default:
-				panic(fmt.Sprintf("illegal operation %s < %s", left, right))
-			}
-
-			v.curFrame.ip++
-
-		case opcode.OP_GTE:
-			right := v.stack[v.sp]
-			left := v.stack[v.sp-1]
-			v.sp--
-
-			switch left.VType {
-			case ValueTypeInt:
-				switch right.VType {
-				case ValueTypeInt:
-					v.stack[v.sp].SetBool(left.GetInt() > right.GetInt())
-				default:
-					panic(fmt.Sprintf("illegal operation %s < %s", left, right))
-				}
-			default:
-				panic(fmt.Sprintf("illegal operation %s < %s", left, right))
-			}
-
-			v.curFrame.ip++
-
-		case opcode.OP_ADD:
-			right := v.stack[v.sp]
-			left := v.stack[v.sp-1]
-			v.sp--
-			left.Add(right, &v.stack[v.sp])
-
-			v.curFrame.ip++
-
-		case opcode.OP_OR:
-			right := v.stack[v.sp]
-			left := v.stack[v.sp-1]
-			v.sp--
-			if left.IsTruthy() {
-				v.stack[v.sp] = left
-			} else {
-				v.stack[v.sp] = right
-			}
-
-			v.curFrame.ip++
-
-		case opcode.OP_AND:
-			right := v.stack[v.sp]
-			left := v.stack[v.sp-1]
-			v.sp--
-
-			if left.IsTruthy() {
-				v.stack[v.sp] = right
-			} else {
-				v.stack[v.sp] = left
-			}
-
-			v.curFrame.ip++
 
 		case opcode.OP_OBJ:
 			v.sp++
@@ -307,55 +313,6 @@ func (v *VM) Run() {
 				val := arr.GetObject()[index.GetString()]
 				v.stack[v.sp] = val
 			}
-
-			v.curFrame.ip++
-
-		case opcode.OP_NOT:
-			right := v.stack[v.sp]
-			v.stack[v.sp].SetBool(!right.IsTruthy())
-			v.curFrame.ip++
-
-		case opcode.OP_SUB:
-			right := v.stack[v.sp]
-			left := v.stack[v.sp-1]
-			v.sp--
-			left.Sub(right, &v.stack[v.sp])
-
-			v.curFrame.ip++
-
-		case opcode.OP_MUL:
-			right := v.stack[v.sp]
-			left := v.stack[v.sp-1]
-			v.sp--
-
-			v.stack[v.sp].SetInt(left.GetInt() * right.GetInt())
-
-			v.curFrame.ip++
-
-		case opcode.OP_MOD:
-			right := v.stack[v.sp]
-			left := v.stack[v.sp-1]
-			v.sp--
-
-			v.stack[v.sp].SetInt(left.GetInt() % right.GetInt())
-
-			v.curFrame.ip++
-
-		case opcode.OP_EQ:
-			right := v.stack[v.sp]
-			left := v.stack[v.sp-1]
-			v.sp--
-
-			v.stack[v.sp].SetBool(left.GetInt() == right.GetInt())
-
-			v.curFrame.ip++
-
-		case opcode.OP_NEQ:
-			right := v.stack[v.sp]
-			left := v.stack[v.sp-1]
-			v.sp--
-
-			v.stack[v.sp].SetBool(left.GetInt() == right.GetInt())
 
 			v.curFrame.ip++
 

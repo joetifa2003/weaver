@@ -13,7 +13,35 @@ import (
 
 func main() {
 	src := `
-		
+		x := 0
+		y := 5
+		match x {
+			0 => {
+				match y {
+					0 => {
+						false | assert()
+					},
+					1 => {
+						false | assert()
+					},
+					2 => {
+						false | assert()
+					},
+					5 => {
+						true | assert()
+					}
+				}
+			},
+			1 => {
+				false | assert()
+			},
+			2 => {
+				false | assert()
+			},
+			3 => {
+				false | assert()
+			}
+		}
 	`
 
 	// src := `

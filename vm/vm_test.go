@@ -171,6 +171,9 @@ func TestVM(t *testing.T) {
 						false | assert()
 					},
 					4 => {
+						false | assert()
+					},
+					5 => {
 						true | assert()
 					}
 				}

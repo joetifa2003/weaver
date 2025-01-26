@@ -134,7 +134,7 @@ func (v *VM) Run() {
 			newIp := int(v.curFrame.instructions[v.curFrame.ip+1])
 			v.curFrame.ip = newIp
 
-		case opcode.OP_JUMPF:
+		case opcode.OP_JUMP_F:
 			newIp := int(v.curFrame.instructions[v.curFrame.ip+1])
 			operand := v.stack[v.sp]
 			v.sp--
@@ -143,6 +143,17 @@ func (v *VM) Run() {
 				v.curFrame.ip += 2
 			} else {
 				v.curFrame.ip = newIp
+			}
+
+		case opcode.OP_JUMP_T:
+			newIp := int(v.curFrame.instructions[v.curFrame.ip+1])
+			operand := v.stack[v.sp]
+			v.sp--
+
+			if operand.IsTruthy() {
+				v.curFrame.ip = newIp
+			} else {
+				v.curFrame.ip += 2
 			}
 
 		case opcode.OP_LT:

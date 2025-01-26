@@ -77,7 +77,7 @@ func main() {
 	}
 
 	ct := time.Now()
-	c := compiler.New()
+	c := compiler.New(compiler.WithOptimization(true))
 	mainFrame, constants, err := c.Compile(ircr)
 	if err != nil {
 		panic(err)

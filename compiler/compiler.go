@@ -96,7 +96,10 @@ func (c *Compiler) handleLabels(instructions []opcode.OpCode) []opcode.OpCode {
 		case opcode.OP_JUMP:
 			instr.Args[0] = labels[instr.Args[0]]
 
-		case opcode.OP_JUMPF:
+		case opcode.OP_JUMP_F:
+			instr.Args[0] = labels[instr.Args[0]]
+
+		case opcode.OP_JUMP_T:
 			instr.Args[0] = labels[instr.Args[0]]
 		}
 
@@ -132,8 +135,9 @@ func (c *Compiler) compileStmt(s ir.Statement) ([]opcode.OpCode, error) {
 			return nil, err
 		}
 		instructions = append(instructions, expr...)
-		instructions = append(instructions, opcode.OP_LET)
+		instructions = append(instructions, opcode.OP_STORE)
 		instructions = append(instructions, opcode.OpCode(c.defineVar(s.Name)))
+		instructions = append(instructions, opcode.OP_POP)
 
 		return instructions, nil
 
@@ -188,7 +192,7 @@ func (c *Compiler) compileStmt(s ir.Statement) ([]opcode.OpCode, error) {
 			falseLabel := c.label()
 
 			instructions = append(instructions, expr...)
-			instructions = append(instructions, opcode.OP_JUMPF, opcode.OpCode(falseLabel))
+			instructions = append(instructions, opcode.OP_JUMP_F, opcode.OpCode(falseLabel))
 			instructions = append(instructions, body...)
 			instructions = append(instructions, opcode.OP_LABEL, opcode.OpCode(falseLabel))
 		} else {
@@ -201,7 +205,7 @@ func (c *Compiler) compileStmt(s ir.Statement) ([]opcode.OpCode, error) {
 			}
 
 			instructions = append(instructions, expr...)
-			instructions = append(instructions, opcode.OP_JUMPF, opcode.OpCode(lbl1))
+			instructions = append(instructions, opcode.OP_JUMP_F, opcode.OpCode(lbl1))
 			instructions = append(instructions, body...)
 			instructions = append(instructions, opcode.OP_JUMP, opcode.OpCode(lbl2))
 			instructions = append(instructions, opcode.OP_LABEL, opcode.OpCode(lbl1))
@@ -526,7 +530,7 @@ func (c *Compiler) binOperatorOpcode(operator ir.BinaryOp) opcode.OpCode {
 		return opcode.OP_AND
 
 	default:
-		panic(fmt.Sprintf("unimplemented operator %s", operator))
+		panic(fmt.Sprintf("unimplemented operator %d", operator))
 	}
 }
 
@@ -536,7 +540,7 @@ func (c *Compiler) unaryOperatorOpcode(operator ir.UnaryOp) opcode.OpCode {
 		return opcode.OP_NOT
 
 	default:
-		panic(fmt.Sprintf("unimplemented operator %s", operator))
+		panic(fmt.Sprintf("unimplemented operator %d", operator))
 	}
 }
 

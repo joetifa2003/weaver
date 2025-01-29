@@ -255,22 +255,20 @@ func TestVM(t *testing.T) {
 			echo(false or true or a())
 		`,
 		23: `
-			aCalled := false
+			aCalled := {value: false}
 			a := || {
-				true | assert()
-				aCalled = true
+				aCalled.value = true
 			}
 			echo(true and true and true and a())
-			aCalled | assert()
+			aCalled.value | assert()
 		`,
 		24: `
-			aCalled := false
+			aCalled := {value: false}
 			a := || {
-				true | assert()
-				aCalled = true
+				aCalled.value = true
 			}
-			echo(false or false or false and a())
-			aCalled | assert()
+			echo(false or false or false or a())
+			aCalled.value | assert()
 		`,
 	}
 

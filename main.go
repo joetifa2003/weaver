@@ -14,10 +14,7 @@ import (
 func main() {
 	src := `
 		aCalled := false
-		a := || {
-		}
-		echo(false or a())
-		aCalled | assert()
+		false or a() 
 	`
 	// src := `
 	// 	match [[[[[0]]]], 1, 2] {

@@ -514,8 +514,8 @@ func (c *Compiler) compileAndExpr(e ir.BinaryExpr) ([]opcode.OpCode, error) {
 			return nil, err
 		}
 		instructions = append(instructions, expr...)
-		instructions = append(instructions, opcode.OP_JUMP_F, opcode.OpCode(endLabel))
 		if i != len(e.Operands)-1 {
+			instructions = append(instructions, opcode.OP_JUMP_F, opcode.OpCode(endLabel))
 			instructions = append(instructions, opcode.OP_POP)
 		}
 	}
@@ -535,8 +535,8 @@ func (c *Compiler) compileOrExpr(e ir.BinaryExpr) ([]opcode.OpCode, error) {
 			return nil, err
 		}
 		instructions = append(instructions, expr...)
-		instructions = append(instructions, opcode.OP_JUMP_T, opcode.OpCode(endLabel))
 		if i != len(e.Operands)-1 {
+			instructions = append(instructions, opcode.OP_JUMP_T, opcode.OpCode(endLabel))
 			instructions = append(instructions, opcode.OP_POP)
 		}
 	}

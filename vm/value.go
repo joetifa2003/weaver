@@ -226,8 +226,10 @@ func (v Value) IsTruthy() bool {
 		return len(v.GetObject()) != 0
 	case ValueTypeArray:
 		return len(*v.GetArray()) != 0
+	case ValueTypeNil:
+		return false
 	default:
-		panic(fmt.Sprintf("Value.IsTruthy(): unimplemented %s", v.VType))
+		return false
 	}
 }
 

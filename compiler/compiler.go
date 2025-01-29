@@ -100,10 +100,16 @@ func (c *Compiler) handleLabels(instructions []opcode.OpCode) []opcode.OpCode {
 		case opcode.OP_JUMP:
 			instr.Args[0] = labels[instr.Args[0]]
 
-		case opcode.OP_JUMP_F:
+		case opcode.OP_PJUMP_F:
+			instr.Args[0] = labels[instr.Args[0]]
+
+		case opcode.OP_PJUMP_T:
 			instr.Args[0] = labels[instr.Args[0]]
 
 		case opcode.OP_JUMP_T:
+			instr.Args[0] = labels[instr.Args[0]]
+
+		case opcode.OP_JUMP_F:
 			instr.Args[0] = labels[instr.Args[0]]
 		}
 
@@ -196,7 +202,7 @@ func (c *Compiler) compileStmt(s ir.Statement) ([]opcode.OpCode, error) {
 			falseLabel := c.label()
 
 			instructions = append(instructions, expr...)
-			instructions = append(instructions, opcode.OP_JUMP_F, opcode.OpCode(falseLabel))
+			instructions = append(instructions, opcode.OP_PJUMP_F, opcode.OpCode(falseLabel))
 			instructions = append(instructions, body...)
 			instructions = append(instructions, opcode.OP_LABEL, opcode.OpCode(falseLabel))
 		} else {
@@ -209,7 +215,7 @@ func (c *Compiler) compileStmt(s ir.Statement) ([]opcode.OpCode, error) {
 			}
 
 			instructions = append(instructions, expr...)
-			instructions = append(instructions, opcode.OP_JUMP_F, opcode.OpCode(lbl1))
+			instructions = append(instructions, opcode.OP_PJUMP_F, opcode.OpCode(lbl1))
 			instructions = append(instructions, body...)
 			instructions = append(instructions, opcode.OP_JUMP, opcode.OpCode(lbl2))
 			instructions = append(instructions, opcode.OP_LABEL, opcode.OpCode(lbl1))
@@ -254,6 +260,12 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 	switch e := e.(type) {
 	case ir.BinaryExpr:
 		var instructions []opcode.OpCode
+
+		if e.Operator == ir.BinaryOpAnd {
+			return c.compileAndExpr(e)
+		} else if e.Operator == ir.BinaryOpOr {
+			return c.compileOrExpr(e)
+		}
 
 		for _, operand := range e.Operands {
 			expr, err := c.compileExpr(operand)
@@ -490,6 +502,48 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 	}
 
 	panic(fmt.Sprintf("unimplemented %T", e))
+}
+
+func (c *Compiler) compileAndExpr(e ir.BinaryExpr) ([]opcode.OpCode, error) {
+	var instructions []opcode.OpCode
+	endLabel := c.label()
+
+	for i, operand := range e.Operands {
+		expr, err := c.compileExpr(operand)
+		if err != nil {
+			return nil, err
+		}
+		instructions = append(instructions, expr...)
+		instructions = append(instructions, opcode.OP_JUMP_F, opcode.OpCode(endLabel))
+		if i != len(e.Operands)-1 {
+			instructions = append(instructions, opcode.OP_POP)
+		}
+	}
+
+	instructions = append(instructions, opcode.OP_LABEL, opcode.OpCode(endLabel))
+
+	return instructions, nil
+}
+
+func (c *Compiler) compileOrExpr(e ir.BinaryExpr) ([]opcode.OpCode, error) {
+	var instructions []opcode.OpCode
+	endLabel := c.label()
+
+	for i, operand := range e.Operands {
+		expr, err := c.compileExpr(operand)
+		if err != nil {
+			return nil, err
+		}
+		instructions = append(instructions, expr...)
+		instructions = append(instructions, opcode.OP_JUMP_T, opcode.OpCode(endLabel))
+		if i != len(e.Operands)-1 {
+			instructions = append(instructions, opcode.OP_POP)
+		}
+	}
+
+	instructions = append(instructions, opcode.OP_LABEL, opcode.OpCode(endLabel))
+
+	return instructions, nil
 }
 
 func (c *Compiler) binOperatorOpcode(operator ir.BinaryOp) opcode.OpCode {

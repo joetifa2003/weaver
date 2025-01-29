@@ -95,10 +95,10 @@ var optimizers = []Optimizer{
 		},
 	},
 	{
-		Seq: seq(eq(opcode.OP_NOT), eq(opcode.OP_JUMP_F)),
+		Seq: seq(eq(opcode.OP_NOT), eq(opcode.OP_PJUMP_F)),
 		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
 			return []opcode.OpCode{
-				opcode.OP_JUMP_T,
+				opcode.OP_PJUMP_T,
 				doc[1].Args[0],
 			}
 		},

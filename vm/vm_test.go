@@ -246,6 +246,32 @@ func TestVM(t *testing.T) {
 			}
 		}
 		`,
+		21: `
+			a := || false | assert()
+			echo(true and true and false and a())
+		`,
+		22: `
+			a := || false | assert()
+			echo(false or true or a())
+		`,
+		23: `
+			aCalled := false
+			a := || {
+				true | assert()
+				aCalled = true
+			}
+			echo(true and true and true and a())
+			aCalled | assert()
+		`,
+		24: `
+			aCalled := false
+			a := || {
+				true | assert()
+				aCalled = true
+			}
+			echo(false or false or false and a())
+			aCalled | assert()
+		`,
 	}
 
 	for i, tc := range tests {

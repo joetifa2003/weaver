@@ -27,9 +27,11 @@ const (
 	OP_LOAD_GLOBAL  // arg1: variable index
 	OP_STORE_IDX
 
-	OP_JUMP   // arg1: jump offset
-	OP_JUMP_F // arg1: jump offset
-	OP_JUMP_T // arg1: jump offset
+	OP_JUMP    // arg1: jump offset
+	OP_PJUMP_F // arg1: jump offset
+	OP_PJUMP_T // arg1: jump offset
+	OP_JUMP_F  // arg1: jump offset
+	OP_JUMP_T  // arg1: jump offset
 
 	OP_ARRAY // initialize array
 	OP_APUSH // push value to array
@@ -84,8 +86,10 @@ var opCodeDefs = map[OpCode]OpCodeDef{
 	OP_LOAD_FREE:    {OP_LOAD, "loadf", 1},
 	OP_LOAD_GLOBAL:  {OP_LOAD, "loadg", 1},
 	OP_JUMP:         {OP_JUMP, "jmp", 1},
-	OP_JUMP_F:       {OP_JUMP_F, "jmpf", 1},
-	OP_JUMP_T:       {OP_JUMP_F, "jmpt", 1},
+	OP_PJUMP_F:      {OP_PJUMP_F, "pjmpf", 1},
+	OP_PJUMP_T:      {OP_PJUMP_F, "pjmpt", 1},
+	OP_JUMP_F:       {OP_PJUMP_F, "jmpf", 1},
+	OP_JUMP_T:       {OP_PJUMP_F, "jmpt", 1},
 	OP_ADD:          {OP_ADD, "add", 0},
 	OP_MUL:          {OP_MUL, "mul", 0},
 	OP_DIV:          {OP_DIV, "div", 0},

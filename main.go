@@ -13,15 +13,22 @@ import (
 
 func main() {
 	src := `
-		match [[0], 1, 2] {
-			[[0], 1, 2] => {
-				"here" | echo()
-			},
-			[2, 3, 4] => {
-				"wrong" | echo()
-			}
+		aCalled := false
+		a := || {
 		}
+		echo(false or a())
+		aCalled | assert()
 	`
+	// src := `
+	// 	match [[[[[0]]]], 1, 2] {
+	// 		[[[[[0]]]], 1, 2] => {
+	// 			"here" | echo()
+	// 		},
+	// 		[2, 3, 4] => {
+	// 			"wrong" | echo()
+	// 		}
+	// 	}
+	// `
 
 	// src := `
 	// for i := 0; i < 100; i = i + 1 {

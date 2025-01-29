@@ -227,6 +227,13 @@ func (v *VM) Run() {
 			v.stack[v.sp] = val
 			v.curFrame.ip += 2
 
+		case opcode.OP_STORE_FREE:
+			index := int(v.curFrame.instructions[v.curFrame.ip+1])
+			val := v.stack[v.sp]
+			v.curFrame.freeVars[index] = val
+			v.sp--
+			v.curFrame.ip += 2
+
 		case opcode.OP_LET:
 			index := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+1])
 			v.stack[index] = v.stack[v.sp]
@@ -249,7 +256,7 @@ func (v *VM) Run() {
 			newIp := int(v.curFrame.instructions[v.curFrame.ip+1])
 			v.curFrame.ip = newIp
 
-		case opcode.OP_JUMP_F:
+		case opcode.OP_PJUMP_F:
 			newIp := int(v.curFrame.instructions[v.curFrame.ip+1])
 			operand := v.stack[v.sp]
 			v.sp--
@@ -260,10 +267,30 @@ func (v *VM) Run() {
 				v.curFrame.ip = newIp
 			}
 
-		case opcode.OP_JUMP_T:
+		case opcode.OP_PJUMP_T:
 			newIp := int(v.curFrame.instructions[v.curFrame.ip+1])
 			operand := v.stack[v.sp]
 			v.sp--
+
+			if operand.IsTruthy() {
+				v.curFrame.ip = newIp
+			} else {
+				v.curFrame.ip += 2
+			}
+
+		case opcode.OP_JUMP_F:
+			newIp := int(v.curFrame.instructions[v.curFrame.ip+1])
+			operand := v.stack[v.sp]
+
+			if operand.IsTruthy() {
+				v.curFrame.ip += 2
+			} else {
+				v.curFrame.ip = newIp
+			}
+
+		case opcode.OP_JUMP_T:
+			newIp := int(v.curFrame.instructions[v.curFrame.ip+1])
+			operand := v.stack[v.sp]
 
 			if operand.IsTruthy() {
 				v.curFrame.ip = newIp

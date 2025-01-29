@@ -13,19 +13,12 @@ import (
 
 func main() {
 	src := `
-		x := "foo"
-		match x {
-			0 => {
-				false  | assert()
-			},
-			0.5 => {
-				true   | assert()
-			},
-			"foo" => {
+		match [[0], 1, 2] {
+			[[0], 1, 2] => {
 				"here" | echo()
 			},
-			3 => {
-				false  | assert()
+			[2, 3, 4] => {
+				"wrong" | echo()
 			}
 		}
 	`

@@ -182,13 +182,15 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 			return res, nil
 		}
 
-		currentCase, err := c.compileMatchCase(s.Cases[0], "__$e")
+		exprVar := IdentExpr{"__$e"}
+
+		currentCase, err := c.compileMatchCase(s.Cases[0], exprVar)
 		if err != nil {
 			return nil, err
 		}
 
 		for _, m := range s.Cases[1:] {
-			ifStmt, err := c.compileMatchCase(m, "__$e")
+			ifStmt, err := c.compileMatchCase(m, exprVar)
 			if err != nil {
 				return nil, err
 			}
@@ -210,7 +212,7 @@ func stmtPointer(s Statement) *Statement {
 	return &s
 }
 
-func (c *Compiler) compileMatchCase(m ast.MatchCase, exprName string) (IfStmt, error) {
+func (c *Compiler) compileMatchCase(m ast.MatchCase, expr Expr) (IfStmt, error) {
 	var res IfStmt
 
 	body, err := c.CompileStmt(m.Body)
@@ -218,9 +220,21 @@ func (c *Compiler) compileMatchCase(m ast.MatchCase, exprName string) (IfStmt, e
 		return res, err
 	}
 
-	switch cond := m.Condition.(type) {
+	cond, err := c.compileMatchCondition(m.Condition, expr)
+	if err != nil {
+		return res, err
+	}
+
+	res.Condition = cond
+	res.Body = body
+
+	return res, nil
+}
+
+func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr) (Expr, error) {
+	switch cond := cond.(type) {
 	case ast.MatchCaseInt:
-		res.Condition = BinaryExpr{
+		return BinaryExpr{
 			BinaryOpAnd,
 			[]Expr{
 				BinaryExpr{
@@ -231,7 +245,7 @@ func (c *Compiler) compileMatchCase(m ast.MatchCase, exprName string) (IfStmt, e
 							[]PostFixOp{
 								CallOp{
 									Args: []Expr{
-										IdentExpr{Name: exprName},
+										expr,
 									},
 								},
 							},
@@ -242,15 +256,15 @@ func (c *Compiler) compileMatchCase(m ast.MatchCase, exprName string) (IfStmt, e
 				BinaryExpr{
 					BinaryOpEq,
 					[]Expr{
-						IdentExpr{exprName},
+						expr,
 						IntExpr{cond.Value},
 					},
 				},
 			},
-		}
+		}, nil
 
 	case ast.MatchCaseFloat:
-		res.Condition = BinaryExpr{
+		return BinaryExpr{
 			BinaryOpAnd,
 			[]Expr{
 				BinaryExpr{
@@ -261,7 +275,7 @@ func (c *Compiler) compileMatchCase(m ast.MatchCase, exprName string) (IfStmt, e
 							[]PostFixOp{
 								CallOp{
 									Args: []Expr{
-										IdentExpr{exprName},
+										expr,
 									},
 								},
 							},
@@ -272,15 +286,15 @@ func (c *Compiler) compileMatchCase(m ast.MatchCase, exprName string) (IfStmt, e
 				BinaryExpr{
 					BinaryOpEq,
 					[]Expr{
-						IdentExpr{exprName},
+						expr,
 						FloatExpr{cond.Value},
 					},
 				},
 			},
-		}
+		}, nil
 
 	case ast.MatchCaseString:
-		res.Condition = BinaryExpr{
+		return BinaryExpr{
 			BinaryOpAnd,
 			[]Expr{
 				BinaryExpr{
@@ -291,7 +305,7 @@ func (c *Compiler) compileMatchCase(m ast.MatchCase, exprName string) (IfStmt, e
 							[]PostFixOp{
 								CallOp{
 									Args: []Expr{
-										IdentExpr{exprName},
+										expr,
 									},
 								},
 							},
@@ -302,20 +316,66 @@ func (c *Compiler) compileMatchCase(m ast.MatchCase, exprName string) (IfStmt, e
 				BinaryExpr{
 					BinaryOpEq,
 					[]Expr{
-						IdentExpr{exprName},
+						expr,
 						StringExpr{cond.Value},
 					},
 				},
 			},
+		}, nil
+
+	case ast.MatchCaseArray:
+		isArray := BinaryExpr{
+			BinaryOpEq,
+			[]Expr{
+				PostFixExpr{
+					IdentExpr{"type"},
+					[]PostFixOp{
+						CallOp{[]Expr{expr}},
+					},
+				},
+				StringExpr{"array"},
+			},
 		}
+		hasCorrectLength := BinaryExpr{
+			BinaryOpEq,
+			[]Expr{
+				PostFixExpr{
+					IdentExpr{"len"},
+					[]PostFixOp{
+						CallOp{[]Expr{expr}},
+					},
+				},
+				IntExpr{len(cond.Conditions)},
+			},
+		}
+
+		res := BinaryExpr{
+			BinaryOpAnd,
+			[]Expr{
+				isArray,
+				hasCorrectLength,
+			},
+		}
+
+		for i, cond := range cond.Conditions {
+			child, err := c.compileMatchCondition(cond, PostFixExpr{
+				expr,
+				[]PostFixOp{
+					IndexOp{Index: IntExpr{Value: i}},
+				},
+			})
+			if err != nil {
+				return nil, err
+			}
+
+			res.Operands = append(res.Operands, child)
+		}
+
+		return res, nil
 
 	default:
 		panic(fmt.Sprintf("unimplemented %T", cond))
 	}
-
-	res.Body = body
-
-	return res, nil
 }
 
 func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {

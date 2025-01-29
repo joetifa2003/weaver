@@ -92,3 +92,9 @@ type MatchCaseString struct {
 }
 
 func (t MatchCaseString) matchCaseCondition() {}
+
+type MatchCaseArray struct {
+	Conditions []MatchCaseCondition
+}
+
+func (t MatchCaseArray) matchCaseCondition() {}

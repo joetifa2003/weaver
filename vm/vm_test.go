@@ -223,6 +223,29 @@ func TestVM(t *testing.T) {
 			}
 		}
 		`,
+		19: `
+		match "foo" {
+			"bar" => {
+				false | assert()
+			},
+			"baz" => {
+				false | assert()
+			},
+			"foo" => {
+				true | assert()
+			}
+		}
+		`,
+		20: `
+		match [[0], 1, 2] {
+			[[0], 1, 2] => {
+				true | assert()
+			},
+			[2, 3, 4] => {
+				false | assert()
+			}
+		}
+		`,
 	}
 
 	for i, tc := range tests {

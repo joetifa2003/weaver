@@ -213,22 +213,104 @@ func stmtPointer(s Statement) *Statement {
 func (c *Compiler) compileMatchCase(m ast.MatchCase, exprName string) (IfStmt, error) {
 	var res IfStmt
 
-	expr, err := c.CompileExpr(m.Expr)
-	if err != nil {
-		return res, err
-	}
-
 	body, err := c.CompileStmt(m.Body)
 	if err != nil {
 		return res, err
 	}
 
-	res.Condition = BinaryExpr{
-		Operator: BinaryOpEq,
-		Operands: []Expr{
-			IdentExpr{Name: exprName},
-			expr,
-		},
+	switch cond := m.Condition.(type) {
+	case ast.MatchCaseInt:
+		res.Condition = BinaryExpr{
+			BinaryOpAnd,
+			[]Expr{
+				BinaryExpr{
+					BinaryOpEq,
+					[]Expr{
+						PostFixExpr{
+							IdentExpr{"type"},
+							[]PostFixOp{
+								CallOp{
+									Args: []Expr{
+										IdentExpr{Name: exprName},
+									},
+								},
+							},
+						},
+						StringExpr{"int"},
+					},
+				},
+				BinaryExpr{
+					BinaryOpEq,
+					[]Expr{
+						IdentExpr{exprName},
+						IntExpr{cond.Value},
+					},
+				},
+			},
+		}
+
+	case ast.MatchCaseFloat:
+		res.Condition = BinaryExpr{
+			BinaryOpAnd,
+			[]Expr{
+				BinaryExpr{
+					BinaryOpEq,
+					[]Expr{
+						PostFixExpr{
+							IdentExpr{"type"},
+							[]PostFixOp{
+								CallOp{
+									Args: []Expr{
+										IdentExpr{exprName},
+									},
+								},
+							},
+						},
+						StringExpr{"float"},
+					},
+				},
+				BinaryExpr{
+					BinaryOpEq,
+					[]Expr{
+						IdentExpr{exprName},
+						FloatExpr{cond.Value},
+					},
+				},
+			},
+		}
+
+	case ast.MatchCaseString:
+		res.Condition = BinaryExpr{
+			BinaryOpAnd,
+			[]Expr{
+				BinaryExpr{
+					BinaryOpEq,
+					[]Expr{
+						PostFixExpr{
+							IdentExpr{"type"},
+							[]PostFixOp{
+								CallOp{
+									Args: []Expr{
+										IdentExpr{exprName},
+									},
+								},
+							},
+						},
+						StringExpr{"string"},
+					},
+				},
+				BinaryExpr{
+					BinaryOpEq,
+					[]Expr{
+						IdentExpr{exprName},
+						StringExpr{cond.Value},
+					},
+				},
+			},
+		}
+
+	default:
+		panic(fmt.Sprintf("unimplemented %T", cond))
 	}
 
 	res.Body = body

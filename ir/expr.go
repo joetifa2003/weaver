@@ -99,8 +99,8 @@ const (
 )
 
 type BinaryExpr struct {
-	Operands []Expr
 	Operator BinaryOp
+	Operands []Expr
 }
 
 func (t BinaryExpr) expr() {}

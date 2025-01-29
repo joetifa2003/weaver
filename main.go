@@ -13,33 +13,19 @@ import (
 
 func main() {
 	src := `
-		x := 0
-		y := 5
+		x := "foo"
 		match x {
 			0 => {
-				match y {
-					0 => {
-						false | assert()
-					},
-					1 => {
-						false | assert()
-					},
-					2 => {
-						false | assert()
-					},
-					5 => {
-						true | assert()
-					}
-				}
+				false  | assert()
 			},
-			1 => {
-				false | assert()
+			0.5 => {
+				true   | assert()
 			},
-			2 => {
-				false | assert()
+			"foo" => {
+				"here" | echo()
 			},
 			3 => {
-				false | assert()
+				false  | assert()
 			}
 		}
 	`

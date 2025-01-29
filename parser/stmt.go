@@ -130,11 +130,45 @@ func matchStmt() pargo.Parser[ast.Statement] {
 
 func matchCase() pargo.Parser[ast.MatchCase] {
 	return pargo.Sequence3(
-		expr(),
+		pargo.OneOf(
+			matchCaseFloat(),
+			matchCaseInt(),
+			matchCaseString(),
+		),
 		pargo.Exactly("=>"),
 		pargo.Lazy(stmt),
-		func(expr ast.Expr, _ string, body ast.Statement) ast.MatchCase {
-			return ast.MatchCase{Expr: expr, Body: body}
+		func(cond ast.MatchCaseCondition, _ string, body ast.Statement) ast.MatchCase {
+			return ast.MatchCase{Condition: cond, Body: body}
+		},
+	)
+}
+
+func matchCaseInt() pargo.Parser[ast.MatchCaseCondition] {
+	return pargo.Map(
+		intExpr(),
+		func(expr ast.Expr) (ast.MatchCaseCondition, error) {
+			intExpr := expr.(ast.IntExpr)
+			return ast.MatchCaseInt{Value: intExpr.Value}, nil
+		},
+	)
+}
+
+func matchCaseFloat() pargo.Parser[ast.MatchCaseCondition] {
+	return pargo.Map(
+		floatExpr(),
+		func(expr ast.Expr) (ast.MatchCaseCondition, error) {
+			floatExpr := expr.(ast.FloatExpr)
+			return ast.MatchCaseFloat{Value: floatExpr.Value}, nil
+		},
+	)
+}
+
+func matchCaseString() pargo.Parser[ast.MatchCaseCondition] {
+	return pargo.Map(
+		stringExpr(),
+		func(expr ast.Expr) (ast.MatchCaseCondition, error) {
+			stringExpr := expr.(ast.StringExpr)
+			return ast.MatchCaseString{Value: stringExpr.Value}, nil
 		},
 	)
 }

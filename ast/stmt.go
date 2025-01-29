@@ -67,6 +67,28 @@ type MatchStmt struct {
 func (t MatchStmt) stmt() {}
 
 type MatchCase struct {
-	Expr Expr
-	Body Statement
+	Condition MatchCaseCondition
+	Body      Statement
 }
+
+type MatchCaseCondition interface {
+	matchCaseCondition()
+}
+
+type MatchCaseInt struct {
+	Value int
+}
+
+func (t MatchCaseInt) matchCaseCondition() {}
+
+type MatchCaseFloat struct {
+	Value float64
+}
+
+func (t MatchCaseFloat) matchCaseCondition() {}
+
+type MatchCaseString struct {
+	Value string
+}
+
+func (t MatchCaseString) matchCaseCondition() {}

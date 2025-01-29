@@ -248,18 +248,18 @@ func TestVM(t *testing.T) {
 		`,
 		21: `
 			a := || false | assert()
-			echo(true and true and false and a())
+			true and true and false and a()
 		`,
 		22: `
 			a := || false | assert()
-			echo(false or true or a())
+			false or true or a()
 		`,
 		23: `
 			aCalled := {value: false}
 			a := || {
 				aCalled.value = true
 			}
-			echo(true and true and true and a())
+			true and true and true and a()
 			aCalled.value | assert()
 		`,
 		24: `
@@ -267,7 +267,7 @@ func TestVM(t *testing.T) {
 			a := || {
 				aCalled.value = true
 			}
-			echo(false or false or false or a())
+			false or false or false or a()
 			aCalled.value | assert()
 		`,
 	}

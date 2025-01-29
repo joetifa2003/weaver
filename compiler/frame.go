@@ -33,10 +33,11 @@ const (
 )
 
 type Var struct {
-	Scope  VarScope
-	Name   string
-	Index  int
-	Parent *Var
+	Scope     VarScope
+	Name      string
+	Index     int
+	Parent    *Var
+	Available bool
 }
 
 func (v *Var) load() []opcode.OpCode {
@@ -92,6 +93,17 @@ func (c *Frame) addInstructions(instructions []opcode.OpCode) {
 }
 
 func (c *Frame) defineVar(name string) int {
+	for _, v := range c.Vars {
+		if v.Available {
+			v.Available = false
+			v.Scope = VarScopeLocal
+			v.Parent = nil
+			v.Name = name
+			c.Blocks.Peek().Vars = append(c.Blocks.Peek().Vars, v)
+			return v.Index
+		}
+	}
+
 	v := &Var{Name: name, Index: len(c.Vars), Scope: VarScopeLocal}
 	c.Vars = append(c.Vars, v)
 	c.Blocks.Peek().Vars = append(c.Blocks.Peek().Vars, v)
@@ -137,5 +149,8 @@ func (c *Frame) beginBlock() {
 }
 
 func (c *Frame) endBlock() {
-	c.Blocks.Pop()
+	block := c.Blocks.Pop()
+	for _, v := range block.Vars {
+		v.Available = true
+	}
 }

@@ -13,24 +13,13 @@ import (
 
 func main() {
 	src := `
-	c := [0, {name: "hello"}]
-	match c {
-			[0, {name: "hello"}] => {
-				"here" | echo()
-			},
-			[2, 3, 4] => {
-				"wrong" | echo()
-			}
-		}
-	`
+	joe := { name: "joe" }
+	jake := { name: "jake" }
 
-	// src := `
-	// for i := 0; i < 100; i = i + 1 {
-	// 	[1, 2, 3]
-	// 		| map(|x| x + 1)
-	// 		| filter(|x| x % 2 == 0)
-	// }
-	// `
+	likes := |x, y| x.name + " likes " + y.name
+
+	joe | likes(jake) | echo()
+	`
 
 	// src := `
 	// n := 10000000
@@ -68,6 +57,17 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	res := ""
+	for _, s := range ircr {
+		res += s.String(0) + "\n"
+	}
+	// iro, err := os.Create("ir.js")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer iro.Close()
+	// iro.WriteString(res)
+	// return
 	fmt.Println("ir took: ", time.Since(irt))
 
 	ct := time.Now()

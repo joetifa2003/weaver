@@ -184,12 +184,13 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 
 		exprVar := IdentExpr{"__$e"}
 
-		currentCase, err := c.compileMatchCase(s.Cases[0], exprVar)
+		currentCase, err := c.compileMatchCase(s.Cases[len(s.Cases)-1], exprVar)
 		if err != nil {
 			return nil, err
 		}
 
-		for _, m := range s.Cases[1:] {
+		for i := len(s.Cases) - 2; i >= 0; i-- {
+			m := s.Cases[i]
 			ifStmt, err := c.compileMatchCase(m, exprVar)
 			if err != nil {
 				return nil, err

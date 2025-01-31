@@ -270,6 +270,17 @@ func TestVM(t *testing.T) {
 			false or false or false or a()
 			aCalled.value | assert()
 		`,
+		25: `
+		c := [0, {name: "hello"}]
+		match c {
+			[0, {name: "hello"}] => {
+				"here" | echo()
+			},
+			[2, 3, 4] => {
+				"wrong" | echo()
+			}
+		}
+		`,
 	}
 
 	for i, tc := range tests {

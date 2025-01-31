@@ -13,8 +13,9 @@ import (
 
 func main() {
 	src := `
-		match [[[[[0]]]], 1, 2] {
-			[[[[[0]]]], 1, 2] => {
+	c := [0, {name: "hello"}]
+	match c {
+			[0, {name: "hello"}] => {
 				"here" | echo()
 			},
 			[2, 3, 4] => {
@@ -62,10 +63,12 @@ func main() {
 		panic(err)
 	}
 
+	irt := time.Now()
 	ircr, err := irc.Compile(p)
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println("ir took: ", time.Since(irt))
 
 	ct := time.Now()
 	c := compiler.New(compiler.WithOptimization(true))

@@ -145,6 +145,7 @@ func matchCondition() pargo.Parser[ast.MatchCaseCondition] {
 		matchCaseFloat(),
 		matchCaseString(),
 		matchCaseArray(),
+		matchCaseObject(),
 	)
 }
 
@@ -185,6 +186,36 @@ func matchCaseArray() pargo.Parser[ast.MatchCaseCondition] {
 		pargo.Exactly("]"),
 		func(_ string, conditions []ast.MatchCaseCondition, _ string) ast.MatchCaseCondition {
 			return ast.MatchCaseArray{Conditions: conditions}
+		},
+	)
+}
+
+type keyValue[K comparable, V any] struct {
+	key   K
+	value V
+}
+
+func matchCaseObject() pargo.Parser[ast.MatchCaseCondition] {
+	return pargo.Sequence3(
+		pargo.Exactly("{"),
+		pargo.ManySep(
+			pargo.Sequence3(
+				pargo.TokenType(TT_IDENT),
+				pargo.Exactly(":"),
+				pargo.Lazy(matchCondition),
+				func(key string, _ string, value ast.MatchCaseCondition) keyValue[string, ast.MatchCaseCondition] {
+					return keyValue[string, ast.MatchCaseCondition]{key, value}
+				},
+			),
+			pargo.Exactly(","),
+		),
+		pargo.Exactly("}"),
+		func(_ string, kvs []keyValue[string, ast.MatchCaseCondition], _ string) ast.MatchCaseCondition {
+			m := map[string]ast.MatchCaseCondition{}
+			for _, kv := range kvs {
+				m[kv.key] = kv.value
+			}
+			return ast.MatchCaseObject{KVs: m}
 		},
 	)
 }

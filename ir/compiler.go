@@ -323,6 +323,57 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 			},
 		}, nil
 
+	case ast.MatchCaseObject:
+		isObject := BinaryExpr{
+			BinaryOpEq,
+			[]Expr{
+				PostFixExpr{
+					IdentExpr{"type"},
+					[]PostFixOp{
+						CallOp{[]Expr{expr}},
+					},
+				},
+				StringExpr{"object"},
+			},
+		}
+
+		hasCorrectLength := BinaryExpr{
+			BinaryOpGte,
+			[]Expr{
+				PostFixExpr{
+					IdentExpr{"len"},
+					[]PostFixOp{
+						CallOp{[]Expr{expr}},
+					},
+				},
+				IntExpr{len(cond.KVs)},
+			},
+		}
+
+		res := BinaryExpr{
+			BinaryOpAnd,
+			[]Expr{
+				isObject,
+				hasCorrectLength,
+			},
+		}
+
+		for key, cond := range cond.KVs {
+			child, err := c.compileMatchCondition(cond, PostFixExpr{
+				expr,
+				[]PostFixOp{
+					IndexOp{Index: StringExpr{Value: key}},
+				},
+			})
+			if err != nil {
+				return nil, err
+			}
+
+			res.Operands = append(res.Operands, child)
+		}
+
+		return res, nil
+
 	case ast.MatchCaseArray:
 		isArray := BinaryExpr{
 			BinaryOpEq,
@@ -336,8 +387,9 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 				StringExpr{"array"},
 			},
 		}
+
 		hasCorrectLength := BinaryExpr{
-			BinaryOpEq,
+			BinaryOpGte,
 			[]Expr{
 				PostFixExpr{
 					IdentExpr{"len"},

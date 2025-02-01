@@ -14,10 +14,19 @@ import (
 
 func main() {
 	src := `
-		match [0, 1, 2] {
-			[x, 1, 2] => {
-				x | echo()
-			}	
+		v1 := [0, 1, 2]
+		v2 := [0, 1, 2]
+
+		match [v1, v2] {
+			[
+				[x1, y1, z1], 
+				[x2, y2, z2]
+			] if x1 == x2 and y1 == y2 and z1 == z2 => {
+				"equal" | echo()
+			}
+			else => {
+				"not equal" | echo()
+			}
 		}	
 	`
 

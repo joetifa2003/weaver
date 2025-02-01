@@ -139,12 +139,21 @@ func matchStmt() pargo.Parser[ast.Statement] {
 }
 
 func matchCase() pargo.Parser[ast.MatchCase] {
-	return pargo.Sequence3(
+	return pargo.Sequence4(
 		matchCondition(),
+		pargo.Optional(
+			pargo.Sequence2(
+				pargo.Exactly("if"),
+				pargo.Lazy(expr),
+				func(_ string, cond ast.Expr) ast.Expr {
+					return cond
+				},
+			),
+		),
 		pargo.Exactly("=>"),
 		pargo.Lazy(stmt),
-		func(cond ast.MatchCaseCondition, _ string, body ast.Statement) ast.MatchCase {
-			return ast.MatchCase{Condition: cond, Body: body}
+		func(cond ast.MatchCaseCondition, extraCond *ast.Expr, _ string, body ast.Statement) ast.MatchCase {
+			return ast.MatchCase{Condition: cond, Body: body, ExtraCond: extraCond}
 		},
 	)
 }
@@ -156,6 +165,7 @@ func matchCondition() pargo.Parser[ast.MatchCaseCondition] {
 		matchCaseString(),
 		matchCaseArray(),
 		matchCaseObject(),
+		matchCaseIdent(),
 	)
 }
 
@@ -226,6 +236,15 @@ func matchCaseObject() pargo.Parser[ast.MatchCaseCondition] {
 				m[kv.key] = kv.value
 			}
 			return ast.MatchCaseObject{KVs: m}
+		},
+	)
+}
+
+func matchCaseIdent() pargo.Parser[ast.MatchCaseCondition] {
+	return pargo.Map(
+		pargo.TokenType(TT_IDENT),
+		func(s string) (ast.MatchCaseCondition, error) {
+			return ast.MatchCaseIdent{Name: s}, nil
 		},
 	)
 }

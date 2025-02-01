@@ -69,6 +69,7 @@ func (t MatchStmt) stmt() {}
 
 type MatchCase struct {
 	Condition MatchCaseCondition
+	ExtraCond *Expr
 	Body      Statement
 }
 
@@ -105,3 +106,9 @@ type MatchCaseObject struct {
 }
 
 func (t MatchCaseObject) matchCaseCondition() {}
+
+type MatchCaseIdent struct {
+	Name string
+}
+
+func (t MatchCaseIdent) matchCaseCondition() {}

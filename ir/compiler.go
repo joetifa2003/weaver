@@ -242,13 +242,14 @@ func newVarAllocator() *varAllocator {
 }
 
 func (v *varAllocator) allocate(name string) *Var {
-	if name == "" {
-		name = fmt.Sprintf("__$v%d", v.id)
-		v.id++
+	for _, v := range v.Vars {
+		if v.Name != "" && v.Name == name {
+			return v
+		}
 	}
 
 	for _, v := range v.Vars {
-		if v.Free {
+		if v.Free && v.Name == "" {
 			v.Free = false
 			v.Name = name
 			return v
@@ -271,6 +272,9 @@ type Var struct {
 }
 
 func (v *Var) id() string {
+	if v.Name != "" {
+		return v.Name
+	}
 	return fmt.Sprintf("__$v%d", v.Index)
 }
 
@@ -289,6 +293,21 @@ func (c *Compiler) compileMatchCase(m ast.MatchCase, expr Expr, allocator *varAl
 	cond, err := c.compileMatchCondition(m.Condition, expr, allocator)
 	if err != nil {
 		return res, err
+	}
+
+	if m.ExtraCond != nil {
+		extraCond, err := c.CompileExpr(*m.ExtraCond)
+		if err != nil {
+			return res, err
+		}
+
+		cond = BinaryExpr{
+			BinaryOpAnd,
+			[]Expr{
+				cond,
+				extraCond,
+			},
+		}
 	}
 
 	res.Condition = cond
@@ -388,6 +407,10 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr,
 				},
 			},
 		}, nil
+
+	case ast.MatchCaseIdent:
+		v := allocator.allocate(cond.Name)
+		return assignOrTrue(v.id(), expr), nil
 
 	case ast.MatchCaseObject:
 		isObject := BinaryExpr{

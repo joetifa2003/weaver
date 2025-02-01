@@ -210,6 +210,9 @@ func TestVM(t *testing.T) {
 					0.7 => {
 						true | assert()
 					}
+					else => {
+						false | assert()
+					}
 				}
 			},
 			1 => {
@@ -219,6 +222,9 @@ func TestVM(t *testing.T) {
 				false | assert()
 			},
 			3 => {
+				false | assert()
+			},
+			else => {
 				false | assert()
 			}
 		}
@@ -233,6 +239,9 @@ func TestVM(t *testing.T) {
 			},
 			"foo" => {
 				true | assert()
+			},
+			else => {
+				false | assert()
 			}
 		}
 		`,
@@ -242,6 +251,9 @@ func TestVM(t *testing.T) {
 				true | assert()
 			},
 			[2, 3, 4] => {
+				false | assert()
+			},
+			else => {
 				false | assert()
 			}
 		}
@@ -278,8 +290,35 @@ func TestVM(t *testing.T) {
 			},
 			[2, 3, 4] => {
 				"wrong" | echo()
+			},
+			else => {
+				false | assert()
 			}
 		}
+		`,
+		26: `
+		students := [
+			{name: "joe", age: 30},
+			{name: "foo", age: 20},
+			{name: "bar", age: 10},
+		]
+
+		res := ""
+		res2 := ""
+
+		for i := 0; i < len(students); i = i + 1 {
+			match students[i] {
+				{name: n, age: a} if a >= 10 and a <= 20 => {
+					res = res + n 
+				},
+				else => {
+					res2 = res2 + students[i].name
+				}
+			}
+		}
+
+		res == "foobar" | assert()
+		res2 == "joe" | assert()
 		`,
 	}
 

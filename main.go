@@ -16,18 +16,26 @@ func main() {
 	src := `
 		students := [
 			{name: "joe", age: 30},
-			{name: "jake", age: 20},
-			{name: "paule", age: 10},
+			{name: "foo", age: 20},
+			{name: "bar", age: 10},
 		]
+
+		res := ""
+	  res2 := ""
 
 		for i := 0; i < len(students); i = i + 1 {
 			match students[i] {
 				{name: n, age: a} if a >= 10 and a <= 20 => {
-					 echo(n + " is between 10 and 20")
+					res = res + n 
 				},
-				else => {}
+				else => {
+					res2 = res2 + students[i].name
+				}
 			}
 		}
+
+		res | echo()
+		res2 | echo()
 	`
 
 	// src := `

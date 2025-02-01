@@ -13,9 +13,11 @@ type basicBlock struct {
 }
 
 func (b *basicBlock) allocate(name string) (*basicVar, error) {
-	for _, v := range b.vars {
-		if v.name == name && !v.free {
-			return nil, fmt.Errorf("variable %s already defined", name)
+	if name != "" {
+		for _, v := range b.vars {
+			if v.name == name && !v.free {
+				return nil, fmt.Errorf("variable %s already defined", name)
+			}
 		}
 	}
 

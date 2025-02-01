@@ -14,8 +14,10 @@ import (
 
 func main() {
 	src := `
-		match 1 {
-			[{a: [{b: 1}]}] => {}
+		match [0, 1, 2] {
+			[x, 1, 2] => {
+				x | echo()
+			}	
 		}	
 	`
 

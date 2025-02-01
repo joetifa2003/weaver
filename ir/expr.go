@@ -270,3 +270,11 @@ func (t CallOp) String() string {
 	}
 	return fmt.Sprintf("(%s)", strings.Join(res, ", "))
 }
+
+type NilExpr struct{}
+
+func (t NilExpr) expr() {}
+
+func (t NilExpr) String() string {
+	return "nil"
+}

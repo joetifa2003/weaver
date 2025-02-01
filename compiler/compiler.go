@@ -412,6 +412,12 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 			opcode.OpCode(c.defineConstant(value)),
 		}, nil
 
+	case ir.NilExpr:
+		return []opcode.OpCode{
+			opcode.OP_CONST,
+			opcode.OpCode(0),
+		}, nil
+
 	case ir.BoolExpr:
 		value := vm.Value{}
 		value.SetBool(e.Value)

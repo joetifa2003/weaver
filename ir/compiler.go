@@ -184,7 +184,9 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 
 		exprVar := IdentExpr{"__$e"}
 
-		currentCase, err := c.compileMatchCase(s.Cases[len(s.Cases)-1], exprVar)
+		varAllocator := newVarAllocator()
+
+		currentCase, err := c.compileMatchCase(s.Cases[len(s.Cases)-1], exprVar, varAllocator)
 		if err != nil {
 			return nil, err
 		}
@@ -195,19 +197,27 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 				return nil, err
 			}
 
-			fmt.Println("HERE")
 			currentCase.Alternative = stmtPointer(elseStmt)
 		}
 
 		for i := len(s.Cases) - 2; i >= 0; i-- {
 			m := s.Cases[i]
-			ifStmt, err := c.compileMatchCase(m, exprVar)
+			ifStmt, err := c.compileMatchCase(m, exprVar, varAllocator)
 			if err != nil {
 				return nil, err
 			}
 
 			ifStmt.Alternative = stmtPointer(currentCase)
 			currentCase = ifStmt
+		}
+
+		for _, v := range varAllocator.Vars {
+			res.Statements = append(res.Statements,
+				LetStmt{
+					Name: v.id(),
+					Expr: IntExpr{Value: 0},
+				},
+			)
 		}
 
 		res.Statements = append(res.Statements, currentCase)
@@ -219,11 +229,56 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 	}
 }
 
-func stmtPointer(s Statement) *Statement {
-	return &s
+type varAllocator struct {
+	Vars []*Var
+	id   int
 }
 
-func (c *Compiler) compileMatchCase(m ast.MatchCase, expr Expr) (IfStmt, error) {
+func newVarAllocator() *varAllocator {
+	return &varAllocator{
+		Vars: []*Var{},
+		id:   0,
+	}
+}
+
+func (v *varAllocator) allocate(name string) *Var {
+	if name == "" {
+		name = fmt.Sprintf("__$v%d", v.id)
+		v.id++
+	}
+
+	for _, v := range v.Vars {
+		if v.Free {
+			v.Free = false
+			v.Name = name
+			return v
+		}
+	}
+
+	v.Vars = append(v.Vars, &Var{
+		Name:  name,
+		Index: len(v.Vars),
+		Free:  false,
+	})
+
+	return v.Vars[len(v.Vars)-1]
+}
+
+type Var struct {
+	Name  string
+	Index int
+	Free  bool
+}
+
+func (v *Var) id() string {
+	return fmt.Sprintf("__$v%d", v.Index)
+}
+
+func (v *Var) free() {
+	v.Free = true
+}
+
+func (c *Compiler) compileMatchCase(m ast.MatchCase, expr Expr, allocator *varAllocator) (IfStmt, error) {
 	var res IfStmt
 
 	body, err := c.CompileStmt(m.Body)
@@ -231,7 +286,7 @@ func (c *Compiler) compileMatchCase(m ast.MatchCase, expr Expr) (IfStmt, error) 
 		return res, err
 	}
 
-	cond, err := c.compileMatchCondition(m.Condition, expr)
+	cond, err := c.compileMatchCondition(m.Condition, expr, allocator)
 	if err != nil {
 		return res, err
 	}
@@ -242,7 +297,7 @@ func (c *Compiler) compileMatchCase(m ast.MatchCase, expr Expr) (IfStmt, error) 
 	return res, nil
 }
 
-func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr) (Expr, error) {
+func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr, allocator *varAllocator) (Expr, error) {
 	switch cond := cond.(type) {
 	case ast.MatchCaseInt:
 		return BinaryExpr{
@@ -370,15 +425,20 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 		}
 
 		for key, cond := range cond.KVs {
-			child, err := c.compileMatchCondition(cond, PostFixExpr{
-				expr,
-				[]PostFixOp{
-					IndexOp{Index: StringExpr{Value: key}},
-				},
-			})
+			v := allocator.allocate("")
+			res.Operands = append(res.Operands,
+				assignOrTrue(v.id(), PostFixExpr{
+					expr,
+					[]PostFixOp{
+						IndexOp{Index: StringExpr{Value: key}},
+					},
+				}),
+			)
+			child, err := c.compileMatchCondition(cond, IdentExpr{v.id()}, allocator)
 			if err != nil {
 				return nil, err
 			}
+			v.free()
 
 			res.Operands = append(res.Operands, child)
 		}
@@ -421,15 +481,20 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 		}
 
 		for i, cond := range cond.Conditions {
-			child, err := c.compileMatchCondition(cond, PostFixExpr{
-				expr,
-				[]PostFixOp{
-					IndexOp{Index: IntExpr{Value: i}},
-				},
-			})
+			v := allocator.allocate("")
+			res.Operands = append(res.Operands,
+				assignOrTrue(v.id(), PostFixExpr{
+					expr,
+					[]PostFixOp{
+						IndexOp{Index: IntExpr{Value: i}},
+					},
+				}),
+			)
+			child, err := c.compileMatchCondition(cond, IdentExpr{v.id()}, allocator)
 			if err != nil {
 				return nil, err
 			}
+			v.free()
 
 			res.Operands = append(res.Operands, child)
 		}
@@ -438,6 +503,19 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 
 	default:
 		panic(fmt.Sprintf("unimplemented %T", cond))
+	}
+}
+
+func assignOrTrue(name string, value Expr) Expr {
+	return BinaryExpr{
+		BinaryOpOr,
+		[]Expr{
+			VarAssignExpr{
+				Name:  name,
+				Value: value,
+			},
+			BoolExpr{Value: true},
+		},
 	}
 }
 
@@ -619,6 +697,9 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 			Body:   ReturnStmt{Expr: body},
 		}, nil
 
+	case ast.NilExpr:
+		return NilExpr{}, nil
+
 	default:
 		panic(fmt.Sprintf("unimplemented %T", e))
 	}
@@ -691,4 +772,8 @@ func (c *Compiler) compilePipeExpr(exprs []Expr) (Expr, error) {
 	}
 
 	return left, nil
+}
+
+func stmtPointer(s Statement) *Statement {
+	return &s
 }

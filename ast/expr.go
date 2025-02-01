@@ -113,3 +113,7 @@ type CallOp struct {
 }
 
 func (t CallOp) postFixOp() {}
+
+type NilExpr struct{}
+
+func (t NilExpr) expr() {}

@@ -210,11 +210,21 @@ func atom() pargo.Parser[ast.Expr] {
 		floatExpr(),
 		booleanExpr(),
 		stringExpr(),
+		nilExpr(),
 		identExpr(),
 		functionExpr(),
 		lambdaExpr(),
 		arrayExpr(),
 		objectExpr(),
+	)
+}
+
+func nilExpr() pargo.Parser[ast.Expr] {
+	return pargo.Map(
+		pargo.Exactly("nil"),
+		func(_ string) (ast.Expr, error) {
+			return ast.NilExpr{}, nil
+		},
 	)
 }
 

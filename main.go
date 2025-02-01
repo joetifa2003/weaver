@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/joetifa2003/weaver/compiler"
@@ -13,12 +14,9 @@ import (
 
 func main() {
 	src := `
-	joe := { name: "joe" }
-	jake := { name: "jake" }
-
-	likes := |x, y| x.name + " likes " + y.name
-
-	joe | likes(jake) | echo()
+		match 1 {
+			[{a: [{b: 1}]}] => {}
+		}	
 	`
 
 	// src := `
@@ -61,13 +59,12 @@ func main() {
 	for _, s := range ircr {
 		res += s.String(0) + "\n"
 	}
-	// iro, err := os.Create("ir.js")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer iro.Close()
-	// iro.WriteString(res)
-	// return
+	iro, err := os.Create("ir.js")
+	if err != nil {
+		panic(err)
+	}
+	defer iro.Close()
+	iro.WriteString(res)
 	fmt.Println("ir took: ", time.Since(irt))
 
 	ct := time.Now()

@@ -189,6 +189,16 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 			return nil, err
 		}
 
+		if s.ElseBody != nil {
+			elseStmt, err := c.CompileStmt(*s.ElseBody)
+			if err != nil {
+				return nil, err
+			}
+
+			fmt.Println("HERE")
+			currentCase.Alternative = stmtPointer(elseStmt)
+		}
+
 		for i := len(s.Cases) - 2; i >= 0; i-- {
 			m := s.Cases[i]
 			ifStmt, err := c.compileMatchCase(m, exprVar)

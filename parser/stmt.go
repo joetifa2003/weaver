@@ -116,14 +116,24 @@ func breakStmt() pargo.Parser[ast.Statement] {
 }
 
 func matchStmt() pargo.Parser[ast.Statement] {
-	return pargo.Sequence5(
+	return pargo.Sequence6(
 		pargo.Exactly("match"),
 		expr(),
 		pargo.Exactly("{"),
 		pargo.ManySep(matchCase(), pargo.Exactly(",")),
+		pargo.Optional(
+			pargo.Sequence3(
+				pargo.Exactly("else"),
+				pargo.Exactly("=>"),
+				pargo.Lazy(stmt),
+				func(_ string, _ string, body ast.Statement) ast.Statement {
+					return body
+				},
+			),
+		),
 		pargo.Exactly("}"),
-		func(_ string, expr ast.Expr, _ string, cases []ast.MatchCase, _ string) ast.Statement {
-			return ast.MatchStmt{Expr: expr, Cases: cases}
+		func(_ string, expr ast.Expr, _ string, cases []ast.MatchCase, elseBody *ast.Statement, _ string) ast.Statement {
+			return ast.MatchStmt{Expr: expr, Cases: cases, ElseBody: elseBody}
 		},
 	)
 }

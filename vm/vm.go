@@ -424,7 +424,7 @@ func (v *VM) Run() {
 			constantIdx := int(v.curFrame.instructions[v.curFrame.ip+1])
 			variableIdx := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+2])
 			v.sp++
-			v.constants[constantIdx].Add(v.stack[variableIdx], &v.stack[v.sp])
+			v.stack[variableIdx].Add(v.constants[constantIdx], &v.stack[v.sp])
 			v.curFrame.ip += 3
 
 		case opcode.OP_CONST_ADD:

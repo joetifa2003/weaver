@@ -14,20 +14,20 @@ import (
 
 func main() {
 	src := `
-		v1 := [0, 1, 2]
-		v2 := [0, 1, 2]
+		students := [
+			{name: "joe", age: 30},
+			{name: "jake", age: 20},
+			{name: "paule", age: 10},
+		]
 
-		match [v1, v2] {
-			[
-				[x1, y1, z1], 
-				[x2, y2, z2]
-			] if x1 == x2 and y1 == y2 and z1 == z2 => {
-				"equal" | echo()
+		for i := 0; i < len(students); i = i + 1 {
+			match students[i] {
+				{name: n, age: a} if a >= 10 and a <= 20 => {
+					 echo(n + " is between 10 and 20")
+				},
+				else => {}
 			}
-			else => {
-				"not equal" | echo()
-			}
-		}	
+		}
 	`
 
 	// src := `

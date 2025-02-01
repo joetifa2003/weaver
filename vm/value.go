@@ -235,6 +235,13 @@ func (v Value) IsTruthy() bool {
 
 func (v Value) Add(other Value, res *Value) {
 	switch v.VType {
+	case ValueTypeString:
+		switch other.VType {
+		case ValueTypeString:
+			res.SetString(v.GetString() + other.GetString())
+		default:
+			panic(fmt.Sprintf("illegal operation %s + %s", v, other))
+		}
 	case ValueTypeInt:
 		switch other.VType {
 		case ValueTypeInt:

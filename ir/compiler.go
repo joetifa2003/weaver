@@ -5,49 +5,104 @@ import (
 	"fmt"
 
 	"github.com/joetifa2003/weaver/ast"
+	"github.com/joetifa2003/weaver/internal/pkg/ds"
 )
 
-type Compiler struct{}
+type Compiler struct {
+	blocks *ds.Stack[*basicBlock]
+}
 
 func NewCompiler() *Compiler {
-	return &Compiler{}
+	return &Compiler{
+		blocks: ds.NewStack[*basicBlock](),
+	}
+}
+
+func (c *Compiler) beginBlock() *basicBlock {
+	b := &basicBlock{}
+	b.parent = c.currentBlock()
+	b.idx = c.blocks.Len()
+	c.blocks.Push(b)
+	return b
+}
+
+func (c *Compiler) endBlock() BlockStmt {
+	basic := c.blocks.Pop()
+	stmt := basic.BlockStmt
+
+	for _, v := range basic.vars {
+		if v.noInit {
+			continue
+		}
+
+		stmt.Statements = append(
+			[]Statement{
+				LetStmt{
+					Name: v.id(),
+					Expr: NilExpr{},
+				},
+			},
+			stmt.Statements...,
+		)
+	}
+
+	return stmt
+}
+
+func (c *Compiler) currentBlock() *basicBlock {
+	return c.blocks.Peek()
+}
+
+func (c *Compiler) blockAdd(s Statement) {
+	b := c.currentBlock()
+	b.Statements = append(b.Statements, s)
 }
 
 func (c *Compiler) Compile(p ast.Program) ([]Statement, error) {
-	var res []Statement
+	c.beginBlock()
 
 	for _, stmt := range p.Statements {
 		stmtIr, err := c.CompileStmt(stmt)
 		if err != nil {
 			return nil, err
 		}
-		res = append(res, stmtIr)
+		c.blockAdd(stmtIr)
 	}
 
-	return res, nil
+	res := c.endBlock()
+
+	return res.Statements, nil
 }
 
 func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 	switch s := s.(type) {
 	case ast.BlockStmt:
-		var res []Statement
+		c.beginBlock()
 		for _, stmt := range s.Statements {
 			stmtIr, err := c.CompileStmt(stmt)
 			if err != nil {
 				return nil, err
 			}
-			res = append(res, stmtIr)
+			c.blockAdd(stmtIr)
 		}
-		return BlockStmt{res}, nil
+		return c.endBlock(), nil
 
 	case ast.LetStmt:
+		v, err := c.currentBlock().allocate(s.Name)
+		if err != nil {
+			return nil, err
+		}
+
 		expr, err := c.CompileExpr(s.Expr)
 		if err != nil {
 			return nil, err
 		}
-		return LetStmt{
-			Name: s.Name,
-			Expr: expr,
+
+		return ExpressionStmt{
+			Expr: VarAssignExpr{
+				Name:  v.id(),
+				Value: expr,
+			},
 		}, nil
 
 	case ast.IfStmt:
@@ -104,22 +159,25 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 			return nil, err
 		}
 
-		return LoopStmt{
-			BlockStmt{
-				[]Statement{
-					IfStmt{
-						Condition: UnaryExpr{
-							Expr:     cond,
-							Operator: UnaryOpNot,
-						},
-						Body: BreakStmt{},
-					},
-					body,
-				},
+		c.beginBlock()
+
+		c.blockAdd(IfStmt{
+			Condition: UnaryExpr{
+				Expr:     cond,
+				Operator: UnaryOpNot,
 			},
-		}, nil
+			Body: BreakStmt{},
+		})
+
+		c.blockAdd(body)
+
+		res := c.endBlock()
+
+		return LoopStmt{res}, nil
 
 	case ast.ForStmt:
+		c.beginBlock()
+
 		init, err := c.CompileStmt(s.InitStmt)
 		if err != nil {
 			return nil, err
@@ -140,56 +198,63 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 			return nil, err
 		}
 
-		return BlockStmt{
-			Statements: []Statement{
-				init,
-				LoopStmt{
-					BlockStmt{
-						[]Statement{
-							IfStmt{
-								Condition: UnaryExpr{
-									Expr:     cond,
-									Operator: UnaryOpNot,
-								},
-								Body: BreakStmt{},
-							},
-							body,
-							ExpressionStmt{
-								incr,
-							},
-						},
-					},
-				},
+		c.blockAdd(init)
+		c.beginBlock() // inner block
+		c.blockAdd(IfStmt{
+			Condition: UnaryExpr{
+				Expr:     cond,
+				Operator: UnaryOpNot,
 			},
-		}, nil
+			Body: BreakStmt{},
+		})
+		c.blockAdd(body)
+		c.blockAdd(ExpressionStmt{
+			incr,
+		})
+		inner := c.endBlock()
+
+		c.blockAdd(LoopStmt{inner})
+
+		res := c.endBlock()
+
+		return res, nil
 
 	case ast.MatchStmt:
-		res := BlockStmt{}
+		c.beginBlock()
 
 		expr, err := c.CompileExpr(s.Expr)
 		if err != nil {
 			return nil, err
 		}
 
-		res.Statements = append(res.Statements,
-			LetStmt{
-				Name: "__$e",
-				Expr: expr,
-			},
-		)
-
-		if len(s.Cases) == 0 {
-			return res, nil
-		}
-
-		exprVar := IdentExpr{"__$e"}
-
-		varAllocator := newVarAllocator()
-
-		currentCase, err := c.compileMatchCase(s.Cases[len(s.Cases)-1], exprVar, varAllocator)
+		exprVar, err := c.currentBlock().allocate("")
 		if err != nil {
 			return nil, err
 		}
+
+		c.blockAdd(
+			ExpressionStmt{
+				Expr: VarAssignExpr{
+					Name:  exprVar.id(),
+					Value: expr,
+				},
+			},
+		)
+
+		exprIdent := IdentExpr{exprVar.id()}
+
+		if len(s.Cases) == 0 {
+			return c.endBlock(), nil
+		}
+
+		c.beginBlock()
+
+		currentCase, err := c.compileMatchCase(s.Cases[len(s.Cases)-1], exprIdent)
+		if err != nil {
+			return nil, err
+		}
+
+		c.currentBlock().deallocateAll()
 
 		if s.ElseBody != nil {
 			elseStmt, err := c.CompileStmt(*s.ElseBody)
@@ -202,25 +267,24 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 
 		for i := len(s.Cases) - 2; i >= 0; i-- {
 			m := s.Cases[i]
-			ifStmt, err := c.compileMatchCase(m, exprVar, varAllocator)
+			ifStmt, err := c.compileMatchCase(m, exprIdent)
 			if err != nil {
 				return nil, err
 			}
 
 			ifStmt.Alternative = stmtPointer(currentCase)
 			currentCase = ifStmt
+
+			c.currentBlock().deallocateAll()
 		}
 
-		for _, v := range varAllocator.Vars {
-			res.Statements = append(res.Statements,
-				LetStmt{
-					Name: v.id(),
-					Expr: IntExpr{Value: 0},
-				},
-			)
-		}
+		c.blockAdd(currentCase)
 
-		res.Statements = append(res.Statements, currentCase)
+		inner := c.endBlock()
+
+		c.blockAdd(inner)
+
+		res := c.endBlock()
 
 		return res, nil
 
@@ -229,68 +293,10 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 	}
 }
 
-type varAllocator struct {
-	Vars []*Var
-	id   int
-}
-
-func newVarAllocator() *varAllocator {
-	return &varAllocator{
-		Vars: []*Var{},
-		id:   0,
-	}
-}
-
-func (v *varAllocator) allocate(name string) *Var {
-	for _, v := range v.Vars {
-		if v.Name != "" && v.Name == name {
-			return v
-		}
-	}
-
-	for _, v := range v.Vars {
-		if v.Free && v.Name == "" {
-			v.Free = false
-			v.Name = name
-			return v
-		}
-	}
-
-	v.Vars = append(v.Vars, &Var{
-		Name:  name,
-		Index: len(v.Vars),
-		Free:  false,
-	})
-
-	return v.Vars[len(v.Vars)-1]
-}
-
-type Var struct {
-	Name  string
-	Index int
-	Free  bool
-}
-
-func (v *Var) id() string {
-	if v.Name != "" {
-		return v.Name
-	}
-	return fmt.Sprintf("__$v%d", v.Index)
-}
-
-func (v *Var) free() {
-	v.Free = true
-}
-
-func (c *Compiler) compileMatchCase(m ast.MatchCase, expr Expr, allocator *varAllocator) (IfStmt, error) {
+func (c *Compiler) compileMatchCase(m ast.MatchCase, expr Expr) (IfStmt, error) {
 	var res IfStmt
 
-	body, err := c.CompileStmt(m.Body)
-	if err != nil {
-		return res, err
-	}
-
-	cond, err := c.compileMatchCondition(m.Condition, expr, allocator)
+	cond, err := c.compileMatchCondition(m.Condition, expr)
 	if err != nil {
 		return res, err
 	}
@@ -310,13 +316,18 @@ func (c *Compiler) compileMatchCase(m ast.MatchCase, expr Expr, allocator *varAl
 		}
 	}
 
+	body, err := c.CompileStmt(m.Body)
+	if err != nil {
+		return res, err
+	}
+
 	res.Condition = cond
 	res.Body = body
 
 	return res, nil
 }
 
-func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr, allocator *varAllocator) (Expr, error) {
+func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr) (Expr, error) {
 	switch cond := cond.(type) {
 	case ast.MatchCaseInt:
 		return BinaryExpr{
@@ -409,7 +420,10 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr,
 		}, nil
 
 	case ast.MatchCaseIdent:
-		v := allocator.allocate(cond.Name)
+		v, err := c.currentBlock().allocate(cond.Name)
+		if err != nil {
+			return nil, err
+		}
 		return assignOrTrue(v.id(), expr), nil
 
 	case ast.MatchCaseObject:
@@ -448,7 +462,11 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr,
 		}
 
 		for key, cond := range cond.KVs {
-			v := allocator.allocate("")
+			v, err := c.currentBlock().allocate("")
+			if err != nil {
+				return nil, err
+			}
+
 			res.Operands = append(res.Operands,
 				assignOrTrue(v.id(), PostFixExpr{
 					expr,
@@ -457,11 +475,11 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr,
 					},
 				}),
 			)
-			child, err := c.compileMatchCondition(cond, IdentExpr{v.id()}, allocator)
+			child, err := c.compileMatchCondition(cond, IdentExpr{v.id()})
 			if err != nil {
 				return nil, err
 			}
-			v.free()
+			v.deallocate()
 
 			res.Operands = append(res.Operands, child)
 		}
@@ -504,7 +522,11 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr,
 		}
 
 		for i, cond := range cond.Conditions {
-			v := allocator.allocate("")
+			v, err := c.currentBlock().allocate("")
+			if err != nil {
+				return nil, err
+			}
+
 			res.Operands = append(res.Operands,
 				assignOrTrue(v.id(), PostFixExpr{
 					expr,
@@ -513,11 +535,11 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr,
 					},
 				}),
 			)
-			child, err := c.compileMatchCondition(cond, IdentExpr{v.id()}, allocator)
+			child, err := c.compileMatchCondition(cond, IdentExpr{v.id()})
 			if err != nil {
 				return nil, err
 			}
-			v.free()
+			v.deallocate()
 
 			res.Operands = append(res.Operands, child)
 		}
@@ -573,6 +595,7 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 				Name:  e.Name,
 				Value: expr,
 			}, nil
+
 		case PostFixExpr:
 			assignee := e.Ops[:len(e.Ops)-1]
 			if err != nil {
@@ -619,7 +642,12 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 		return ObjectExpr{KVs: res}, nil
 
 	case ast.IdentExpr:
-		return IdentExpr{Name: e.Name}, nil
+		v, err := c.currentBlock().resolve(e.Name)
+		if err != nil {
+			// TODO: handle the builting functions at ir level
+			return IdentExpr{Name: e.Name}, nil
+		}
+		return IdentExpr{Name: v.id()}, nil
 
 	case ast.BinaryExpr:
 		var res []Expr
@@ -699,25 +727,57 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 		}, nil
 
 	case ast.FunctionExpr:
+		c.beginBlock()
+
+		for i, param := range e.Params {
+			v, err := c.currentBlock().allocate(param)
+			if err != nil {
+				return nil, err
+			}
+
+			v.noInit = true
+			e.Params[i] = v.id()
+		}
+
 		body, err := c.CompileStmt(e.Body)
 		if err != nil {
 			return nil, err
 		}
 
+		c.blockAdd(body)
+
+		inner := c.endBlock()
+
 		return FunctionExpr{
 			Params: e.Params,
-			Body:   body,
+			Body:   inner,
 		}, nil
 
 	case ast.LambdaExpr:
+		c.beginBlock()
+
+		for i, param := range e.Params {
+			v, err := c.currentBlock().allocate(param)
+			if err != nil {
+				return nil, err
+			}
+
+			v.noInit = true
+			e.Params[i] = v.id()
+		}
+
 		body, err := c.CompileExpr(e.Expr)
 		if err != nil {
 			return nil, err
 		}
 
+		c.blockAdd(ReturnStmt{Expr: body})
+
+		inner := c.endBlock()
+
 		return FunctionExpr{
 			Params: e.Params,
-			Body:   ReturnStmt{Expr: body},
+			Body:   inner,
 		}, nil
 
 	case ast.NilExpr:

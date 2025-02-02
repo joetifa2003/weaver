@@ -42,7 +42,7 @@ type LoopStmt struct {
 func (t LoopStmt) stmt() {}
 
 func (t LoopStmt) String(i int) string {
-	return fmt.Sprintf("%sloop {\n%s\n%s}", strings.Repeat("\t", i), t.Body.String(i+1), strings.Repeat("\t", i))
+	return fmt.Sprintf("%sloop %s", strings.Repeat("\t", i), t.Body.String(i+1))
 }
 
 type IfStmt struct {

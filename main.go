@@ -14,28 +14,18 @@ import (
 
 func main() {
 	src := `
-		students := [
-			{name: "joe", age: 30},
-			{name: "foo", age: 20},
-			{name: "bar", age: 10},
+		commands := [
+			["go", "run", "main.go"],
 		]
 
-		res := ""
-	  res2 := ""
-
-		for i := 0; i < len(students); i = i + 1 {
-			match students[i] {
-				{name: n, age: a} if a >= 10 and a <= 20 => {
-					res = res + n 
-				},
-				else => {
-					res2 = res2 + students[i].name
-				}
+		match commands[0] {
+			["go", sub_command, file] if sub_command == "run" => {
+				echo("running")
+			},
+	["go", sub_command, file, {a: "something"}] if sub_command == "build" => {
+				echo("running")
 			}
 		}
-
-		res | echo()
-		res2 | echo()
 	`
 
 	// src := `
@@ -46,15 +36,15 @@ func main() {
 	// is_even := |x| x % 2 == 0
 	//
 	// for i := 0; i < n; i = i + 1 {
-	// 	if is_even(i) {
+	// 	if i % 2 == 0 {
 	// 		even_nums = even_nums + 1
 	// 	} else {
 	// 		odd_nums = odd_nums + 1
 	// 	}
 	// }
 	//
-	// echo even_nums
-	// echo odd_nums
+	// even_nums | echo()
+	// odd_nums | echo()
 	// `
 
 	pt := time.Now()

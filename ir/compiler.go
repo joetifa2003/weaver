@@ -92,17 +92,25 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 		if err != nil {
 			return nil, err
 		}
+		v.noInit = true // don't init the variable in the current block
 
 		expr, err := c.CompileExpr(s.Expr)
 		if err != nil {
 			return nil, err
 		}
 
-		return ExpressionStmt{
-			Expr: VarAssignExpr{
-				Name:  v.id(),
-				Value: expr,
-			},
+		if v.reused {
+			return ExpressionStmt{
+				Expr: VarAssignExpr{
+					Name:  v.id(),
+					Value: expr,
+				},
+			}, nil
+		}
+
+		return LetStmt{
+			Name: v.id(),
+			Expr: expr,
 		}, nil
 
 	case ast.IfStmt:
@@ -231,15 +239,25 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 		if err != nil {
 			return nil, err
 		}
+		exprVar.noInit = true
 
-		c.blockAdd(
-			ExpressionStmt{
-				Expr: VarAssignExpr{
-					Name:  exprVar.id(),
-					Value: expr,
+		if exprVar.reused {
+			c.blockAdd(
+				ExpressionStmt{
+					Expr: VarAssignExpr{
+						Name:  exprVar.id(),
+						Value: expr,
+					},
 				},
-			},
-		)
+			)
+		} else {
+			c.blockAdd(
+				LetStmt{
+					Name: exprVar.id(),
+					Expr: expr,
+				},
+			)
+		}
 
 		exprIdent := IdentExpr{exprVar.id()}
 

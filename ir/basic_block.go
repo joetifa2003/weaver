@@ -25,6 +25,7 @@ func (b *basicBlock) allocate(name string) (*basicVar, error) {
 		if v.free {
 			v.free = false
 			v.name = name
+			v.reused = true
 			return v, nil
 		}
 	}
@@ -67,6 +68,7 @@ type basicVar struct {
 	blockIdx int
 	free     bool
 	noInit   bool
+	reused   bool
 }
 
 func (b *basicVar) id() string {

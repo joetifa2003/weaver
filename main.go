@@ -22,7 +22,7 @@ func main() {
 			["go", sub_command, file] if sub_command == "run" => {
 				echo("running")
 			},
-	["go", sub_command, file, {a: "something"}] if sub_command == "build" => {
+			["go", sub_command, file, {a: "something"}] if sub_command == "build" => {
 				echo("running")
 			}
 		}

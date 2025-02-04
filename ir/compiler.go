@@ -99,19 +99,7 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 			return nil, err
 		}
 
-		if v.reused {
-			return ExpressionStmt{
-				Expr: VarAssignExpr{
-					Name:  v.id(),
-					Value: expr,
-				},
-			}, nil
-		}
-
-		return LetStmt{
-			Name: v.id(),
-			Expr: expr,
-		}, nil
+		return v.set(expr), nil
 
 	case ast.IfStmt:
 		cond, err := c.CompileExpr(s.Condition)
@@ -241,23 +229,7 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 		}
 		exprVar.noInit = true
 
-		if exprVar.reused {
-			c.blockAdd(
-				ExpressionStmt{
-					Expr: VarAssignExpr{
-						Name:  exprVar.id(),
-						Value: expr,
-					},
-				},
-			)
-		} else {
-			c.blockAdd(
-				LetStmt{
-					Name: exprVar.id(),
-					Expr: expr,
-				},
-			)
-		}
+		c.blockAdd(exprVar.set(expr))
 
 		exprIdent := IdentExpr{exprVar.id()}
 

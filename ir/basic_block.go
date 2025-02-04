@@ -78,3 +78,19 @@ func (b *basicVar) id() string {
 func (b *basicVar) deallocate() {
 	b.free = true
 }
+
+func (b *basicVar) set(expr Expr) Statement {
+	if b.reused {
+		return ExpressionStmt{
+			Expr: VarAssignExpr{
+				Name:  b.id(),
+				Value: expr,
+			},
+		}
+	}
+
+	return LetStmt{
+		Name: b.id(),
+		Expr: expr,
+	}
+}

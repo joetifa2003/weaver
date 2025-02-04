@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/joetifa2003/weaver/compiler"
@@ -14,38 +13,21 @@ import (
 
 func main() {
 	src := `
-		commands := [
-			["go", "run", "main.go"],
-		]
+	n := 10000000
+	even_nums := 0
+	odd_nums := 0
 
-		match commands[0] {
-			["go", sub_command, file] if sub_command == "run" => {
-				echo("running")
-			},
-			["go", sub_command, file, {a: "something"}] if sub_command == "build" => {
-				echo("running")
-			}
+	for i := 0; i < n; i = i + 1 {
+		if i % 2 == 0 {
+			even_nums = even_nums + 1
+		} else {
+			odd_nums = odd_nums + 1
 		}
-	`
+	}
 
-	// src := `
-	// n := 10000000
-	// even_nums := 0
-	// odd_nums := 0
-	//
-	// is_even := |x| x % 2 == 0
-	//
-	// for i := 0; i < n; i = i + 1 {
-	// 	if i % 2 == 0 {
-	// 		even_nums = even_nums + 1
-	// 	} else {
-	// 		odd_nums = odd_nums + 1
-	// 	}
-	// }
-	//
-	// even_nums | echo()
-	// odd_nums | echo()
-	// `
+	even_nums | echo()
+	odd_nums | echo()
+	`
 
 	pt := time.Now()
 	p, err := parser.Parse(src)
@@ -64,16 +46,16 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	res := ""
-	for _, s := range ircr {
-		res += s.String(0) + "\n"
-	}
-	iro, err := os.Create("ir.js")
-	if err != nil {
-		panic(err)
-	}
-	defer iro.Close()
-	iro.WriteString(res)
+	// res := ""
+	// for _, s := range ircr {
+	// 	res += s.String(0) + "\n"
+	// }
+	// iro, err := os.Create("ir.js")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer iro.Close()
+	// iro.WriteString(res)
 	fmt.Println("ir took: ", time.Since(irt))
 
 	ct := time.Now()

@@ -13,19 +13,30 @@ import (
 
 func main() {
 	src := `
-		fib := |n| {
-			a := 0
-			b := 1
-			for i := 0; i < n; i = i + 1 {
-				temp := a
-				a = b
-				b = b + temp
+		students := []
+
+		for i := 0; i < 1000000; i = i + 1 {
+			students | push({name: string(i), age: 10})	
+			students | push({name: string(i), age: 20})	
+			students | push({name: string(i), age: 30})	
+		}
+
+		valid_names := []
+		invalid_count := 0
+
+		for i := 0; i < len(students); i = i + 1 {
+			match students[i] {
+				{name: n, age: a} if a >= 10 and a <= 20 => {
+					valid_names | push(a)
+				},
+				else => {
+					invalid_count = invalid_count + 1
+				}
 			}
+		}
 
-			return a
-		}	
-
-		fib(1000) | echo()
+		valid_names | len() | echo()
+		invalid_count | echo()
 	`
 
 	pt := time.Now()

@@ -267,14 +267,18 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 			return c.compileOrExpr(e)
 		}
 
-		for _, operand := range e.Operands {
+		firstExpr, err := c.compileExpr(e.Operands[0])
+		if err != nil {
+			return nil, err
+		}
+		instructions = append(instructions, firstExpr...)
+
+		for _, operand := range e.Operands[1:] {
 			expr, err := c.compileExpr(operand)
 			if err != nil {
 				return nil, err
 			}
 			instructions = append(instructions, expr...)
-		}
-		for range len(e.Operands) - 1 {
 			instructions = append(instructions, c.binOperatorOpcode(e.Operator))
 		}
 
@@ -341,7 +345,8 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 
 		// default return
 		c.addInstructions([]opcode.OpCode{
-			opcode.OP_CONST,
+			opcode.OP_LOAD,
+			opcode.ScopeTypeConst,
 			opcode.OpCode(0),
 			opcode.OP_RET,
 		})
@@ -381,7 +386,8 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 			fVal.SetNativeFunction(f)
 
 			return []opcode.OpCode{
-				opcode.OP_CONST,
+				opcode.OP_LOAD,
+				opcode.ScopeTypeConst,
 				opcode.OpCode(c.defineConstant(fVal)),
 			}, nil
 		}
@@ -392,7 +398,8 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 		value := vm.Value{}
 		value.SetInt(e.Value)
 		return []opcode.OpCode{
-			opcode.OP_CONST,
+			opcode.OP_LOAD,
+			opcode.ScopeTypeConst,
 			opcode.OpCode(c.defineConstant(value)),
 		}, nil
 
@@ -400,7 +407,8 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 		value := vm.Value{}
 		value.SetFloat(e.Value)
 		return []opcode.OpCode{
-			opcode.OP_CONST,
+			opcode.OP_LOAD,
+			opcode.ScopeTypeConst,
 			opcode.OpCode(c.defineConstant(value)),
 		}, nil
 
@@ -408,13 +416,15 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 		value := vm.Value{}
 		value.SetString(e.Value)
 		return []opcode.OpCode{
-			opcode.OP_CONST,
+			opcode.OP_LOAD,
+			opcode.ScopeTypeConst,
 			opcode.OpCode(c.defineConstant(value)),
 		}, nil
 
 	case ir.NilExpr:
 		return []opcode.OpCode{
-			opcode.OP_CONST,
+			opcode.OP_LOAD,
+			opcode.ScopeTypeConst,
 			opcode.OpCode(0),
 		}, nil
 
@@ -423,7 +433,8 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 		value.SetBool(e.Value)
 
 		return []opcode.OpCode{
-			opcode.OP_CONST,
+			opcode.OP_LOAD,
+			opcode.ScopeTypeConst,
 			opcode.OpCode(c.defineConstant(value)),
 		}, nil
 
@@ -586,12 +597,6 @@ func (c *Compiler) binOperatorOpcode(operator ir.BinaryOp) opcode.OpCode {
 
 	case ir.BinaryOpGte:
 		return opcode.OP_GTE
-
-	case ir.BinaryOpOr:
-		return opcode.OP_OR
-
-	case ir.BinaryOpAnd:
-		return opcode.OP_AND
 
 	default:
 		panic(fmt.Sprintf("unimplemented operator %d", operator))

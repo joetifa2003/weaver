@@ -13,20 +13,19 @@ import (
 
 func main() {
 	src := `
-	n := 50000000
-	even_nums := 0
-	odd_nums := 0
+		fib := |n| {
+			a := 0
+			b := 1
+			for i := 0; i < n; i = i + 1 {
+				temp := a
+				a = b
+				b = b + temp
+			}
 
-	for i := 0; i < n; i = i + 1 {
-		if i % 2 == 0 {
-			even_nums = even_nums + 1
-		} else {
-			odd_nums = odd_nums + 1
-		}
-	}
+			return a
+		}	
 
-	even_nums | echo()
-	odd_nums | echo()
+		fib(1000) | echo()
 	`
 
 	pt := time.Now()

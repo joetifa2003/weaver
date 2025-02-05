@@ -9,8 +9,7 @@ import (
 type OpCode int
 
 const (
-	OP_CONST OpCode = iota // arg1: constant index
-	OP_POP
+	OP_POP OpCode = iota
 
 	OP_LABEL
 
@@ -22,9 +21,7 @@ const (
 	OP_STORE        // arg1: variable index
 	OP_STORE_FREE   // arg1: variable index
 	OP_STORE_GLOBAL // arg1: variable index
-	OP_LOAD         // arg1: variable index
-	OP_LOAD_FREE    // arg1: variable index
-	OP_LOAD_GLOBAL  // arg1: variable index
+	OP_LOAD         // arg1: scope; arg2: variable index
 	OP_STORE_IDX
 
 	OP_JUMP    // arg1: jump offset
@@ -41,29 +38,53 @@ const (
 	OP_OPUSH // push value to object
 
 	OP_ADD // +
+	OP_SUB // -
 	OP_MUL // *
 	OP_DIV // /
 	OP_MOD // %
-	OP_SUB // -
 	OP_LT  // <
 	OP_LTE // <=
-	OP_EQ  // ==
 	OP_GT  // >
 	OP_GTE // >=
+	OP_EQ  // ==
 	OP_NEQ // !=
-	OP_OR  // ||
-	OP_AND // &&
 	OP_NOT // !
 
 	OP_ECHO
-
-	OP_CONST_LET          // arg1: constant index; arg2: variable index
-	OP_LOAD_CONST_ADD     // arg1: constant index; arg2: variable index
-	OP_LOAD_CONST_ADD_LET // arg1: constant index; arg2: variable index; arg3: variable index
-	OP_CONST_ADD          // arg1: constant index;
-	OP_LOAD_LOAD_LT       // arg1: variable index; arg2: variable index
-
 	OP_FUNC // arg1: constant index; arg2: free variables count
+
+	// Super instructions
+	OP_LOAD_LOAD_ADD // arg1: v1 scope; arg2: v1 index; arg3: v2 scope; arg4: v2 index
+	OP_LOAD_ADD      // arg1: scope; arg2: index
+	OP_LOAD_LOAD_SUB // arg1: v1 scope; arg2: v1 index; arg3: v2 scope; arg4: v2 index
+	OP_LOAD_SUB      // arg1: scope; arg2: index
+	OP_LOAD_LOAD_MUL // arg1: v1 scope; arg2: v1 index; arg3: v2 scope; arg4: v2 index
+	OP_LOAD_MUL      // arg1: scope; arg2: index
+	OP_LOAD_LOAD_DIV // arg1: v1 scope; arg2: v1 index; arg3: v2 scope; arg4: v2 index
+	OP_LOAD_DIV      // arg1: scope; arg2: index
+	OP_LOAD_LOAD_MOD // arg1: v1 scope; arg2: v1 index; arg3: v2 scope; arg4: v2 index
+	OP_LOAD_MOD      // arg1: scope; arg2: index
+	OP_LOAD_LOAD_LT  // arg1: v1 scope; arg2: v1 index; arg3: v2 scope; arg4: v2 index
+	OP_LOAD_LT       // arg1: scope; arg2: index
+	OP_LOAD_LOAD_LTE // arg1: v1 scope; arg2: v1 index; arg3: v2 scope; arg4: v2 OP_INDEX
+	OP_LOAD_LTE      // arg1: scope; arg2: index
+	OP_LOAD_LOAD_GT  // arg1: v1 scope; arg2: v1 index; arg3: v2 scope; arg4: v2 index
+	OP_LOAD_GT       // arg1: scope; arg2: index
+	OP_LOAD_LOAD_GTE // arg1: v1 scope; arg2: v1 index; arg3: v2 scope; arg4: v2 index
+	OP_LOAD_GTE      // arg1: scope; arg2: index
+	OP_LOAD_LOAD_EQ  // arg1: v1 scope; arg2: v1 index; arg3: v2 scope; arg4: v2 index
+	OP_LOAD_EQ       // arg1: scope; arg2: index
+	OP_LOAD_LOAD_NEQ // arg1: v1 scope; arg2: v1 index; arg3: v2 scope; arg4: v2 index
+	OP_LOAD_NEQ      // arg1: scope; arg2: index
+)
+
+type ScopeType = OpCode
+
+const (
+	ScopeTypeLocal ScopeType = iota
+	ScopeTypeFree
+	ScopeTypeGlobal
+	ScopeTypeConst
 )
 
 type OpCodeDef struct {
@@ -73,23 +94,20 @@ type OpCodeDef struct {
 }
 
 var opCodeDefs = map[OpCode]OpCodeDef{
-	OP_CONST:        {OP_CONST, "const", 1},
 	OP_POP:          {OP_POP, "pop", 0},
 	OP_CALL:         {OP_CALL, "call", 1},
 	OP_RET:          {OP_RET, "ret", 0},
 	OP_HALT:         {OP_HALT, "halt", 0},
 	OP_STORE:        {OP_STORE, "store", 1},
-	OP_STORE_FREE:   {OP_STORE, "storef", 1},
-	OP_STORE_GLOBAL: {OP_STORE, "storeg", 1},
+	OP_STORE_FREE:   {OP_STORE_FREE, "storef", 1},
+	OP_STORE_GLOBAL: {OP_STORE_GLOBAL, "storeg", 1},
 	OP_LET:          {OP_LET, "let", 1},
-	OP_LOAD:         {OP_LOAD, "load", 1},
-	OP_LOAD_FREE:    {OP_LOAD, "loadf", 1},
-	OP_LOAD_GLOBAL:  {OP_LOAD, "loadg", 1},
+	OP_LOAD:         {OP_LOAD, "load", 2},
 	OP_JUMP:         {OP_JUMP, "jmp", 1},
 	OP_PJUMP_F:      {OP_PJUMP_F, "pjmpf", 1},
-	OP_PJUMP_T:      {OP_PJUMP_F, "pjmpt", 1},
-	OP_JUMP_F:       {OP_PJUMP_F, "jmpf", 1},
-	OP_JUMP_T:       {OP_PJUMP_F, "jmpt", 1},
+	OP_PJUMP_T:      {OP_PJUMP_T, "pjmpt", 1},
+	OP_JUMP_F:       {OP_JUMP_F, "jmpf", 1},
+	OP_JUMP_T:       {OP_JUMP_T, "jmpt", 1},
 	OP_ADD:          {OP_ADD, "add", 0},
 	OP_MUL:          {OP_MUL, "mul", 0},
 	OP_DIV:          {OP_DIV, "div", 0},
@@ -97,30 +115,44 @@ var opCodeDefs = map[OpCode]OpCodeDef{
 	OP_SUB:          {OP_SUB, "sub", 0},
 	OP_LT:           {OP_LT, "lt", 0},
 	OP_LTE:          {OP_LTE, "lte", 0},
-	OP_GT:           {OP_LTE, "gt", 0},
-	OP_GTE:          {OP_LTE, "gte", 0},
+	OP_GT:           {OP_GT, "gt", 0},
+	OP_GTE:          {OP_GTE, "gte", 0},
 	OP_EQ:           {OP_EQ, "eq", 0},
-	OP_NEQ:          {OP_EQ, "neq", 0},
-	OP_OR:           {OP_EQ, "or", 0},
-	OP_AND:          {OP_AND, "and", 0},
-	OP_NOT:          {OP_AND, "not", 0},
-	OP_APUSH:        {OP_AND, "apsh", 0},
-	OP_ARRAY:        {OP_AND, "arr", 0},
+	OP_NEQ:          {OP_NEQ, "neq", 0},
+	OP_NOT:          {OP_NOT, "not", 0},
+	OP_APUSH:        {OP_APUSH, "apsh", 0},
+	OP_ARRAY:        {OP_ARRAY, "arr", 0},
 	OP_INDEX:        {OP_INDEX, "idx", 0},
-	OP_FUNC:         {OP_INDEX, "func", 2},
-	OP_STORE_IDX:    {OP_INDEX, "storeidx", 0},
+	OP_FUNC:         {OP_FUNC, "func", 2},
+	OP_STORE_IDX:    {OP_STORE_IDX, "storeidx", 0},
+	OP_OBJ:          {OP_OBJ, "obj", 0},
+	OP_OPUSH:        {OP_OPUSH, "opsh", 0},
+	OP_LABEL:        {OP_LABEL, "label", 1},
 
-	OP_OBJ:   {OP_AND, "obj", 0},
-	OP_OPUSH: {OP_AND, "opsh", 0},
+	OP_ECHO: {OP_ECHO, "echo", 0},
 
-	OP_LABEL: {OP_ECHO, "label", 1},
-
-	OP_ECHO:               {OP_ECHO, "echo", 0},
-	OP_CONST_LET:          {OP_CONST_LET, "clet", 2},
-	OP_LOAD_CONST_ADD:     {OP_LOAD_CONST_ADD, "lcadd", 2},
-	OP_LOAD_CONST_ADD_LET: {OP_LOAD_CONST_ADD_LET, "lcalet", 3},
-	OP_CONST_ADD:          {OP_CONST_ADD, "cadd", 1},
-	OP_LOAD_LOAD_LT:       {OP_LOAD_LOAD_LT, "lllt", 2},
+	OP_LOAD_LOAD_ADD: {OP_LOAD_LOAD_ADD, "lladd", 4},
+	OP_LOAD_ADD:      {OP_LOAD_ADD, "ladd", 2},
+	OP_LOAD_LOAD_SUB: {OP_LOAD_LOAD_SUB, "llsub", 4},
+	OP_LOAD_SUB:      {OP_LOAD_SUB, "lsub", 2},
+	OP_LOAD_LOAD_MUL: {OP_LOAD_LOAD_MUL, "llmul", 4},
+	OP_LOAD_MUL:      {OP_LOAD_MUL, "lmul", 2},
+	OP_LOAD_LOAD_DIV: {OP_LOAD_LOAD_DIV, "lldiv", 4},
+	OP_LOAD_DIV:      {OP_LOAD_DIV, "ldiv", 2},
+	OP_LOAD_LOAD_MOD: {OP_LOAD_LOAD_MOD, "llmod", 4},
+	OP_LOAD_MOD:      {OP_LOAD_MOD, "lmod", 2},
+	OP_LOAD_LOAD_LT:  {OP_LOAD_LOAD_LT, "lllt", 4},
+	OP_LOAD_LT:       {OP_LOAD_LT, "llt", 2},
+	OP_LOAD_LOAD_LTE: {OP_LOAD_LOAD_LTE, "lllte", 4},
+	OP_LOAD_LTE:      {OP_LOAD_LTE, "lte", 2},
+	OP_LOAD_LOAD_GT:  {OP_LOAD_LOAD_GT, "llgt", 4},
+	OP_LOAD_GT:       {OP_LOAD_GT, "lgt", 2},
+	OP_LOAD_LOAD_GTE: {OP_LOAD_LOAD_GTE, "llgte", 4},
+	OP_LOAD_GTE:      {OP_LOAD_GTE, "lgte", 2},
+	OP_LOAD_LOAD_EQ:  {OP_LOAD_LOAD_EQ, "lleq", 4},
+	OP_LOAD_EQ:       {OP_LOAD_EQ, "leq", 2},
+	OP_LOAD_LOAD_NEQ: {OP_LOAD_LOAD_NEQ, "llneq", 4},
+	OP_LOAD_NEQ:      {OP_LOAD_NEQ, "lneq", 2},
 }
 
 type DecodedOpCode struct {

@@ -104,57 +104,272 @@ var optimizers = []Optimizer{
 		},
 	},
 	{
-		Seq: seq(
-			eq(opcode.OP_LOAD),
-			eq(opcode.OP_CONST),
-			eq(opcode.OP_ADD),
-			eq(opcode.OP_LET),
-		),
+		Seq: seq(eq(opcode.OP_NOT), eq(opcode.OP_PJUMP_T)),
 		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
 			return []opcode.OpCode{
-				opcode.OP_LOAD_CONST_ADD_LET,
+				opcode.OP_PJUMP_F,
 				doc[1].Args[0],
-				doc[0].Args[0],
-				doc[3].Args[0],
 			}
 		},
 	},
 	{
-		Seq: seq(repeat(eq(opcode.OP_LOAD), 2), eq(opcode.OP_LT)),
+		Seq: seq(eq(opcode.OP_NOT), eq(opcode.OP_JUMP_F)),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			return []opcode.OpCode{
+				opcode.OP_JUMP_T,
+				doc[1].Args[0],
+			}
+		},
+	},
+	{
+		Seq: seq(eq(opcode.OP_NOT), eq(opcode.OP_JUMP_T)),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			return []opcode.OpCode{
+				opcode.OP_JUMP_F,
+				doc[1].Args[0],
+			}
+		},
+	},
+
+	{
+		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_LOAD), eq(opcode.OP_ADD)),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			return []opcode.OpCode{
+				opcode.OP_LOAD_LOAD_ADD,
+				doc[0].Args[0],
+				doc[0].Args[1],
+				doc[1].Args[0],
+				doc[1].Args[1],
+			}
+		},
+	},
+	{
+		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_ADD)),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			return []opcode.OpCode{
+				opcode.OP_LOAD_ADD,
+				doc[0].Args[0],
+				doc[0].Args[1],
+			}
+		},
+	},
+	{
+		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_LOAD), eq(opcode.OP_SUB)),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			return []opcode.OpCode{
+				opcode.OP_LOAD_LOAD_SUB,
+				doc[0].Args[0],
+				doc[0].Args[1],
+				doc[1].Args[0],
+				doc[1].Args[1],
+			}
+		},
+	},
+	{
+		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_SUB)),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			return []opcode.OpCode{
+				opcode.OP_LOAD_SUB,
+				doc[0].Args[0],
+				doc[0].Args[1],
+			}
+		},
+	},
+	{
+		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_LOAD), eq(opcode.OP_MUL)),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			return []opcode.OpCode{
+				opcode.OP_LOAD_LOAD_MUL,
+				doc[0].Args[0],
+				doc[0].Args[1],
+				doc[1].Args[0],
+				doc[1].Args[1],
+			}
+		},
+	},
+	{
+		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_MUL)),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			return []opcode.OpCode{
+				opcode.OP_LOAD_MUL,
+				doc[0].Args[0],
+				doc[0].Args[1],
+			}
+		},
+	},
+	{
+		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_LOAD), eq(opcode.OP_DIV)),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			return []opcode.OpCode{
+				opcode.OP_LOAD_LOAD_DIV,
+				doc[0].Args[0],
+				doc[0].Args[1],
+				doc[1].Args[0],
+				doc[1].Args[1],
+			}
+		},
+	},
+	{
+		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_DIV)),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			return []opcode.OpCode{
+				opcode.OP_LOAD_DIV,
+				doc[0].Args[0],
+				doc[0].Args[1],
+			}
+		},
+	},
+	{
+		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_LOAD), eq(opcode.OP_MOD)),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			return []opcode.OpCode{
+				opcode.OP_LOAD_LOAD_MOD,
+				doc[0].Args[0],
+				doc[0].Args[1],
+				doc[1].Args[0],
+				doc[1].Args[1],
+			}
+		},
+	},
+	{
+		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_MOD)),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			return []opcode.OpCode{
+				opcode.OP_LOAD_MOD,
+				doc[0].Args[0],
+				doc[0].Args[1],
+			}
+		},
+	},
+	{
+		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_LOAD), eq(opcode.OP_LT)),
 		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
 			return []opcode.OpCode{
 				opcode.OP_LOAD_LOAD_LT,
-				doc[1].Args[0],
 				doc[0].Args[0],
+				doc[0].Args[1],
+				doc[1].Args[0],
+				doc[1].Args[1],
 			}
 		},
 	},
 	{
-		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_CONST), eq(opcode.OP_ADD)),
+		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_LT)),
 		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
 			return []opcode.OpCode{
-				opcode.OP_LOAD_CONST_ADD,
-				doc[1].Args[0],
+				opcode.OP_LOAD_LT,
 				doc[0].Args[0],
+				doc[0].Args[1],
 			}
 		},
 	},
 	{
-		Seq: seq(eq(opcode.OP_CONST), eq(opcode.OP_ADD)),
+		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_LOAD), eq(opcode.OP_LTE)),
 		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
 			return []opcode.OpCode{
-				opcode.OP_CONST_ADD,
+				opcode.OP_LOAD_LOAD_LTE,
 				doc[0].Args[0],
+				doc[0].Args[1],
+				doc[1].Args[0],
+				doc[1].Args[1],
 			}
 		},
 	},
 	{
-		Seq: seq(eq(opcode.OP_CONST), eq(opcode.OP_LET)),
+		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_LTE)),
 		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
 			return []opcode.OpCode{
-				opcode.OP_CONST_LET,
+				opcode.OP_LOAD_LTE,
 				doc[0].Args[0],
+				doc[0].Args[1],
+			}
+		},
+	},
+	{
+		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_LOAD), eq(opcode.OP_GT)),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			return []opcode.OpCode{
+				opcode.OP_LOAD_LOAD_GT,
+				doc[0].Args[0],
+				doc[0].Args[1],
 				doc[1].Args[0],
+				doc[1].Args[1],
+			}
+		},
+	},
+	{
+		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_GT)),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			return []opcode.OpCode{
+				opcode.OP_LOAD_GT,
+				doc[0].Args[0],
+				doc[0].Args[1],
+			}
+		},
+	},
+	{
+		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_LOAD), eq(opcode.OP_GTE)),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			return []opcode.OpCode{
+				opcode.OP_LOAD_LOAD_GTE,
+				doc[0].Args[0],
+				doc[0].Args[1],
+				doc[1].Args[0],
+				doc[1].Args[1],
+			}
+		},
+	},
+	{
+		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_GTE)),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			return []opcode.OpCode{
+				opcode.OP_LOAD_GTE,
+				doc[0].Args[0],
+				doc[0].Args[1],
+			}
+		},
+	},
+	{
+		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_LOAD), eq(opcode.OP_EQ)),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			return []opcode.OpCode{
+				opcode.OP_LOAD_LOAD_EQ,
+				doc[0].Args[0],
+				doc[0].Args[1],
+				doc[1].Args[0],
+				doc[1].Args[1],
+			}
+		},
+	},
+	{
+		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_EQ)),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			return []opcode.OpCode{
+				opcode.OP_LOAD_EQ,
+				doc[0].Args[0],
+				doc[0].Args[1],
+			}
+		},
+	},
+	{
+		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_LOAD), eq(opcode.OP_NEQ)),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			return []opcode.OpCode{
+				opcode.OP_LOAD_LOAD_NEQ,
+				doc[0].Args[0],
+				doc[0].Args[1],
+				doc[1].Args[0],
+				doc[1].Args[1],
+			}
+		},
+	},
+	{
+		Seq: seq(eq(opcode.OP_LOAD), eq(opcode.OP_NEQ)),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			return []opcode.OpCode{
+				opcode.OP_LOAD_NEQ,
+				doc[0].Args[0],
+				doc[0].Args[1],
 			}
 		},
 	},

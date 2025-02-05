@@ -45,16 +45,19 @@ func (v *Var) load() []opcode.OpCode {
 	case VarScopeLocal:
 		return []opcode.OpCode{
 			opcode.OP_LOAD,
+			opcode.ScopeTypeLocal,
 			opcode.OpCode(v.Index),
 		}
 	case VarScopeFree:
 		return []opcode.OpCode{
-			opcode.OP_LOAD_FREE,
+			opcode.OP_LOAD,
+			opcode.ScopeTypeFree,
 			opcode.OpCode(v.Index),
 		}
 	case VarScopeGlobal:
 		return []opcode.OpCode{
-			opcode.OP_LOAD_GLOBAL,
+			opcode.OP_LOAD,
+			opcode.ScopeTypeGlobal,
 			opcode.OpCode(v.Index),
 		}
 	default:

@@ -13,7 +13,7 @@ import (
 
 func main() {
 	src := `
-	n := 10000000
+	n := 50000000
 	even_nums := 0
 	odd_nums := 0
 

@@ -99,7 +99,7 @@ func TestBinaryExpr(t *testing.T) {
 				ast.IntExpr{Value: 123},
 				ast.IntExpr{Value: 456},
 			},
-			Operator: "+",
+			Operator: ast.BinaryOpAdd,
 		},
 		binaryExpr,
 	)
@@ -118,10 +118,10 @@ func TestBinaryExpr(t *testing.T) {
 						ast.IntExpr{Value: 456},
 						ast.IntExpr{Value: 789},
 					},
-					Operator: "*",
+					Operator: ast.BinaryOpMul,
 				},
 			},
-			Operator: "+",
+			Operator: ast.BinaryOpAdd,
 		},
 		binaryExpr,
 	)

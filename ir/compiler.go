@@ -649,7 +649,7 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 			res = append(res, expr)
 		}
 
-		if e.Operator == "|" {
+		if e.Operator == ast.BinaryOpPipe {
 			return c.compilePipeExpr(res)
 		}
 
@@ -778,44 +778,44 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 	}
 }
 
-func (c *Compiler) getBinaryOp(op string) BinaryOp {
+func (c *Compiler) getBinaryOp(op ast.BinaryOp) BinaryOp {
 	switch op {
-	case "+":
+	case ast.BinaryOpAdd:
 		return BinaryOpAdd
-	case "-":
+	case ast.BinaryOpSub:
 		return BinaryOpSub
-	case "*":
+	case ast.BinaryOpMul:
 		return BinaryOpMul
-	case "/":
+	case ast.BinaryOpDiv:
 		return BinaryOpDiv
-	case "%":
+	case ast.BinaryOpMod:
 		return BinaryOpMod
-	case "==":
+	case ast.BinaryOpEq:
 		return BinaryOpEq
-	case "!=":
+	case ast.BinaryOpNeq:
 		return BinaryOpNeq
-	case "<":
+	case ast.BinaryOpLt:
 		return BinaryOpLt
-	case "<=":
+	case ast.BinaryOpLte:
 		return BinaryOpLte
-	case ">":
+	case ast.BinaryOpGt:
 		return BinaryOpGt
-	case ">=":
+	case ast.BinaryOpGte:
 		return BinaryOpGte
-	case "or":
+	case ast.BinaryOpOr:
 		return BinaryOpOr
-	case "and":
+	case ast.BinaryOpAnd:
 		return BinaryOpAnd
 	default:
 		panic(fmt.Sprintf("unimplemented operator %s", op))
 	}
 }
 
-func (c *Compiler) getUnaryOp(op string) UnaryOp {
+func (c *Compiler) getUnaryOp(op ast.UnaryOp) UnaryOp {
 	switch op {
-	case "!":
+	case ast.UnaryOpNot:
 		return UnaryOpNot
-	case "-":
+	case ast.UnaryOpNegate:
 		return UnaryOpNegate
 	default:
 		panic(fmt.Sprintf("unimplemented operator %s", op))

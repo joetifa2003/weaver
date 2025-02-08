@@ -14,12 +14,12 @@ func TestVM(t *testing.T) {
 	tests := []string{
 		0: `
 			x := 1
-			x == 1 | assert()
+			x == 1 |> assert()
 		`,
 		1: `
 			x := 1
 			x = 2
-			x == 2 | assert()
+			x == 2 |> assert()
 		`,
 		2: `
 			x := 1
@@ -31,7 +31,7 @@ func TestVM(t *testing.T) {
 				x = 3		
 			}
 
-			x == 2 | assert()
+			x == 2 |> assert()
 		`,
 		3: `
 			x := 1
@@ -43,7 +43,7 @@ func TestVM(t *testing.T) {
 				x = 3		
 			}
 
-			x == 3 | assert()
+			x == 3 |> assert()
 		`,
 		4: `
 			even := 0
@@ -56,8 +56,8 @@ func TestVM(t *testing.T) {
 				}
 			}	
 
-			even == 5 | assert()
-			odd == 5  | assert()
+			even == 5 |> assert()
+			odd == 5  |> assert()
 		`,
 		5: `
 			even := 0
@@ -71,8 +71,8 @@ func TestVM(t *testing.T) {
 				}
 			}	
 
-			even == 5 | assert()
-			odd == 5  | assert()
+			even == 5 |> assert()
+			odd == 5  |> assert()
 		`,
 		6: `
 			even := 0
@@ -90,21 +90,21 @@ func TestVM(t *testing.T) {
 				i = i + 1
 			}	
 
-			even == 5 | assert()
-			odd == 5  | assert()
+			even == 5 |> assert()
+			odd == 5  |> assert()
 		`,
 		7: `
 			adder := |x| |y| x + y
 			addFive := adder(5)
-			addFive(5) == 10 | assert()
+			addFive(5) == 10 |> assert()
 		`,
 		8: `
 			x := [1, 2, 3]
 			l := x 
-				| map(|x| x + 1) 
-				| filter(|x| x % 2 == 0) 
-				| len() 
-			l == 2 | assert()
+				|> map(|x| x + 1) 
+				|> filter(|x| x % 2 == 0) 
+				|> len() 
+			l == 2 |> assert()
 		`,
 		9: `
 			a := 1
@@ -112,48 +112,48 @@ func TestVM(t *testing.T) {
 
 			x := [1, 2, 3]
 			l := x 
-				| map(|x| x + a) 
-				| filter(|x| x % b == 0) 
-				| len() 
-			l == 2 | assert()
+				|> map(|x| x + a) 
+				|> filter(|x| x % b == 0) 
+				|> len() 
+			l == 2 |> assert()
 		`,
 		10: `
 			x := [1, 2, 3]
 			x[0] = 2
-			x[0] == 2 | assert()
+			x[0] == 2 |> assert()
 		`,
 		11: `
 			x := [[1], [2], [3]]
 			x[0][0] = 2
-			x[0][0] == 2 | assert()
+			x[0][0] == 2 |> assert()
 		`,
 		12: `
 			x := { a: 1 }
 			x["a"] = 2
-			x.a == 2 | assert()
+			x.a == 2 |> assert()
 		`,
 		13: `
 			x := { a: 1 }
 			x.a = 2
-			x.a == 2 | assert()
+			x.a == 2 |> assert()
 		`,
 		14: `
 			x := [{a: [9]}]
-			x[0].a[0] == 9 | assert()
+			x[0].a[0] == 9 |> assert()
 		`,
 		15: `
 			x := [{a: [9]}]
 			x[0].a[0] = 41
-			x[0].a[0] == 41 | assert()
+			x[0].a[0] == 41 |> assert()
 		`,
 		16: `
 			x := [1, 2, 3]
-			x | push(4)
+			x |> push(4)
 			assert(len(x) == 4)
-			x[0] == 1 | assert()
-			x[1] == 2 | assert()
-			x[2] == 3 | assert()
-			x[3] == 4 | assert()
+			x[0] == 1 |> assert()
+			x[1] == 2 |> assert()
+			x[2] == 3 |> assert()
+			x[3] == 4 |> assert()
 		`,
 		17: `
 		x := 0
@@ -162,30 +162,36 @@ func TestVM(t *testing.T) {
 			0 => {
 				match y {
 					0 => {
-						false | assert()
+						false |> assert()
 					},
 					1 => {
-						false | assert()
+						false |> assert()
 					},
 					2 => {
-						false | assert()
+						false |> assert()
 					},
 					4 => {
-						false | assert()
+						false |> assert()
 					},
 					5 => {
-						true | assert()
+						true |> assert()
+					}
+					else => {
+						false |> assert()
 					}
 				}
 			},
 			1 => {
-				false | assert()
+				false |> assert()
 			},
 			2 => {
-				false | assert()
+				false |> assert()
 			},
 			3 => {
-				false | assert()
+				false |> assert()
+			}
+			else => {
+				false |> assert()
 			}
 		}
 		`,
@@ -196,103 +202,103 @@ func TestVM(t *testing.T) {
 			0.5 => {
 				match y {
 					0 => {
-						false | assert()
+						false |> assert()
 					},
 					1 => {
-						false | assert()
+						false |> assert()
 					},
 					2 => {
-						false | assert()
+						false |> assert()
 					},
 					4 => {
-						false | assert()
+						false |> assert()
 					},
 					0.7 => {
-						true | assert()
+						true |> assert()
 					}
 					else => {
-						false | assert()
+						false |> assert()
 					}
 				}
 			},
 			1 => {
-				false | assert()
+				false |> assert()
 			},
 			2 => {
-				false | assert()
+				false |> assert()
 			},
 			3 => {
-				false | assert()
+				false |> assert()
 			},
 			else => {
-				false | assert()
+				false |> assert()
 			}
 		}
 		`,
 		19: `
 		match "foo" {
 			"bar" => {
-				false | assert()
+				false |> assert()
 			},
 			"baz" => {
-				false | assert()
+				false |> assert()
 			},
 			"foo" => {
-				true | assert()
+				true |> assert()
 			},
 			else => {
-				false | assert()
+				false |> assert()
 			}
 		}
 		`,
 		20: `
 		match [[0], 1, 2] {
 			[[0], 1, 2] => {
-				true | assert()
+				true |> assert()
 			},
 			[2, 3, 4] => {
-				false | assert()
+				false |> assert()
 			},
 			else => {
-				false | assert()
+				false |> assert()
 			}
 		}
 		`,
 		21: `
-			a := || false | assert()
-			true and true and false and a()
+			a := || false |> assert()
+			true && true && false && a()
 		`,
 		22: `
-			a := || false | assert()
-			false or true or a()
+			a := || false |> assert()
+			false || true || a()
 		`,
 		23: `
 			aCalled := {value: false}
 			a := || {
 				aCalled.value = true
 			}
-			true and true and true and a()
-			aCalled.value | assert()
+			true && true && true && a()
+			aCalled.value |> assert()
 		`,
 		24: `
 			aCalled := {value: false}
 			a := || {
 				aCalled.value = true
 			}
-			false or false or false or a()
-			aCalled.value | assert()
+			false || false || false || a()
+			aCalled.value |> assert()
 		`,
 		25: `
 		c := [0, {name: "hello"}]
 		match c {
 			[0, {name: "hello"}] => {
-				"here" | echo()
+				"here" |> echo()
 			},
 			[2, 3, 4] => {
-				"wrong" | echo()
+				"wrong" |> echo()
 			},
 			else => {
-				false | assert()
+				false |> assert()
 			}
 		}
 		`,
@@ -308,7 +314,7 @@ func TestVM(t *testing.T) {
 
 		for i := 0; i < len(students); i = i + 1 {
 			match students[i] {
-				{name: n, age: a} if a >= 10 and a <= 20 => {
+				{name: n, age: a} if a >= 10 && a <= 20 => {
 					res = res + n 
 				},
 				else => {
@@ -317,8 +323,8 @@ func TestVM(t *testing.T) {
 			}
 		}
 
-		res == "foobar" | assert()
-		res2 == "joe" | assert()
+		res == "foobar" |> assert()
+		res2 == "joe" |> assert()
 		`,
 	}
 

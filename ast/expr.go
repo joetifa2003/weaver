@@ -26,9 +26,28 @@ type StringExpr struct {
 
 func (t StringExpr) expr() {}
 
+type BinaryOp string
+
+const (
+	BinaryOpAdd  BinaryOp = "+"
+	BinaryOpSub  BinaryOp = "-"
+	BinaryOpMul  BinaryOp = "*"
+	BinaryOpDiv  BinaryOp = "/"
+	BinaryOpMod  BinaryOp = "%"
+	BinaryOpEq   BinaryOp = "=="
+	BinaryOpNeq  BinaryOp = "!="
+	BinaryOpGt   BinaryOp = ">"
+	BinaryOpLt   BinaryOp = "<"
+	BinaryOpGte  BinaryOp = ">="
+	BinaryOpLte  BinaryOp = "<="
+	BinaryOpAnd  BinaryOp = "&&"
+	BinaryOpOr   BinaryOp = "||"
+	BinaryOpPipe BinaryOp = "|>"
+)
+
 type BinaryExpr struct {
 	Operands []Expr
-	Operator string
+	Operator BinaryOp
 }
 
 func (t BinaryExpr) expr() {}
@@ -66,8 +85,15 @@ type AssignExpr struct {
 
 func (t AssignExpr) expr() {}
 
+type UnaryOp string
+
+const (
+	UnaryOpNot    UnaryOp = "!"
+	UnaryOpNegate UnaryOp = "-"
+)
+
 type UnaryExpr struct {
-	Operator string
+	Operator UnaryOp
 	Expr     Expr
 }
 

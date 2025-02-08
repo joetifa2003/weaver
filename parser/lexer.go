@@ -39,6 +39,7 @@ func newLexer() *lexer.RegexLexer {
 			{TokenType: TT_SYMBOL, Regex: "}"},
 			{TokenType: TT_SYMBOL, Regex: "\\."},
 			{TokenType: TT_SYMBOL, Regex: "!"},
+			{TokenType: TT_SYMBOL, Regex: "\\|>"},
 			{TokenType: TT_SYMBOL, Regex: "\\|"},
 			{TokenType: TT_SYMBOL, Regex: ","},
 			{TokenType: TT_SYMBOL, Regex: ";"},
@@ -61,7 +62,6 @@ func newLexer() *lexer.RegexLexer {
 			{TokenType: TT_GREATER_THAN, Regex: ">"},
 			{TokenType: TT_NOT_EQUAL, Regex: "!="},
 			{TokenType: TT_AND, Regex: "&&"},
-			{TokenType: TT_OR, Regex: "\\|\\|"},
 			{TokenType: TT_LPAREN, Regex: "\\("},
 			{TokenType: TT_RPAREN, Regex: "\\)"},
 			// ===============================

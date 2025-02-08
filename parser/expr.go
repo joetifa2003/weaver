@@ -8,9 +8,13 @@ import (
 	"github.com/joetifa2003/weaver/internal/pargo"
 )
 
-func binaryExpr(operand pargo.Parser[ast.Expr], op string) pargo.Parser[ast.Expr] {
+func binaryExpr(
+	operand pargo.Parser[ast.Expr],
+	separator pargo.Parser[string],
+	op ast.BinaryOp,
+) pargo.Parser[ast.Expr] {
 	return pargo.Map(
-		pargo.SomeSep(operand, pargo.Exactly(op)),
+		pargo.SomeSep(operand, separator),
 		func(exprs []ast.Expr) (ast.Expr, error) {
 			if len(exprs) == 1 {
 				return exprs[0], nil
@@ -28,108 +32,125 @@ func expr() pargo.Parser[ast.Expr] {
 func orExpr() pargo.Parser[ast.Expr] {
 	return binaryExpr(
 		andExpr(),
-		"or",
+		pargo.Sequence2(
+			pargo.Exactly("|"), pargo.Exactly("|"),
+			func(_ string, _ string) string { return "" },
+		),
+		ast.BinaryOpOr,
 	)
 }
 
 func andExpr() pargo.Parser[ast.Expr] {
 	return binaryExpr(
 		pipeExpr(),
-		"and",
+		pargo.Exactly(string(ast.BinaryOpAnd)),
+		ast.BinaryOpAnd,
 	)
 }
 
 func pipeExpr() pargo.Parser[ast.Expr] {
 	return binaryExpr(
 		equalityExpr(),
-		"|",
+		pargo.Exactly(string(ast.BinaryOpPipe)),
+		ast.BinaryOpPipe,
 	)
 }
 
 func equalityExpr() pargo.Parser[ast.Expr] {
 	return binaryExpr(
 		nequalExpr(),
-		"==",
+		pargo.Exactly(string(ast.BinaryOpEq)),
+		ast.BinaryOpEq,
 	)
 }
 
 func nequalExpr() pargo.Parser[ast.Expr] {
 	return binaryExpr(
 		lessThanExpr(),
-		"!=",
+		pargo.Exactly(string(ast.BinaryOpNeq)),
+		ast.BinaryOpNeq,
 	)
 }
 
 func lessThanExpr() pargo.Parser[ast.Expr] {
 	return binaryExpr(
 		lessThanEqualExpr(),
-		"<",
+		pargo.Exactly(string(ast.BinaryOpLt)),
+		ast.BinaryOpLt,
 	)
 }
 
 func lessThanEqualExpr() pargo.Parser[ast.Expr] {
 	return binaryExpr(
 		greaterThanEqualExpr(),
-		"<=",
+		pargo.Exactly(string(ast.BinaryOpLte)),
+		ast.BinaryOpLte,
 	)
 }
 
 func greaterThanEqualExpr() pargo.Parser[ast.Expr] {
 	return binaryExpr(
 		greaterThanExpr(),
-		">=",
+		pargo.Exactly(string(ast.BinaryOpGte)),
+		ast.BinaryOpGte,
 	)
 }
 
 func greaterThanExpr() pargo.Parser[ast.Expr] {
 	return binaryExpr(
 		addExpr(),
-		">",
+		pargo.Exactly(string(ast.BinaryOpGt)),
+		ast.BinaryOpGt,
 	)
 }
 
 func addExpr() pargo.Parser[ast.Expr] {
 	return binaryExpr(
 		subExpr(),
-		"+",
+		pargo.Exactly(string(ast.BinaryOpAdd)),
+		ast.BinaryOpAdd,
 	)
 }
 
 func subExpr() pargo.Parser[ast.Expr] {
 	return binaryExpr(
 		modExpr(),
-		"-",
+		pargo.Exactly(string(ast.BinaryOpSub)),
+		ast.BinaryOpSub,
 	)
 }
 
 func modExpr() pargo.Parser[ast.Expr] {
 	return binaryExpr(
 		mulExpr(),
-		"%",
+		pargo.Exactly(string(ast.BinaryOpMod)),
+		ast.BinaryOpMod,
 	)
 }
 
 func mulExpr() pargo.Parser[ast.Expr] {
 	return binaryExpr(
 		divExpr(),
-		"*",
+		pargo.Exactly(string(ast.BinaryOpMul)),
+		ast.BinaryOpMul,
 	)
 }
 
 func divExpr() pargo.Parser[ast.Expr] {
 	return binaryExpr(
 		notExpr(),
-		"/",
+		pargo.Exactly(string(ast.BinaryOpDiv)),
+		ast.BinaryOpDiv,
 	)
 }
 
 func notExpr() pargo.Parser[ast.Expr] {
 	return pargo.OneOf(
 		pargo.Sequence2(
-			pargo.Exactly("!"),
+			pargo.Exactly(string(ast.UnaryOpNot)),
 			pargo.Lazy(notExpr),
 			func(_ string, expr ast.Expr) ast.Expr {
-				return ast.UnaryExpr{Operator: "!", Expr: expr}
+				return ast.UnaryExpr{Operator: ast.UnaryOpNot, Expr: expr}
 			},
 		),
 		assignExpr(),

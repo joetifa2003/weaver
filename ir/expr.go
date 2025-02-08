@@ -201,9 +201,9 @@ func (t BinaryOp) String() string {
 	case BinaryOpLte:
 		return "<="
 	case BinaryOpAnd:
-		return "and"
+		return "&&"
 	case BinaryOpOr:
-		return "or"
+		return "||"
 	default:
 		panic(fmt.Sprintf("unimplemented %T", t))
 	}

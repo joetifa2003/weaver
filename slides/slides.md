@@ -1,6 +1,6 @@
 ---
 # You can also start simply with 'default'
-theme: default
+theme: ./theme
 # random image from a curated Unsplash collection by Anthony
 # like them? see https://unsplash.com/collections/94734566/slidev
 # some information about your slides (markdown enabled)
@@ -20,7 +20,8 @@ transition: slide-left
 # enable MDC Syntax: https://sli.dev/features/mdc
 mdc: true
 fonts:
-    sans: 'DM Serif Text'
+  sans: 'Roboto'
+  serif: 'DM Serif Text'
 lineNumbers: true
 remoteAssets: true
 colorSchema: dark
@@ -110,9 +111,7 @@ false                   // boolean
 
 There is a distinction between integers and floats in Weaver, unlike many other scripting languages.
 
-Also there is no type coercion, so you must be explicit about the conversion of types.
-
-This is a deliberate desing decision to avoid mistakes of other languages, like the enfamous javascript.
+Also there is no type coercion, so you must be explicit about the conversion of types, This is a deliberate design decision to avoid mistakes of other languages, like the enfamous javascript.
 
 ```js
 true + false   == 1

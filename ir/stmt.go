@@ -5,20 +5,14 @@ import (
 	"strings"
 )
 
+type Program struct {
+	VarCount   int
+	Statements []Statement
+}
+
 type Statement interface {
 	stmt()
 	String(int) string
-}
-
-type LetStmt struct {
-	Name string
-	Expr Expr
-}
-
-func (t LetStmt) stmt() {}
-
-func (t LetStmt) String(i int) string {
-	return fmt.Sprintf("%s%s := %s", strings.Repeat("\t", i), t.Name, t.Expr.String())
 }
 
 type BlockStmt struct {

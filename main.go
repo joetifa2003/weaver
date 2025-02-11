@@ -14,38 +14,46 @@ import (
 
 func main() {
 	src := `
-		students := []
-
-		for i := 0; i < 1000000; i = i + 1 {
-			students
-				|> push({name: string(i), age: 10})	
-			students 
-				|> push({name: string(i), age: 20})	
-			students 
-				|> push({name: string(i), age: 30})	
-		}
-
-		valid_names := []
-		invalid_count := 0
-
-		for i := 0; i < len(students); i = i + 1 {
-			match students[i] {
-				{name: n, age: a} if a >= 10 && a <= 20 => {
-					valid_names 
-						|> push(a)
-				},
-				else => {
-					invalid_count = invalid_count + 1
-				}
+		even := 0
+		odd := 0
+		for i := 0; i < 10000000; i = i + 1 {
+			if i % 2 == 0 {
+				even = even + 1
+			} else {
+				odd = odd + 1
 			}
 		}
 
-		valid_names 
-			|> len() 
-			|> echo()
-		invalid_count 
-			|> echo()
+		even |> echo()
+		odd |> echo()
 	`
+
+	// src := `
+	// 	even := 0
+	// 	odd := 0
+	// 	for i := 0; i < 10000000; i = i + 1 {
+	// 		if i % 2 == 0 {
+	// 			even = even + 1
+	// 		} else {
+	// 			odd = odd + 1
+	// 		}
+	// 	}
+	//
+	// 	even |> echo()
+	// 	odd |> echo()
+	// `
+
+	// src := `
+	// 	x := |i| {
+	// 		if i == 0 {
+	// 			return 0
+	// 		}
+	//
+	// 		x(i - 1)
+	// 	}
+	//
+	// 	x(10)
+	// `
 
 	pt := time.Now()
 	p, err := parser.Parse(src)
@@ -65,7 +73,7 @@ func main() {
 		panic(err)
 	}
 	res := ""
-	for _, s := range ircr {
+	for _, s := range ircr.Statements {
 		res += s.String(0) + "\n"
 	}
 	iro, err := os.Create("ir.js")
@@ -78,13 +86,13 @@ func main() {
 
 	ct := time.Now()
 	c := compiler.New(compiler.WithOptimization(true))
-	mainFrame, constants, err := c.Compile(ircr)
+	instructions, vars, constants, err := c.Compile(ircr)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("compiler took: ", time.Since(ct))
 
-	fmt.Println(opcode.PrintOpcodes(mainFrame.Instructions))
+	fmt.Println(opcode.PrintOpcodes(instructions))
 
 	for _, c := range constants {
 		if c.VType == vm.ValueTypeFunction {
@@ -94,7 +102,7 @@ func main() {
 	}
 
 	vt := time.Now()
-	vm := vm.New(constants, mainFrame.Instructions, len(mainFrame.Vars))
+	vm := vm.New(constants, instructions, vars)
 	vm.Run()
 	fmt.Println("vm took: ", time.Since(vt))
 }

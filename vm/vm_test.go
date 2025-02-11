@@ -63,6 +63,7 @@ func TestVM(t *testing.T) {
 			even := 0
 			odd := 0
 			isEven := |x| x % 2 == 0
+
 			for i := 0; i < 10; i = i + 1 {
 				if isEven(i) {
 					even = even + 1
@@ -337,18 +338,17 @@ func TestVM(t *testing.T) {
 				}
 
 				irc := ir.NewCompiler()
-
 				ircr, err := irc.Compile(p)
 				if err != nil {
 					t.Fatal(fmt.Errorf("failed to compile ir: %w", err))
 				}
 
 				c := compiler.New(compiler.WithOptimization(opt))
-				frame, constants, err := c.Compile(ircr)
+				instructions, vars, constants, err := c.Compile(ircr)
 				if err != nil {
 					t.Fatal(fmt.Errorf("failed to compile: %w", err))
 				}
-				vm := vm.New(constants, frame.Instructions, len(frame.Vars))
+				vm := vm.New(constants, instructions, vars)
 				vm.Run()
 			})
 		}

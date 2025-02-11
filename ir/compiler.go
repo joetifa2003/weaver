@@ -9,97 +9,72 @@ import (
 )
 
 type Compiler struct {
-	blocks *ds.Stack[*basicBlock]
+	frames *ds.Stack[*frame]
 }
 
 func NewCompiler() *Compiler {
 	return &Compiler{
-		blocks: ds.NewStack[*basicBlock](),
+		frames: ds.NewStack[*frame](),
 	}
 }
 
-func (c *Compiler) beginBlock() *basicBlock {
-	b := &basicBlock{}
-	b.parent = c.currentBlock()
-	b.idx = c.blocks.Len()
-	c.blocks.Push(b)
-	return b
+func (c *Compiler) pushFrame() *frame {
+	f := NewFrame(c.currentFrame())
+	c.frames.Push(f)
+	return f
 }
 
-func (c *Compiler) endBlock() BlockStmt {
-	basic := c.blocks.Pop()
-	stmt := basic.BlockStmt
-
-	for _, v := range basic.vars {
-		if v.noInit {
-			continue
-		}
-
-		stmt.Statements = append(
-			[]Statement{
-				LetStmt{
-					Name: v.id(),
-					Expr: NilExpr{},
-				},
-			},
-			stmt.Statements...,
-		)
-	}
-
-	return stmt
+func (c *Compiler) popFrame() *frame {
+	return c.frames.Pop()
 }
 
-func (c *Compiler) currentBlock() *basicBlock {
-	return c.blocks.Peek()
+func (c *Compiler) currentFrame() *frame {
+	return c.frames.Peek()
 }
 
-func (c *Compiler) blockAdd(s Statement) {
-	b := c.currentBlock()
-	b.Statements = append(b.Statements, s)
-}
-
-func (c *Compiler) Compile(p ast.Program) ([]Statement, error) {
-	c.beginBlock()
+func (c *Compiler) Compile(p ast.Program) (Program, error) {
+	c.pushFrame()
 
 	for _, stmt := range p.Statements {
 		stmtIr, err := c.CompileStmt(stmt)
 		if err != nil {
-			return nil, err
+			return Program{}, err
 		}
-		c.blockAdd(stmtIr)
+		c.currentFrame().pushStmt(stmtIr)
 	}
 
-	res := c.endBlock()
+	res := c.popFrame().export()
 
-	return res.Statements, nil
+	return Program{
+		VarCount:   res.VarCount,
+		Statements: res.Body,
+	}, nil
 }
 
 func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 	switch s := s.(type) {
 	case ast.BlockStmt:
-		c.beginBlock()
+		b := c.currentFrame().pushBlock()
 		for _, stmt := range s.Statements {
 			stmtIr, err := c.CompileStmt(stmt)
 			if err != nil {
 				return nil, err
 			}
-			c.blockAdd(stmtIr)
+			b.pushStmt(stmtIr)
 		}
-		return c.endBlock(), nil
+		return c.currentFrame().popBlock().export(), nil
 
 	case ast.LetStmt:
-		v, err := c.currentBlock().allocate(s.Name)
-		if err != nil {
-			return nil, err
-		}
-		v.noInit = true // don't init the variable in the current block
+		v := c.currentFrame().define(s.Name)
 
 		expr, err := c.CompileExpr(s.Expr)
 		if err != nil {
 			return nil, err
 		}
 
-		return v.set(expr), nil
+		return ExpressionStmt{
+			Expr: v.assign(expr),
+		}, nil
 
 	case ast.IfStmt:
 		cond, err := c.CompileExpr(s.Condition)
@@ -145,6 +120,7 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 		return ExpressionStmt{Expr: expr}, nil
 
 	case ast.WhileStmt:
+		b := c.currentFrame().pushBlock()
 		cond, err := c.CompileExpr(s.Condition)
 		if err != nil {
 			return nil, err
@@ -155,9 +131,7 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 			return nil, err
 		}
 
-		c.beginBlock()
-
-		c.blockAdd(IfStmt{
+		b.pushStmt(IfStmt{
 			Condition: UnaryExpr{
 				Expr:     cond,
 				Operator: UnaryOpNot,
@@ -165,14 +139,14 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 			Body: BreakStmt{},
 		})
 
-		c.blockAdd(body)
+		b.pushStmt(body)
 
-		res := c.endBlock()
+		res := c.currentFrame().popBlock().export()
 
 		return LoopStmt{res}, nil
 
 	case ast.ForStmt:
-		c.beginBlock()
+		outer := c.currentFrame().pushBlock()
 
 		init, err := c.CompileStmt(s.InitStmt)
 		if err != nil {
@@ -194,57 +168,52 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 			return nil, err
 		}
 
-		c.blockAdd(init)
-		c.beginBlock() // inner block
-		c.blockAdd(IfStmt{
+		outer.pushStmt(init)
+
+		inner := c.currentFrame().pushBlock()
+		inner.pushStmt(IfStmt{
 			Condition: UnaryExpr{
 				Expr:     cond,
 				Operator: UnaryOpNot,
 			},
 			Body: BreakStmt{},
 		})
-		c.blockAdd(body)
-		c.blockAdd(ExpressionStmt{
+		inner.pushStmt(body)
+		inner.pushStmt(ExpressionStmt{
 			incr,
 		})
-		inner := c.endBlock()
+		inner = c.currentFrame().popBlock()
 
-		c.blockAdd(LoopStmt{inner})
+		outer.pushStmt(LoopStmt{inner.export()})
 
-		res := c.endBlock()
+		res := c.currentFrame().popBlock().export()
 
 		return res, nil
 
 	case ast.MatchStmt:
-		c.beginBlock()
+		outer := c.currentFrame().pushBlock()
 
 		expr, err := c.CompileExpr(s.Expr)
 		if err != nil {
 			return nil, err
 		}
 
-		exprVar, err := c.currentBlock().allocate("")
-		if err != nil {
-			return nil, err
-		}
-		exprVar.noInit = true
+		exprVar := c.currentFrame().define("")
 
-		c.blockAdd(exprVar.set(expr))
+		outer.pushStmt(exprVar.assignStmt(expr))
 
-		exprIdent := IdentExpr{exprVar.id()}
+		exprIdent := exprVar.load()
 
 		if len(s.Cases) == 0 {
-			return c.endBlock(), nil
+			return c.currentFrame().popBlock().export(), nil
 		}
 
-		c.beginBlock()
+		inner := c.currentFrame().pushBlock()
 
 		currentCase, err := c.compileMatchCase(s.Cases[len(s.Cases)-1], exprIdent)
 		if err != nil {
 			return nil, err
 		}
-
-		c.currentBlock().deallocateAll()
 
 		if s.ElseBody != nil {
 			elseStmt, err := c.CompileStmt(*s.ElseBody)
@@ -264,19 +233,17 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 
 			ifStmt.Alternative = stmtPointer(currentCase)
 			currentCase = ifStmt
-
-			c.currentBlock().deallocateAll()
 		}
 
-		c.blockAdd(currentCase)
+		inner.pushStmt(currentCase)
 
-		inner := c.endBlock()
+		inner = c.currentFrame().popBlock()
 
-		c.blockAdd(inner)
+		outer.pushStmt(inner.export())
 
-		res := c.endBlock()
+		outer = c.currentFrame().popBlock()
 
-		return res, nil
+		return outer.export(), nil
 
 	default:
 		panic(fmt.Sprintf("unimplemented %T", s))
@@ -327,7 +294,7 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 					BinaryOpEq,
 					[]Expr{
 						PostFixExpr{
-							IdentExpr{"type"},
+							BuiltInExpr{"type"},
 							[]PostFixOp{
 								CallOp{
 									Args: []Expr{
@@ -357,7 +324,7 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 					BinaryOpEq,
 					[]Expr{
 						PostFixExpr{
-							IdentExpr{"type"},
+							BuiltInExpr{"type"},
 							[]PostFixOp{
 								CallOp{
 									Args: []Expr{
@@ -387,7 +354,7 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 					BinaryOpEq,
 					[]Expr{
 						PostFixExpr{
-							IdentExpr{"type"},
+							BuiltInExpr{"type"},
 							[]PostFixOp{
 								CallOp{
 									Args: []Expr{
@@ -410,18 +377,15 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 		}, nil
 
 	case ast.MatchCaseIdent:
-		v, err := c.currentBlock().allocate(cond.Name)
-		if err != nil {
-			return nil, err
-		}
-		return assignOrTrue(v.id(), expr), nil
+		v := c.currentFrame().define(cond.Name)
+		return orTrue(v.assign(expr)), nil
 
 	case ast.MatchCaseObject:
 		isObject := BinaryExpr{
 			BinaryOpEq,
 			[]Expr{
 				PostFixExpr{
-					IdentExpr{"type"},
+					BuiltInExpr{"type"},
 					[]PostFixOp{
 						CallOp{[]Expr{expr}},
 					},
@@ -434,7 +398,7 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 			BinaryOpGte,
 			[]Expr{
 				PostFixExpr{
-					IdentExpr{"len"},
+					BuiltInExpr{"len"},
 					[]PostFixOp{
 						CallOp{[]Expr{expr}},
 					},
@@ -452,24 +416,22 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 		}
 
 		for key, cond := range cond.KVs {
-			v, err := c.currentBlock().allocate("")
-			if err != nil {
-				return nil, err
-			}
+			v := c.currentFrame().define("")
 
 			res.Operands = append(res.Operands,
-				assignOrTrue(v.id(), PostFixExpr{
-					expr,
-					[]PostFixOp{
-						IndexOp{Index: StringExpr{Value: key}},
-					},
-				}),
+				orTrue(
+					v.assign(PostFixExpr{
+						expr,
+						[]PostFixOp{
+							IndexOp{Index: StringExpr{Value: key}},
+						},
+					}),
+				),
 			)
-			child, err := c.compileMatchCondition(cond, IdentExpr{v.id()})
+			child, err := c.compileMatchCondition(cond, v.load())
 			if err != nil {
 				return nil, err
 			}
-			v.deallocate()
 
 			res.Operands = append(res.Operands, child)
 		}
@@ -481,7 +443,7 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 			BinaryOpEq,
 			[]Expr{
 				PostFixExpr{
-					IdentExpr{"type"},
+					BuiltInExpr{"type"},
 					[]PostFixOp{
 						CallOp{[]Expr{expr}},
 					},
@@ -494,7 +456,7 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 			BinaryOpGte,
 			[]Expr{
 				PostFixExpr{
-					IdentExpr{"len"},
+					BuiltInExpr{"len"},
 					[]PostFixOp{
 						CallOp{[]Expr{expr}},
 					},
@@ -512,24 +474,22 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 		}
 
 		for i, cond := range cond.Conditions {
-			v, err := c.currentBlock().allocate("")
-			if err != nil {
-				return nil, err
-			}
+			v := c.currentFrame().define("")
 
 			res.Operands = append(res.Operands,
-				assignOrTrue(v.id(), PostFixExpr{
-					expr,
-					[]PostFixOp{
-						IndexOp{Index: IntExpr{Value: i}},
-					},
-				}),
+				orTrue(
+					v.assign(PostFixExpr{
+						expr,
+						[]PostFixOp{
+							IndexOp{Index: IntExpr{Value: i}},
+						},
+					}),
+				),
 			)
-			child, err := c.compileMatchCondition(cond, IdentExpr{v.id()})
+			child, err := c.compileMatchCondition(cond, v.load())
 			if err != nil {
 				return nil, err
 			}
-			v.deallocate()
 
 			res.Operands = append(res.Operands, child)
 		}
@@ -541,14 +501,11 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 	}
 }
 
-func assignOrTrue(name string, value Expr) Expr {
+func orTrue(value Expr) Expr {
 	return BinaryExpr{
 		BinaryOpOr,
 		[]Expr{
-			VarAssignExpr{
-				Name:  name,
-				Value: value,
-			},
+			value,
 			BoolExpr{Value: true},
 		},
 	}
@@ -580,9 +537,9 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 		}
 
 		switch e := assignee.(type) {
-		case IdentExpr:
+		case LoadExpr:
 			return VarAssignExpr{
-				Name:  e.Name,
+				Var:   e.Var,
 				Value: expr,
 			}, nil
 
@@ -632,12 +589,12 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 		return ObjectExpr{KVs: res}, nil
 
 	case ast.IdentExpr:
-		v, err := c.currentBlock().resolve(e.Name)
-		if err != nil {
-			// TODO: handle the builting functions at ir level
-			return IdentExpr{Name: e.Name}, nil
+		v, err := c.currentFrame().resolve(e.Name)
+		if err == nil {
+			return v.load(), nil
 		}
-		return IdentExpr{Name: v.id()}, nil
+
+		return BuiltInExpr{e.Name}, nil
 
 	case ast.BinaryExpr:
 		var res []Expr
@@ -717,16 +674,10 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 		}, nil
 
 	case ast.FunctionExpr:
-		c.beginBlock()
+		frame := c.pushFrame()
 
-		for i, param := range e.Params {
-			v, err := c.currentBlock().allocate(param)
-			if err != nil {
-				return nil, err
-			}
-
-			v.noInit = true
-			e.Params[i] = v.id()
+		for _, param := range e.Params {
+			frame.define(param)
 		}
 
 		body, err := c.CompileStmt(e.Body)
@@ -734,41 +685,26 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 			return nil, err
 		}
 
-		c.blockAdd(body)
+		frame.pushStmt(body)
 
-		inner := c.endBlock()
+		frameExpr := c.popFrame().export()
+		frameExpr.ParamsCount = len(e.Params)
 
-		return FunctionExpr{
-			Params: e.Params,
-			Body:   inner,
-		}, nil
+		return frameExpr, nil
 
 	case ast.LambdaExpr:
-		c.beginBlock()
-
-		for i, param := range e.Params {
-			v, err := c.currentBlock().allocate(param)
-			if err != nil {
-				return nil, err
-			}
-
-			v.noInit = true
-			e.Params[i] = v.id()
-		}
-
-		body, err := c.CompileExpr(e.Expr)
-		if err != nil {
-			return nil, err
-		}
-
-		c.blockAdd(ReturnStmt{Expr: body})
-
-		inner := c.endBlock()
-
-		return FunctionExpr{
-			Params: e.Params,
-			Body:   inner,
-		}, nil
+		return c.CompileExpr(
+			ast.FunctionExpr{
+				Params: e.Params,
+				Body: ast.BlockStmt{
+					Statements: []ast.Statement{
+						ast.ReturnStmt{
+							Expr: e.Expr,
+						},
+					},
+				},
+			},
+		)
 
 	case ast.NilExpr:
 		return NilExpr{}, nil

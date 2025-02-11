@@ -10,7 +10,6 @@ import (
 )
 
 type Compiler struct {
-	frames              *ds.Stack[*Frame]
 	constants           []vm.Value
 	functionsIdx        []int
 	labelCounter        int
@@ -36,7 +35,6 @@ func New(opts ...CompilerOption) *Compiler {
 	nilValue.SetNil()
 
 	c := &Compiler{
-		frames:      &ds.Stack[*Frame]{},
 		loopContext: &ds.Stack[loopContext]{},
 		constants: []vm.Value{
 			nilValue,
@@ -51,23 +49,21 @@ func New(opts ...CompilerOption) *Compiler {
 	return c
 }
 
-func (c *Compiler) Compile(p []ir.Statement) (*Frame, []vm.Value, error) {
-	c.pushFrame()
+func (c *Compiler) Compile(p ir.Program) ([]opcode.OpCode, int, []vm.Value, error) {
+	var instructions []opcode.OpCode
 
-	for _, s := range p {
-		instructions, err := c.compileStmt(s)
+	for _, s := range p.Statements {
+		r, err := c.compileStmt(s)
 		if err != nil {
-			return nil, nil, err
+			return nil, 0, nil, err
 		}
-		c.addInstructions(instructions)
+		instructions = append(instructions, r...)
 	}
-
-	mainFrame := c.popFrame()
-	mainFrame.Instructions = append(mainFrame.Instructions, opcode.OP_HALT)
+	instructions = append(instructions, opcode.OP_HALT)
 	if c.optimizationEnabled {
-		mainFrame.Instructions = c.optimize(mainFrame.Instructions)
+		instructions = c.optimize(instructions)
 	}
-	mainFrame.Instructions = c.handleLabels(mainFrame.Instructions)
+	instructions = c.handleLabels(instructions)
 
 	for _, f := range c.functionsIdx {
 		fn := c.constants[f].GetFunction()
@@ -77,7 +73,7 @@ func (c *Compiler) Compile(p []ir.Statement) (*Frame, []vm.Value, error) {
 		fn.Instructions = c.handleLabels(fn.Instructions)
 	}
 
-	return mainFrame, c.constants, nil
+	return instructions, p.VarCount, c.constants, nil
 }
 
 func (c *Compiler) handleLabels(instructions []opcode.OpCode) []opcode.OpCode {
@@ -123,8 +119,6 @@ func (c *Compiler) handleLabels(instructions []opcode.OpCode) []opcode.OpCode {
 func (c *Compiler) compileStmt(s ir.Statement) ([]opcode.OpCode, error) {
 	switch s := s.(type) {
 	case ir.BlockStmt:
-		c.beginBlock()
-
 		instructions := []opcode.OpCode{}
 		for _, stmt := range s.Statements {
 			stmtInstructions, err := c.compileStmt(stmt)
@@ -133,21 +127,6 @@ func (c *Compiler) compileStmt(s ir.Statement) ([]opcode.OpCode, error) {
 			}
 			instructions = append(instructions, stmtInstructions...)
 		}
-
-		c.endBlock()
-
-		return instructions, nil
-
-	case ir.LetStmt:
-		var instructions []opcode.OpCode
-		expr, err := c.compileExpr(s.Expr)
-		if err != nil {
-			return nil, err
-		}
-		instructions = append(instructions, expr...)
-		instructions = append(instructions, opcode.OP_STORE)
-		instructions = append(instructions, opcode.OpCode(c.defineVar(s.Name)))
-		instructions = append(instructions, opcode.OP_POP)
 
 		return instructions, nil
 
@@ -330,33 +309,27 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 
 		return instructions, nil
 
-	case ir.FunctionExpr:
-		c.pushFrame()
-
-		for _, param := range e.Params {
-			c.defineVar(param)
-		}
-
-		body, err := c.compileStmt(e.Body)
+	case ir.FrameExpr:
+		var frameBodyInstructions []opcode.OpCode
+		body, err := c.compileStmt(ir.BlockStmt{
+			Statements: e.Body,
+		})
 		if err != nil {
 			return nil, err
 		}
-		c.addInstructions(body)
-
+		frameBodyInstructions = append(frameBodyInstructions, body...)
 		// default return
-		c.addInstructions([]opcode.OpCode{
+		frameBodyInstructions = append(frameBodyInstructions,
 			opcode.OP_LOAD,
 			opcode.ScopeTypeConst,
 			opcode.OpCode(0),
 			opcode.OP_RET,
-		})
-
-		frame := c.popFrame()
+		)
 
 		fnValue := vm.Value{}
 		fnValue.SetFunction(vm.FunctionValue{
-			NumVars:      len(frame.Vars),
-			Instructions: frame.Instructions,
+			NumVars:      e.VarCount - e.ParamsCount,
+			Instructions: frameBodyInstructions,
 		})
 
 		constant := c.defineConstant(fnValue)
@@ -364,35 +337,34 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 
 		var instructions []opcode.OpCode
 
-		for _, freeVar := range frame.FreeVars {
-			instructions = append(instructions, freeVar.Parent.load()...)
+		for _, freeVar := range e.FreeVars {
+			instructions = append(instructions, c.loadVar(freeVar)...)
 		}
 		instructions = append(instructions,
 			opcode.OP_FUNC,
 			opcode.OpCode(constant),
-			opcode.OpCode(len(frame.FreeVars)),
+			opcode.OpCode(len(e.FreeVars)),
 		)
 
 		return instructions, nil
 
-	case ir.IdentExpr:
-		v, err := c.resolveVar(e.Name)
-		if err == nil {
-			return v.load(), nil
+	case ir.LoadExpr:
+		return c.loadVar(e.Var), nil
+
+	case ir.BuiltInExpr:
+		f, ok := builtInFunctions[e.Name]
+		if !ok {
+			return nil, fmt.Errorf("unknown built-in function %s", e.Name)
 		}
 
-		if f, ok := builtInFunctions[e.Name]; ok {
-			fVal := vm.Value{}
-			fVal.SetNativeFunction(f)
+		fVal := vm.Value{}
+		fVal.SetNativeFunction(f)
 
-			return []opcode.OpCode{
-				opcode.OP_LOAD,
-				opcode.ScopeTypeConst,
-				opcode.OpCode(c.defineConstant(fVal)),
-			}, nil
-		}
-
-		return nil, err
+		return []opcode.OpCode{
+			opcode.OP_LOAD,
+			opcode.ScopeTypeConst,
+			opcode.OpCode(c.defineConstant(fVal)),
+		}, nil
 
 	case ir.IntExpr:
 		value := vm.Value{}
@@ -446,13 +418,7 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 			return nil, err
 		}
 		instructions = append(instructions, expr...)
-
-		v, err := c.resolveVar(e.Name)
-		if err != nil {
-			return nil, err
-		}
-
-		instructions = append(instructions, v.store()...)
+		instructions = append(instructions, c.storeVar(e.Var)...)
 
 		return instructions, nil
 
@@ -613,37 +579,9 @@ func (c *Compiler) unaryOperatorOpcode(operator ir.UnaryOp) opcode.OpCode {
 	}
 }
 
-func (c *Compiler) defineVar(name string) int {
-	return c.frames.Peek().defineVar(name)
-}
-
-func (c *Compiler) resolveVar(name string) (*Var, error) {
-	return c.frames.Peek().resolve(name)
-}
-
 func (c *Compiler) defineConstant(v vm.Value) int {
 	c.constants = append(c.constants, v)
 	return len(c.constants) - 1
-}
-
-func (c *Compiler) pushFrame() {
-	c.frames.Push(NewFrame(c.frames.Peek()))
-}
-
-func (c *Compiler) popFrame() *Frame {
-	return c.frames.Pop()
-}
-
-func (c *Compiler) addInstructions(instructions []opcode.OpCode) {
-	c.frames.Peek().addInstructions(instructions)
-}
-
-func (c *Compiler) beginBlock() {
-	c.frames.Peek().beginBlock()
-}
-
-func (c *Compiler) endBlock() {
-	c.frames.Peek().endBlock()
 }
 
 func (c *Compiler) label() int {
@@ -665,4 +603,40 @@ func (c *Compiler) endLoop() {
 
 func (c *Compiler) currentLoop() loopContext {
 	return c.loopContext.Peek()
+}
+
+func (c *Compiler) loadVar(v ir.Var) []opcode.OpCode {
+	switch v.Scope {
+	case ir.VarScopeLocal:
+		return []opcode.OpCode{
+			opcode.OP_LOAD,
+			opcode.ScopeTypeLocal,
+			opcode.OpCode(v.Idx),
+		}
+	case ir.VarScopeFree:
+		return []opcode.OpCode{
+			opcode.OP_LOAD,
+			opcode.ScopeTypeFree,
+			opcode.OpCode(v.Idx),
+		}
+	default:
+		panic(fmt.Sprintf("unknown scope %d", v.Scope))
+	}
+}
+
+func (c *Compiler) storeVar(v ir.Var) []opcode.OpCode {
+	switch v.Scope {
+	case ir.VarScopeLocal:
+		return []opcode.OpCode{
+			opcode.OP_STORE,
+			opcode.OpCode(v.Idx),
+		}
+	case ir.VarScopeFree:
+		return []opcode.OpCode{
+			opcode.OP_STORE_FREE,
+			opcode.OpCode(v.Idx),
+		}
+	default:
+		panic(fmt.Sprintf("unknown scope %d", v.Scope))
+	}
 }

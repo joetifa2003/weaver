@@ -19,6 +19,7 @@ const (
 	ValueTypeFunction
 	ValueTypeArray
 	ValueTypeNativeFunction
+	ValueTypRef
 )
 
 func (t ValueType) String() string {
@@ -57,45 +58,69 @@ func interpret[T any](b *[8]byte) *T {
 	return (*T)(unsafe.Pointer(b))
 }
 
+func (v *Value) Deref() *Value {
+	if v.VType == ValueTypRef {
+		return (*Value)(v.nonPrimitive)
+	}
+
+	return v
+}
+
+func (v *Value) SetRef(r *Value) {
+	v.VType = ValueTypRef
+	v.nonPrimitive = unsafe.Pointer(r)
+}
+
 func (v *Value) GetInt() int {
-	if v.VType != ValueTypeInt {
+	vr := v.Deref()
+
+	if vr.VType != ValueTypeInt {
 		panic("Value.GetInt(): not an int")
 	}
 
-	return *interpret[int](&v.primitive)
+	return *interpret[int](&vr.primitive)
 }
 
 func (v *Value) GetFloat() float64 {
-	if v.VType != ValueTypeFloat {
+	vr := v.Deref()
+
+	if vr.VType != ValueTypeFloat {
 		panic("Value.GetFloat(): not a float")
 	}
 
-	return *interpret[float64](&v.primitive)
+	return *interpret[float64](&vr.primitive)
 }
 
 func (v *Value) SetObject(o map[string]Value) {
-	v.VType = ValueTypeObject
-	v.nonPrimitive = unsafe.Pointer(&o)
+	vr := v.Deref()
+	vr.VType = ValueTypeObject
+	vr.nonPrimitive = unsafe.Pointer(&o)
 }
 
 func (v *Value) GetObject() map[string]Value {
-	if v.VType != ValueTypeObject {
+	vr := v.Deref()
+
+	if vr.VType != ValueTypeObject {
 		panic("Value.GetObject(): not an object")
 	}
 
-	return *(*map[string]Value)(v.nonPrimitive)
+	return *(*map[string]Value)(vr.nonPrimitive)
 }
 
 func (v *Value) GetBool() bool {
-	if v.VType != ValueTypeBool {
+	vr := v.Deref()
+
+	if vr.VType != ValueTypeBool {
 		panic("Value.GetBool(): not a bool")
 	}
 
-	return *interpret[bool](&v.primitive)
+	return *interpret[bool](&vr.primitive)
 }
 
 func (v *Value) GetArray() *[]Value {
-	if v.VType != ValueTypeArray {
+	vr := v.Deref()
+
+	if vr.VType != ValueTypeArray {
 		panic("Value.GetArray(): not an array")
 	}
 
@@ -103,23 +128,27 @@ func (v *Value) GetArray() *[]Value {
 }
 
 func (v *Value) SetArray(a []Value) {
-	v.VType = ValueTypeArray
-	v.nonPrimitive = unsafe.Pointer(&a)
+	vr := v.Deref()
+	vr.VType = ValueTypeArray
+	vr.nonPrimitive = unsafe.Pointer(&a)
 }
 
 func (v *Value) SetBool(b bool) {
-	v.VType = ValueTypeBool
-	*interpret[bool](&v.primitive) = b
+	vr := v.Deref()
+	vr.VType = ValueTypeBool
+	*interpret[bool](&vr.primitive) = b
 }
 
 func (v *Value) SetInt(i int) {
-	v.VType = ValueTypeInt
-	*interpret[int](&v.primitive) = i
+	vr := v.Deref()
+	vr.VType = ValueTypeInt
+	*interpret[int](&vr.primitive) = i
 }
 
 func (v *Value) SetFloat(f float64) {
-	v.VType = ValueTypeFloat
-	*interpret[float64](&v.primitive) = f
+	vr := v.Deref()
+	vr.VType = ValueTypeFloat
+	*interpret[float64](&vr.primitive) = f
 }
 
 func (v *Value) SetNil() {
@@ -133,75 +162,81 @@ type FunctionValue struct {
 }
 
 func (v *Value) SetFunction(f FunctionValue) {
-	v.VType = ValueTypeFunction
-	v.nonPrimitive = unsafe.Pointer(&f)
+	vr := v.Deref()
+	vr.VType = ValueTypeFunction
+	vr.nonPrimitive = unsafe.Pointer(&f)
 }
 
 func (v *Value) GetFunction() *FunctionValue {
-	if v.VType != ValueTypeFunction {
+	vr := v.Deref()
+	if vr.VType != ValueTypeFunction {
 		panic("Value.GetFunction(): not a function")
 	}
 
-	return (*FunctionValue)(v.nonPrimitive)
+	return (*FunctionValue)(vr.nonPrimitive)
 }
 
 func (v *Value) SetString(s string) {
-	v.VType = ValueTypeString
-	v.nonPrimitive = unsafe.Pointer(&s)
+	vr := v.Deref()
+	vr.VType = ValueTypeString
+	vr.nonPrimitive = unsafe.Pointer(&s)
 }
 
 func (v *Value) GetString() string {
-	if v.VType != ValueTypeString {
+	vr := v.Deref()
+	if vr.VType != ValueTypeString {
 		panic("Value.GetString(): not a string")
 	}
 
-	return *(*string)(v.nonPrimitive)
+	return *(*string)(vr.nonPrimitive)
 }
 
 type NativeFunction func(v *VM, args ...Value) Value
 
 func (v *Value) GetNativeFunction() NativeFunction {
-	if v.VType != ValueTypeNativeFunction {
+	vr := v.Deref()
+	if vr.VType != ValueTypeNativeFunction {
 		panic("Value.GetNativeFunction(): not a native function")
 	}
 
-	return *(*NativeFunction)(v.nonPrimitive)
+	return *(*NativeFunction)(vr.nonPrimitive)
 }
 
 func (v *Value) SetNativeFunction(f NativeFunction) {
-	v.VType = ValueTypeNativeFunction
-	v.nonPrimitive = unsafe.Pointer(&f)
+	vr := v.Deref()
+	vr.VType = ValueTypeNativeFunction
+	vr.nonPrimitive = unsafe.Pointer(&f)
 }
 
 func (v Value) String() string {
-	switch v.VType {
-
+	vr := v.Deref()
+	switch vr.VType {
 	case ValueTypeString:
-		str := v.GetString()
+		str := vr.GetString()
 		return str
 
 	case ValueTypeInt:
-		integer := v.GetInt()
+		integer := vr.GetInt()
 		return fmt.Sprint(integer)
 
 	case ValueTypeFloat:
-		float := v.GetFloat()
+		float := vr.GetFloat()
 		return fmt.Sprint(float)
 
 	case ValueTypeNil:
 		return "nil"
 
 	case ValueTypeObject:
-		return fmt.Sprint(v.GetObject())
+		return fmt.Sprint(vr.GetObject())
 
 	case ValueTypeBool:
-		return fmt.Sprint(v.GetBool())
+		return fmt.Sprint(vr.GetBool())
 
 	case ValueTypeFunction:
 		return "function"
 
 	case ValueTypeArray:
-		arr := *v.GetArray()
+		arr := *vr.GetArray()
 		return fmt.Sprint(arr)
 
 	case ValueTypeNativeFunction:

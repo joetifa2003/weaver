@@ -10,6 +10,22 @@ type Expr interface {
 	String() string
 }
 
+type Var struct {
+	Idx   int
+	Scope VarScope
+}
+
+func (v Var) String() string {
+	switch v.Scope {
+	case VarScopeLocal:
+		return fmt.Sprintf("v%d_%s", v.Idx, v.Scope)
+	case VarScopeFree:
+		return fmt.Sprintf("f%d_%s", v.Idx, v.Scope)
+	default:
+		panic(fmt.Sprintf("unknown scope %s", v.Scope))
+	}
+}
+
 type IntExpr struct {
 	Value int
 }
@@ -53,14 +69,24 @@ func (t StringExpr) String() string {
 	return fmt.Sprintf("\"%s\"", t.Value)
 }
 
-type IdentExpr struct {
+type BuiltInExpr struct {
 	Name string
 }
 
-func (t IdentExpr) expr() {}
+func (t BuiltInExpr) expr() {}
 
-func (t IdentExpr) String() string {
-	return t.Name
+func (t BuiltInExpr) String() string {
+	return fmt.Sprintf("@%s", t.Name)
+}
+
+type LoadExpr struct {
+	Var
+}
+
+func (t LoadExpr) expr() {}
+
+func (t LoadExpr) String() string {
+	return fmt.Sprintf("%s", t.Var)
 }
 
 type IdxAssignExpr struct {
@@ -76,14 +102,14 @@ func (t IdxAssignExpr) String() string {
 }
 
 type VarAssignExpr struct {
-	Name  string
+	Var   Var
 	Value Expr
 }
 
 func (t VarAssignExpr) expr() {}
 
 func (t VarAssignExpr) String() string {
-	return fmt.Sprintf("%s = %s", t.Name, t.Value.String())
+	return fmt.Sprintf("%s = %s", t.Var, t.Value.String())
 }
 
 type UnaryOp int
@@ -143,19 +169,17 @@ func (t ObjectExpr) String() string {
 	return fmt.Sprintf("{%s}", strings.Join(res, ", "))
 }
 
-type FunctionExpr struct {
-	Params []string
-	Body   Statement
+type FrameExpr struct {
+	VarCount    int
+	ParamsCount int
+	FreeVars    []Var
+	Body        []Statement
 }
 
-func (t FunctionExpr) expr() {}
+func (t FrameExpr) expr() {}
 
-func (t FunctionExpr) String() string {
-	var res []string
-	for _, param := range t.Params {
-		res = append(res, param)
-	}
-	return fmt.Sprintf("|%s| %s", strings.Join(res, ", "), t.Body.String(0))
+func (t FrameExpr) String() string {
+	return "frame"
 }
 
 type BinaryOp int

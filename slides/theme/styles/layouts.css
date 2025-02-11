@@ -8,8 +8,9 @@
   }
 
   h1 + p {
-    @apply -mt-2 opacity-50 mb-6 font-serif text-base;
+    @apply -mt-2 mb-6 font-serif text-base;
     position: relative; 
+    color: #878788
     /* display: inline-block;  */
   }
 
@@ -21,6 +22,22 @@
     bottom: -10px;
     height: 2px;
     background-color: #BD976A; 
+  }
+
+  h2, h3, h4, h5, h6 {
+    @apply mb-4;
+    position: relative; 
+  }
+
+  h2::after, h3::after, h4::after, h5::after, h6::after {
+    content: ''; 
+    position: absolute; 
+    left: 0;
+    width: 100%; 
+    bottom: -5px;
+    height: 2px;
+    background-color: #BD976A; 
+    opacity: 1;
   }
 
   p + h2, ul + h2, table + h2 {
@@ -93,4 +110,14 @@
   h1 {
     @apply text-6xl font-500 leading-20;
   }
+}
+
+.slidev-vclick-target {
+  transition: opacity 200ms ease;
+  opacity: 1;
+}
+
+.slidev-vclick-hidden {
+  opacity: 0;
+  pointer-events: none;
 }

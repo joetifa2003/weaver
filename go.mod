@@ -1,6 +1,6 @@
 module github.com/joetifa2003/weaver
 
-go 1.23
+go 1.24
 
 require (
 	github.com/pkg/profile v1.7.0

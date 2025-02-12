@@ -214,6 +214,7 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 		if err != nil {
 			return nil, err
 		}
+		inner.freeAll()
 
 		if s.ElseBody != nil {
 			elseStmt, err := c.CompileStmt(*s.ElseBody)
@@ -233,6 +234,7 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 
 			ifStmt.Alternative = stmtPointer(currentCase)
 			currentCase = ifStmt
+			inner.freeAll()
 		}
 
 		inner.pushStmt(currentCase)

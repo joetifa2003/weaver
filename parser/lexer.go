@@ -25,11 +25,13 @@ const (
 	TT_ASSIGN
 	TT_VARDECL
 	TT_WHITESPACE
+	TT_KEYWORD
 )
 
 func newLexer() *lexer.RegexLexer {
 	return lexer.New(
 		[]lexer.Pattern{
+			{TokenType: TT_KEYWORD, Regex: "(match|else|if|for|while)"},
 			{TokenType: TT_IDENT, Regex: "[a-zA-Z_]+[0-9]*"},
 			{TokenType: TT_FLOAT, Regex: "[0-9]+\\.[0-9]+"},
 			{TokenType: TT_INT, Regex: "[0-9]+"},

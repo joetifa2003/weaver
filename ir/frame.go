@@ -27,10 +27,19 @@ func (c *frame) define(name string) *basicVar {
 		name = fmt.Sprintf("__$b%dv%d", c.Blocks.Len()-1, len(c.Vars))
 	}
 
+	block := c.currentBlock()
+
+	for _, v := range c.Vars {
+		if v.Free {
+			v.Name = name
+			block.vars = append(block.vars, v)
+			v.Free = false
+			return v
+		}
+	}
+
 	v := &basicVar{Name: name, Scope: VarScopeLocal, Index: len(c.Vars)}
 	c.Vars = append(c.Vars, v)
-
-	block := c.currentBlock()
 	block.vars = append(block.vars, v)
 	return v
 }
@@ -77,7 +86,11 @@ func (c *frame) pushBlock() *basicBlock {
 }
 
 func (c *frame) popBlock() *basicBlock {
-	return c.Blocks.Pop()
+	b := c.Blocks.Pop()
+	for _, v := range b.vars {
+		v.Free = true
+	}
+	return b
 }
 
 func (c *frame) pushStmt(s Statement) {
@@ -120,6 +133,7 @@ type basicVar struct {
 	Name   string
 	Index  int
 	Parent *basicVar
+	Free   bool
 }
 
 func (b *basicVar) assign(expr Expr) VarAssignExpr {
@@ -166,5 +180,11 @@ func (b *basicBlock) pushStmt(s Statement) {
 func (b *basicBlock) export() BlockStmt {
 	return BlockStmt{
 		Statements: b.statements,
+	}
+}
+
+func (b *basicBlock) freeAll() {
+	for _, v := range b.vars {
+		v.Free = true
 	}
 }

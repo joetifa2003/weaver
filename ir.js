@@ -1,24 +1,16 @@
-v0_local = 0
-v1_local = 0
 {
-	v2_local = 0
-	loop 		{
-			if !((v2_local < 10000000)) {
-				break
-			}
+	v0_local = ""
+	{
+		if ((@type(v0_local) == "object") && (@len(v0_local) >= 2) && (v1_local = v0_local["name"] || true) && (v2_local = v1_local || true) && (v3_local = v0_local["age"] || true) && (v4_local = v3_local || true)) {
 			{
-				if ((v2_local % 2) == 0) {
-					{
-						v0_local = (v0_local + 1)
-					}
-				} else {
-					{
-						v1_local = (v1_local + 1)
-					}
+				@echo(v2_local)
+			}
+		} else {
+			if (v1_local = v0_local || true) {
+				{
+					@echo(v1_local)
 				}
 			}
-			v2_local = (v2_local + 1)
 		}
+	}
 }
-@echo(v0_local)
-@echo(v1_local)

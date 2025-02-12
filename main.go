@@ -14,18 +14,14 @@ import (
 
 func main() {
 	src := `
-		even := 0
-		odd := 0
-		for i := 0; i < 10000000; i = i + 1 {
-			if i % 2 == 0 {
-				even = even + 1
-			} else {
-				odd = odd + 1
+		match "" {
+			{name: n, age: a} => {
+				n |> echo()	
+			},
+			z => {
+				z |> echo()
 			}
 		}
-
-		even |> echo()
-		odd |> echo()
 	`
 
 	// src := `

@@ -55,6 +55,15 @@ var optimizers = []Optimizer{
 		},
 	},
 	{
+		Seq: seq(eq(opcode.OP_INC_LOCAL), eq(opcode.OP_POP)),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			return []opcode.OpCode{
+				opcode.OP_INC_LOCAL_POP,
+				doc[0].Args[0],
+			}
+		},
+	},
+	{
 		Seq: seq(eq(opcode.OP_NOT), eq(opcode.OP_PJUMP_F)),
 		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
 			return []opcode.OpCode{

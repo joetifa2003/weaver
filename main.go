@@ -17,9 +17,9 @@ func main() {
 		odd := 0
 		for i := 0; i < 10000000; i++ {
 			if i % 2 == 0 {
-				even = even + 1
+				even++
 			} else {
-				odd = odd + 1
+				odd++
 			}
 		}
 

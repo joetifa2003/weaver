@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/joetifa2003/weaver/compiler"
@@ -14,30 +13,19 @@ import (
 
 func main() {
 	src := `
-		match "" {
-			{name: n, age: a} => {
-				n |> echo()	
-			},
-			z => {
-				z |> echo()
+		even := 0
+		odd := 0
+		for i := 0; i < 10000000; i++ {
+			if i % 2 == 0 {
+				even = even + 1
+			} else {
+				odd = odd + 1
 			}
 		}
-	`
 
-	// src := `
-	// 	even := 0
-	// 	odd := 0
-	// 	for i := 0; i < 10000000; i = i + 1 {
-	// 		if i % 2 == 0 {
-	// 			even = even + 1
-	// 		} else {
-	// 			odd = odd + 1
-	// 		}
-	// 	}
-	//
-	// 	even |> echo()
-	// 	odd |> echo()
-	// `
+		even |> echo()
+		odd |> echo()
+	`
 
 	// src := `
 	// 	x := |i| {
@@ -68,16 +56,16 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	res := ""
-	for _, s := range ircr.Statements {
-		res += s.String(0) + "\n"
-	}
-	iro, err := os.Create("ir.js")
-	if err != nil {
-		panic(err)
-	}
-	defer iro.Close()
-	iro.WriteString(res)
+	// res := ""
+	// for _, s := range ircr.Statements {
+	// 	res += s.String(0) + "\n"
+	// }
+	// iro, err := os.Create("ir.js")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer iro.Close()
+	// iro.WriteString(res)
 	fmt.Println("ir took: ", time.Since(irt))
 
 	ct := time.Now()

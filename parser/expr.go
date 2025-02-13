@@ -173,7 +173,7 @@ func assignExpr() pargo.Parser[ast.Expr] {
 
 func postFixExpr() pargo.Parser[ast.Expr] {
 	return pargo.Sequence2(
-		atom(),
+		increment(),
 		pargo.Many(
 			pargo.OneOf(
 				postFixIndexOp(),
@@ -222,6 +222,19 @@ func postFixDotOp() pargo.Parser[ast.PostFixOp] {
 				Index: ident,
 			}
 		},
+	)
+}
+
+func increment() pargo.Parser[ast.Expr] {
+	return pargo.OneOf(
+		pargo.Sequence2(
+			identExpr(),
+			pargo.Exactly("++"),
+			func(expr ast.Expr, _ string) ast.Expr {
+				return ast.VarIncrementExpr{Name: expr.(ast.IdentExpr).Name}
+			},
+		),
+		atom(),
 	)
 }
 

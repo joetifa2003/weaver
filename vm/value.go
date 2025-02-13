@@ -46,7 +46,7 @@ func (t ValueType) String() string {
 	}
 }
 
-// Value poor mans union/enum
+// Value poor mans union/enum.
 type Value struct {
 	VType        ValueType
 	primitive    [8]byte

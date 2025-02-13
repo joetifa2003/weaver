@@ -180,6 +180,14 @@ func (v *VM) Run() {
 
 			v.curFrame.ip += 3
 
+		case opcode.OP_INC_LOCAL:
+			idx := v.curFrame.instructions[v.curFrame.ip+1]
+			i := v.stack[idx].GetInt()
+			v.stack[idx].SetInt(i + 1)
+			v.sp++
+			v.stack[v.sp].SetInt(i + 1)
+			v.curFrame.ip += 2
+
 		case opcode.OP_LOAD:
 			scope := v.curFrame.instructions[v.curFrame.ip+1]
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])

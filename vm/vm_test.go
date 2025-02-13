@@ -327,11 +327,26 @@ func TestVM(t *testing.T) {
 		res == "foobar" |> assert()
 		res2 == "joe" |> assert()
 		`,
+		27: `
+			even := 0
+			odd := 0
+			for i := 0; i < 10; i++ {
+				if i % 2 == 0 {
+					even = even + 1
+				}	else {
+					odd = odd + 1
+				}
+			}	
+
+			even == 5 |> assert()
+			odd == 5  |> assert()
+		`,
 	}
 
 	for i, tc := range tests {
 		for _, opt := range []bool{false, true} {
 			t.Run(fmt.Sprintf("%d opt=%t", i, opt), func(t *testing.T) {
+				t.Parallel()
 				p, err := parser.Parse(tc)
 				if err != nil {
 					t.Fatal(fmt.Errorf("failed to parse: %w", err))

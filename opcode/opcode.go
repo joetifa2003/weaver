@@ -16,6 +16,7 @@ const (
 	OP_CALL
 	OP_RET
 	OP_HALT
+	OP_INC_LOCAL
 
 	OP_LET          // arg1: variable index
 	OP_STORE        // arg1: variable index
@@ -128,6 +129,7 @@ var opCodeDefs = map[OpCode]OpCodeDef{
 	OP_OBJ:          {OP_OBJ, "obj", 0},
 	OP_OPUSH:        {OP_OPUSH, "opsh", 0},
 	OP_LABEL:        {OP_LABEL, "label", 1},
+	OP_INC_LOCAL:    {OP_INC_LOCAL, "incl", 1},
 
 	OP_ECHO: {OP_ECHO, "echo", 0},
 

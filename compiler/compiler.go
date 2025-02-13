@@ -292,6 +292,8 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 					instructions = append(instructions, expr...)
 				}
 				instructions = append(instructions, opcode.OP_CALL, opcode.OpCode(len(op.Args)))
+			default:
+				panic(fmt.Sprintf("unimplemented %T", op))
 			}
 		}
 
@@ -308,6 +310,17 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 		instructions = append(instructions, c.unaryOperatorOpcode(e.Operator))
 
 		return instructions, nil
+
+	case ir.VarIncrementExpr:
+		switch e.Var.Scope {
+		case ir.VarScopeLocal:
+			return []opcode.OpCode{
+				opcode.OP_INC_LOCAL,
+				opcode.OpCode(e.Var.Idx),
+			}, nil
+		default:
+			panic(fmt.Sprintf("unimplemented scope %d", e.Var.Scope))
+		}
 
 	case ir.FrameExpr:
 		var frameBodyInstructions []opcode.OpCode

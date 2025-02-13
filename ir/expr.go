@@ -112,6 +112,16 @@ func (t VarAssignExpr) String() string {
 	return fmt.Sprintf("%s = %s", t.Var, t.Value.String())
 }
 
+type VarIncrementExpr struct {
+	Var Var
+}
+
+func (t VarIncrementExpr) expr() {}
+
+func (t VarIncrementExpr) String() string {
+	return fmt.Sprintf("%s++", t.Var)
+}
+
 type UnaryOp int
 
 const (

@@ -140,6 +140,12 @@ type CallOp struct {
 
 func (t CallOp) postFixOp() {}
 
+type VarIncrementExpr struct {
+	Name string
+}
+
+func (t VarIncrementExpr) expr() {}
+
 type NilExpr struct{}
 
 func (t NilExpr) expr() {}

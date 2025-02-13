@@ -667,12 +667,24 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 				res = append(res, CallOp{
 					Args: args,
 				})
+			default:
+				panic(fmt.Sprintf("unimplemented postfix op %T", op))
 			}
 		}
 
 		return PostFixExpr{
 			Expr: expr,
 			Ops:  res,
+		}, nil
+
+	case ast.VarIncrementExpr:
+		v, err := c.currentFrame().resolve(e.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		return VarIncrementExpr{
+			Var: v.export(),
 		}, nil
 
 	case ast.FunctionExpr:

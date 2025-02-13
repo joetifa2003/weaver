@@ -2,6 +2,7 @@ package vm
 
 import (
 	"fmt"
+	"strconv"
 	"unsafe"
 
 	"github.com/joetifa2003/weaver/opcode"
@@ -181,7 +182,7 @@ func (v Value) String() string {
 
 	case ValueTypeInt:
 		integer := v.GetInt()
-		return fmt.Sprint(integer)
+		return strconv.Itoa(integer)
 
 	case ValueTypeFloat:
 		float := v.GetFloat()
@@ -194,7 +195,7 @@ func (v Value) String() string {
 		return fmt.Sprint(v.GetObject())
 
 	case ValueTypeBool:
-		return fmt.Sprint(v.GetBool())
+		return strconv.FormatBool(v.GetBool())
 
 	case ValueTypeFunction:
 		return "function"
@@ -466,7 +467,7 @@ func (v Value) GreaterThanEqual(other Value, res *Value) {
 	}
 }
 
-// TODO: implement object equality
+// TODO: implement object equality.
 func (v Value) Equal(other Value, res *Value) {
 	if v.VType != other.VType {
 		res.SetBool(false)

@@ -1030,16 +1030,6 @@ func (v *VM) Run() {
 	}
 }
 
-func (v *VM) getFunctionFrame(f Value, numArgs int) *Frame {
-	fn := f.GetFunction()
-	return &Frame{
-		instructions: fn.Instructions,
-		numVars:      fn.NumVars,
-		ip:           0,
-		stackOffset:  v.sp - numArgs + 1,
-	}
-}
-
 func (v *VM) pushFrame(f *Frame, args int) {
 	v.fp++
 

@@ -2,6 +2,7 @@ package ir
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -33,7 +34,7 @@ type IntExpr struct {
 func (t IntExpr) expr() {}
 
 func (t IntExpr) String() string {
-	return fmt.Sprintf("%d", t.Value)
+	return strconv.Itoa(t.Value)
 }
 
 type FloatExpr struct {
@@ -76,7 +77,7 @@ type BuiltInExpr struct {
 func (t BuiltInExpr) expr() {}
 
 func (t BuiltInExpr) String() string {
-	return fmt.Sprintf("@%s", t.Name)
+	return "@" + t.Name
 }
 
 type LoadExpr struct {
@@ -86,7 +87,7 @@ type LoadExpr struct {
 func (t LoadExpr) expr() {}
 
 func (t LoadExpr) String() string {
-	return fmt.Sprintf("%s", t.Var)
+	return t.Var.String()
 }
 
 type IdxAssignExpr struct {
@@ -158,7 +159,7 @@ type ArrayExpr struct {
 func (t ArrayExpr) expr() {}
 
 func (t ArrayExpr) String() string {
-	var res []string
+	res := make([]string, 0, len(t.Exprs))
 	for _, expr := range t.Exprs {
 		res = append(res, expr.String())
 	}
@@ -172,7 +173,7 @@ type ObjectExpr struct {
 func (t ObjectExpr) expr() {}
 
 func (t ObjectExpr) String() string {
-	var res []string
+	res := make([]string, 0, len(t.KVs))
 	for key, expr := range t.KVs {
 		res = append(res, fmt.Sprintf("%s: %s", key, expr.String()))
 	}
@@ -195,7 +196,8 @@ func (t FrameExpr) String() string {
 type BinaryOp int
 
 const (
-	BinaryOpAdd BinaryOp = iota
+	BinaryOpUnknown BinaryOp = iota
+	BinaryOpAdd
 	BinaryOpSub
 	BinaryOpMul
 	BinaryOpDiv
@@ -251,7 +253,7 @@ type BinaryExpr struct {
 func (t BinaryExpr) expr() {}
 
 func (t BinaryExpr) String() string {
-	var res []string
+	res := make([]string, 0, len(t.Operands))
 	for i, expr := range t.Operands {
 		res = append(res, expr.String())
 		if i != len(t.Operands)-1 {
@@ -269,7 +271,7 @@ type PostFixExpr struct {
 func (t PostFixExpr) expr() {}
 
 func (t PostFixExpr) String() string {
-	var res []string
+	res := make([]string, 0, len(t.Ops))
 	for _, op := range t.Ops {
 		res = append(res, op.String())
 	}
@@ -298,7 +300,7 @@ type CallOp struct {
 func (t CallOp) postFixOp() {}
 
 func (t CallOp) String() string {
-	var res []string
+	res := make([]string, 0, len(t.Args))
 	for _, arg := range t.Args {
 		res = append(res, arg.String())
 	}

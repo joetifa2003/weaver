@@ -80,7 +80,7 @@ func (l *RegexLexer) Lex(input string) ([]Token, error) {
 	for len(input) > 0 {
 		matched := false
 		for _, pattern := range l.patterns {
-			re := regexp.MustCompile(fmt.Sprintf("^%s", pattern.Regex))
+			re := regexp.MustCompile("^" + pattern.Regex)
 			if match := re.FindString(input); match != "" {
 				if _, ok := l.ellide[pattern.TokenType]; !ok {
 					lit := match

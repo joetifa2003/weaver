@@ -77,7 +77,7 @@ func (c *Compiler) Compile(p ir.Program) ([]opcode.OpCode, int, []vm.Value, erro
 }
 
 func (c *Compiler) handleLabels(instructions []opcode.OpCode) []opcode.OpCode {
-	var newInstructions []opcode.OpCode
+	newInstructions := make([]opcode.OpCode, 0, len(instructions))
 
 	labels := map[opcode.OpCode]opcode.OpCode{} // label idx => instruction idx
 
@@ -576,6 +576,14 @@ func (c *Compiler) binOperatorOpcode(operator ir.BinaryOp) opcode.OpCode {
 
 	case ir.BinaryOpGte:
 		return opcode.OP_GTE
+
+	case ir.BinaryOpAnd:
+		// nothing, handled in compileAndExpr
+		return 0
+
+	case ir.BinaryOpOr:
+		// nothing, handled in compileOrExpr
+		return 0
 
 	default:
 		panic(fmt.Sprintf("unimplemented operator %d", operator))

@@ -1,0 +1,33 @@
+linters:
+  enable-all: true
+  disable:
+    - wsl # whitespace
+    - exhaustruct # too strict, not needed
+    - varnamelen
+    - testpackage
+    - mnd # magic numbers
+    - nonamedreturns
+    - depguard
+    - ireturn
+    - forbidigo
+    - dupl # maybe enable this for all except vm.go
+    - wrapcheck
+    - lll
+    - gochecknoglobals
+    - funlen
+    - cyclop
+    - forcetypeassert
+    - paralleltest
+    - nlreturn
+    - nestif
+    - nilerr
+    - gocognit
+    - recvcheck
+    - revive
+    - gocyclo
+    - maintidx
+    - godox
+    - stylecheck
+    - err113 # TODO: enable this back later
+    - ineffassign
+    - gci

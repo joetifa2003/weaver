@@ -12,7 +12,7 @@ type Program struct {
 
 type Statement interface {
 	stmt()
-	String(int) string
+	String(indent int) string
 }
 
 type BlockStmt struct {
@@ -22,7 +22,7 @@ type BlockStmt struct {
 func (t BlockStmt) stmt() {}
 
 func (t BlockStmt) String(i int) string {
-	var res []string
+	res := make([]string, 0, len(t.Statements))
 	for _, stmt := range t.Statements {
 		res = append(res, stmt.String(i+1))
 	}
@@ -82,7 +82,7 @@ type ContinueStmt struct{}
 func (t ContinueStmt) stmt() {}
 
 func (t ContinueStmt) String(i int) string {
-	return fmt.Sprintf("%scontinue", strings.Repeat("\t", i))
+	return strings.Repeat("\t", i) + "continue"
 }
 
 type BreakStmt struct{}
@@ -90,5 +90,5 @@ type BreakStmt struct{}
 func (t BreakStmt) stmt() {}
 
 func (t BreakStmt) String(i int) string {
-	return fmt.Sprintf("%sbreak", strings.Repeat("\t", i))
+	return strings.Repeat("\t", i) + "break"
 }

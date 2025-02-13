@@ -756,6 +756,9 @@ func (c *Compiler) getBinaryOp(op ast.BinaryOp) BinaryOp {
 		return BinaryOpOr
 	case ast.BinaryOpAnd:
 		return BinaryOpAnd
+	case ast.BinaryOpPipe:
+		// nothing, handled in compilePipeExpr
+		return 0
 	default:
 		panic(fmt.Sprintf("unimplemented operator %s", op))
 	}
@@ -772,7 +775,7 @@ func (c *Compiler) getUnaryOp(op ast.UnaryOp) UnaryOp {
 	}
 }
 
-var pipeErr = errors.New("right operand of pipe must be a call expression")
+var errPipe = errors.New("right operand of pipe must be a call expression")
 
 func (c *Compiler) compilePipeExpr(exprs []Expr) (Expr, error) {
 	left := exprs[0]
@@ -780,12 +783,12 @@ func (c *Compiler) compilePipeExpr(exprs []Expr) (Expr, error) {
 	for _, right := range exprs[1:] {
 		right, ok := right.(PostFixExpr)
 		if !ok {
-			return nil, pipeErr
+			return nil, errPipe
 		}
 
 		lastOp, ok := right.Ops[len(right.Ops)-1].(CallOp)
 		if !ok {
-			return nil, pipeErr
+			return nil, errPipe
 		}
 
 		lastOp.Args = append([]Expr{left}, lastOp.Args...)

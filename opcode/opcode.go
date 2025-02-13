@@ -54,7 +54,7 @@ const (
 	OP_ECHO
 	OP_FUNC // arg1: constant index; arg2: free variables count
 
-	// Super instructions
+	// Super instructions.
 	OP_LOAD_LOAD_ADD // arg1: v1 scope; arg2: v1 index; arg3: v2 scope; arg4: v2 index
 	OP_LOAD_ADD      // arg1: scope; arg2: index
 	OP_LOAD_LOAD_SUB // arg1: v1 scope; arg2: v1 index; arg3: v2 scope; arg4: v2 index
@@ -193,6 +193,7 @@ func OpCodeIterator(instruction []OpCode, skip ...OpCode) iter.Seq2[int, Decoded
 }
 
 func DecodeInstructions(instructions []OpCode) []DecodedOpCode {
+	//nolint:prealloc
 	var decoded []DecodedOpCode
 	for _, instr := range OpCodeIterator(instructions) {
 		decoded = append(decoded, instr)

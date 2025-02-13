@@ -3,9 +3,8 @@ package compiler
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/joetifa2003/weaver/opcode"
+	"github.com/stretchr/testify/require"
 )
 
 func TestOptimizer(t *testing.T) {

@@ -13,9 +13,9 @@ func TestLexer(t *testing.T) {
 	tokens, err := l.Lex("axxx xx")
 	assert.NoError(err)
 
-	assert.Equal(2, len(tokens))
-	assert.Equal(int(TT_IDENT), tokens[0].Type())
+	assert.Len(tokens, 2)
+	assert.Equal(TT_IDENT, tokens[0].Type())
 	assert.Equal("axxx", tokens[0].String())
-	assert.Equal(int(TT_IDENT), tokens[1].Type())
+	assert.Equal(TT_IDENT, tokens[1].Type())
 	assert.Equal("xx", tokens[1].String())
 }

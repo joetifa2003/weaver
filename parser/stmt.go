@@ -174,7 +174,7 @@ func matchCaseInt() pargo.Parser[ast.MatchCaseCondition] {
 		intExpr(),
 		func(expr ast.Expr) (ast.MatchCaseCondition, error) {
 			intExpr := expr.(ast.IntExpr)
-			return ast.MatchCaseInt{Value: intExpr.Value}, nil
+			return ast.MatchCaseInt(intExpr), nil
 		},
 	)
 }
@@ -184,7 +184,7 @@ func matchCaseFloat() pargo.Parser[ast.MatchCaseCondition] {
 		floatExpr(),
 		func(expr ast.Expr) (ast.MatchCaseCondition, error) {
 			floatExpr := expr.(ast.FloatExpr)
-			return ast.MatchCaseFloat{Value: floatExpr.Value}, nil
+			return ast.MatchCaseFloat(floatExpr), nil
 		},
 	)
 }
@@ -194,7 +194,7 @@ func matchCaseString() pargo.Parser[ast.MatchCaseCondition] {
 		stringExpr(),
 		func(expr ast.Expr) (ast.MatchCaseCondition, error) {
 			stringExpr := expr.(ast.StringExpr)
-			return ast.MatchCaseString{Value: stringExpr.Value}, nil
+			return ast.MatchCaseString(stringExpr), nil
 		},
 	)
 }

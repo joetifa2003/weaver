@@ -1,8 +1,8 @@
 package pargo
 
 import (
-	"fmt"
 	"io"
+	"strconv"
 
 	"github.com/joetifa2003/weaver/internal/pargo/lexer"
 )
@@ -24,16 +24,6 @@ func (s *State) consume() (lexer.Token, error) {
 
 	val := s.tokens[s.pos]
 	s.pos++
-
-	return val, nil
-}
-
-func (s *State) peek() (lexer.Token, error) {
-	if s.pos >= len(s.tokens) {
-		return nil, io.EOF
-	}
-
-	val := s.tokens[s.pos]
 
 	return val, nil
 }
@@ -67,7 +57,7 @@ func TokenType(ttype int) Parser[string] {
 		}
 
 		if tok.Type() != ttype {
-			return "", old, NewParseError(state.source, fmt.Sprint(ttype), tok)
+			return "", old, NewParseError(state.source, strconv.Itoa(ttype), tok)
 		}
 
 		return tok.String(), state, nil
@@ -84,7 +74,7 @@ func Except(s string) Parser[string] {
 		}
 
 		if tok.String() == s {
-			return "", old, NewParseError(state.source, fmt.Sprintf("not %s", s), tok)
+			return "", old, NewParseError(state.source, "not "+s, tok)
 		}
 
 		return tok.String(), state, nil
@@ -226,9 +216,9 @@ func ManyAll[T any](p Parser[T]) Parser[[]T] {
 
 func Some[T any](p Parser[T]) Parser[[]T] {
 	return func(state State) ([]T, State, error) {
-		first, state, error := p(state)
-		if error != nil {
-			return zero[[]T](), state, error
+		first, state, err := p(state)
+		if err != nil {
+			return zero[[]T](), state, err
 		}
 
 		res := []T{first}
@@ -236,8 +226,8 @@ func Some[T any](p Parser[T]) Parser[[]T] {
 		var other T
 
 		for {
-			other, state, error = p(state)
-			if error != nil {
+			other, state, err = p(state)
+			if err != nil {
 				return res, state, nil
 			}
 			res = append(res, other)

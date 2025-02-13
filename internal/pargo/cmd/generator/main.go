@@ -79,5 +79,8 @@ func main() {
 	}
 	defer f.Close()
 
-	f.Write([]byte(res.String()))
+	_, err = f.WriteString(res.String())
+	if err != nil {
+		panic(err)
+	}
 }

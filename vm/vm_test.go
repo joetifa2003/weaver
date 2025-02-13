@@ -11,6 +11,8 @@ import (
 )
 
 func TestVM(t *testing.T) {
+	t.Parallel()
+
 	tests := []string{
 		0: `
 			x := 1

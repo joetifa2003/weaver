@@ -30,6 +30,7 @@ func TestFloatExpr(t *testing.T) {
 
 	floatExpr, ok := expr.(ast.FloatExpr)
 	assert.True(ok)
+	//nolint:testifylint
 	assert.Equal(123.456, floatExpr.Value)
 }
 
@@ -52,7 +53,7 @@ func TestBooleanExpr(t *testing.T) {
 	assert.True(ok)
 	assert.False(boolExpr.Value)
 
-	expr, err = pargo.Parse(p, newLexer(), "foo")
+	_, err = pargo.Parse(p, newLexer(), "foo")
 	require.Error(t, err)
 }
 

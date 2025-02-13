@@ -20,33 +20,6 @@ func eq(op opcode.OpCode) Rule {
 	}
 }
 
-func repeat(rule Rule, n int) Rule {
-	rules := make([]Rule, n)
-	for i := range rules {
-		rules[i] = rule
-	}
-	return seq(rules...)
-}
-
-func some(rule Rule, atLeast int) Rule {
-	return func(instructions []opcode.DecodedOpCode) (bool, int) {
-		someEaten := 0
-
-		for {
-			matched, eaten := rule(instructions[someEaten:])
-			if !matched {
-				if someEaten < atLeast {
-					return false, 0
-				}
-
-				return true, someEaten
-			}
-
-			someEaten += eaten
-		}
-	}
-}
-
 func seq(rules ...Rule) Rule {
 	return func(instructions []opcode.DecodedOpCode) (bool, int) {
 		if len(instructions) < len(rules) {
@@ -63,19 +36,6 @@ func seq(rules ...Rule) Rule {
 		}
 
 		return true, prev
-	}
-}
-
-func or(rules ...Rule) Rule {
-	return func(instructions []opcode.DecodedOpCode) (bool, int) {
-		for _, rule := range rules {
-			matched, eaten := rule(instructions)
-			if matched {
-				return true, eaten
-			}
-		}
-
-		return false, 0
 	}
 }
 

@@ -322,6 +322,17 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 			panic(fmt.Sprintf("unimplemented scope %d", e.Var.Scope))
 		}
 
+	case ir.VarDecrementExpr:
+		switch e.Var.Scope {
+		case ir.VarScopeLocal:
+			return []opcode.OpCode{
+				opcode.OP_DEC_LOCAL,
+				opcode.OpCode(e.Var.Idx),
+			}, nil
+		default:
+			panic(fmt.Sprintf("unimplemented scope %d", e.Var.Scope))
+		}
+
 	case ir.FrameExpr:
 		var frameBodyInstructions []opcode.OpCode
 		body, err := c.compileStmt(ir.BlockStmt{

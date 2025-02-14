@@ -233,7 +233,7 @@ func (v Value) IsTruthy() bool {
 	}
 }
 
-func (v Value) Add(other Value, res *Value) {
+func (v Value) Add(other *Value, res *Value) {
 	switch v.VType {
 	case ValueTypeString:
 		switch other.VType {
@@ -265,7 +265,7 @@ func (v Value) Add(other Value, res *Value) {
 	}
 }
 
-func (v Value) Sub(other Value, res *Value) {
+func (v Value) Sub(other *Value, res *Value) {
 	switch v.VType {
 	case ValueTypeInt:
 		switch other.VType {
@@ -290,7 +290,7 @@ func (v Value) Sub(other Value, res *Value) {
 	}
 }
 
-func (v Value) Mul(other Value, res *Value) {
+func (v Value) Mul(other *Value, res *Value) {
 	switch v.VType {
 	case ValueTypeInt:
 		switch other.VType {
@@ -315,7 +315,7 @@ func (v Value) Mul(other Value, res *Value) {
 	}
 }
 
-func (v Value) Div(other Value, res *Value) {
+func (v Value) Div(other *Value, res *Value) {
 	switch v.VType {
 	case ValueTypeInt:
 		switch other.VType {
@@ -341,7 +341,7 @@ func (v Value) Div(other Value, res *Value) {
 	}
 }
 
-func (v Value) Mod(other Value, res *Value) {
+func (v Value) Mod(other *Value, res *Value) {
 	switch v.VType {
 	case ValueTypeInt:
 		switch other.VType {
@@ -367,7 +367,7 @@ func (v Value) Mod(other Value, res *Value) {
 	}
 }
 
-func (v Value) LessThan(other Value, res *Value) {
+func (v Value) LessThan(other *Value, res *Value) {
 	switch v.VType {
 	case ValueTypeInt:
 		switch other.VType {
@@ -392,7 +392,7 @@ func (v Value) LessThan(other Value, res *Value) {
 	}
 }
 
-func (v Value) LessThanEqual(other Value, res *Value) {
+func (v Value) LessThanEqual(other *Value, res *Value) {
 	switch v.VType {
 	case ValueTypeInt:
 		switch other.VType {
@@ -417,7 +417,7 @@ func (v Value) LessThanEqual(other Value, res *Value) {
 	}
 }
 
-func (v Value) GreaterThan(other Value, res *Value) {
+func (v Value) GreaterThan(other *Value, res *Value) {
 	switch v.VType {
 	case ValueTypeInt:
 		switch other.VType {
@@ -442,7 +442,7 @@ func (v Value) GreaterThan(other Value, res *Value) {
 	}
 }
 
-func (v Value) GreaterThanEqual(other Value, res *Value) {
+func (v Value) GreaterThanEqual(other *Value, res *Value) {
 	switch v.VType {
 	case ValueTypeInt:
 		switch other.VType {
@@ -468,7 +468,7 @@ func (v Value) GreaterThanEqual(other Value, res *Value) {
 }
 
 // TODO: implement object equality.
-func (v Value) Equal(other Value, res *Value) {
+func (v Value) Equal(other *Value, res *Value) {
 	if v.VType != other.VType {
 		res.SetBool(false)
 		return
@@ -494,7 +494,7 @@ func (v Value) Equal(other Value, res *Value) {
 	}
 }
 
-func (v Value) NotEqual(other Value, res *Value) {
+func (v Value) NotEqual(other *Value, res *Value) {
 	if v.VType != other.VType {
 		res.SetBool(true)
 		return

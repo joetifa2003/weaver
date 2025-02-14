@@ -146,6 +146,12 @@ type VarIncrementExpr struct {
 
 func (t VarIncrementExpr) expr() {}
 
+type VarDecrementExpr struct {
+	Name string
+}
+
+func (t VarDecrementExpr) expr() {}
+
 type NilExpr struct{}
 
 func (t NilExpr) expr() {}

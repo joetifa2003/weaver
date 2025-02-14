@@ -18,6 +18,8 @@ const (
 	OP_HALT
 	OP_INC_LOCAL
 	OP_INC_LOCAL_POP
+	OP_DEC_LOCAL
+	OP_DEC_LOCAL_POP
 
 	OP_LET          // arg1: variable index
 	OP_STORE        // arg1: variable index
@@ -132,6 +134,8 @@ var opCodeDefs = map[OpCode]OpCodeDef{
 	OP_LABEL:         {OP_LABEL, "label", 1},
 	OP_INC_LOCAL:     {OP_INC_LOCAL, "incl", 1},
 	OP_INC_LOCAL_POP: {OP_INC_LOCAL_POP, "inclp", 1},
+	OP_DEC_LOCAL:     {OP_DEC_LOCAL, "decl", 1},
+	OP_DEC_LOCAL_POP: {OP_DEC_LOCAL_POP, "declp", 1},
 
 	OP_ECHO: {OP_ECHO, "echo", 0},
 

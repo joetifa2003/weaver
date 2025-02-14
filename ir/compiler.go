@@ -687,6 +687,16 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 			Var: v.export(),
 		}, nil
 
+	case ast.VarDecrementExpr:
+		v, err := c.currentFrame().resolve(e.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		return VarDecrementExpr{
+			Var: v.export(),
+		}, nil
+
 	case ast.FunctionExpr:
 		frame := c.pushFrame()
 

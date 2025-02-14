@@ -123,6 +123,16 @@ func (t VarIncrementExpr) String() string {
 	return fmt.Sprintf("%s++", t.Var)
 }
 
+type VarDecrementExpr struct {
+	Var Var
+}
+
+func (t VarDecrementExpr) expr() {}
+
+func (t VarDecrementExpr) String() string {
+	return fmt.Sprintf("%s--", t.Var)
+}
+
 type UnaryOp int
 
 const (

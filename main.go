@@ -27,6 +27,8 @@ func main() {
 		odd |> echo()
 	`
 
+	// defer profile.Start().Stop()
+
 	// src := `
 	// 	x := |i| {
 	// 		if i == 0 {

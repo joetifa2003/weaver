@@ -68,6 +68,21 @@ func (v *VM) RunFunction(f Value, args ...Value) Value {
 	return retVal
 }
 
+var scopeGetters = [4]func(v *VM, idx int) *Value{
+	opcode.ScopeTypeConst: func(v *VM, idx int) *Value {
+		return &v.constants[idx]
+	},
+	opcode.ScopeTypeGlobal: func(v *VM, idx int) *Value {
+		return &v.stack[idx]
+	},
+	opcode.ScopeTypeLocal: func(v *VM, idx int) *Value {
+		return &v.stack[v.curFrame.stackOffset+idx]
+	},
+	opcode.ScopeTypeFree: func(v *VM, idx int) *Value {
+		return &v.curFrame.freeVars[idx]
+	},
+}
+
 func (v *VM) Run() {
 	for {
 		switch v.curFrame.instructions[v.curFrame.ip] {
@@ -75,7 +90,7 @@ func (v *VM) Run() {
 			right := v.stack[v.sp]
 			left := v.stack[v.sp-1]
 			v.sp--
-			left.Add(right, &v.stack[v.sp])
+			left.Add(&right, &v.stack[v.sp])
 
 			v.curFrame.ip++
 
@@ -83,7 +98,7 @@ func (v *VM) Run() {
 			right := v.stack[v.sp]
 			left := v.stack[v.sp-1]
 			v.sp--
-			left.Sub(right, &v.stack[v.sp])
+			left.Sub(&right, &v.stack[v.sp])
 
 			v.curFrame.ip++
 
@@ -92,7 +107,7 @@ func (v *VM) Run() {
 			left := v.stack[v.sp-1]
 			v.sp--
 
-			left.Mul(right, &v.stack[v.sp])
+			left.Mul(&right, &v.stack[v.sp])
 
 			v.curFrame.ip++
 
@@ -101,7 +116,7 @@ func (v *VM) Run() {
 			left := v.stack[v.sp-1]
 			v.sp--
 
-			left.Mod(right, &v.stack[v.sp])
+			left.Mod(&right, &v.stack[v.sp])
 
 			v.curFrame.ip++
 
@@ -110,7 +125,7 @@ func (v *VM) Run() {
 			left := v.stack[v.sp-1]
 			v.sp--
 
-			left.Equal(right, &v.stack[v.sp])
+			left.Equal(&right, &v.stack[v.sp])
 
 			v.curFrame.ip++
 
@@ -119,7 +134,7 @@ func (v *VM) Run() {
 			left := v.stack[v.sp-1]
 			v.sp--
 
-			left.NotEqual(right, &v.stack[v.sp])
+			left.NotEqual(&right, &v.stack[v.sp])
 
 			v.curFrame.ip++
 
@@ -128,7 +143,7 @@ func (v *VM) Run() {
 			left := v.stack[v.sp-1]
 			v.sp--
 
-			left.LessThan(right, &v.stack[v.sp])
+			left.LessThan(&right, &v.stack[v.sp])
 
 			v.curFrame.ip++
 
@@ -137,7 +152,7 @@ func (v *VM) Run() {
 			left := v.stack[v.sp-1]
 			v.sp--
 
-			left.LessThanEqual(right, &v.stack[v.sp])
+			left.LessThanEqual(&right, &v.stack[v.sp])
 
 			v.curFrame.ip++
 
@@ -146,7 +161,7 @@ func (v *VM) Run() {
 			left := v.stack[v.sp-1]
 			v.sp--
 
-			left.GreaterThan(right, &v.stack[v.sp])
+			left.GreaterThan(&right, &v.stack[v.sp])
 
 			v.curFrame.ip++
 
@@ -155,7 +170,7 @@ func (v *VM) Run() {
 			left := v.stack[v.sp-1]
 			v.sp--
 
-			left.GreaterThanEqual(right, &v.stack[v.sp])
+			left.GreaterThanEqual(&right, &v.stack[v.sp])
 
 			v.curFrame.ip++
 
@@ -191,6 +206,19 @@ func (v *VM) Run() {
 		case opcode.OP_INC_LOCAL_POP:
 			idx := v.curFrame.instructions[v.curFrame.ip+1]
 			v.stack[idx].SetInt(v.stack[idx].GetInt() + 1)
+			v.curFrame.ip += 2
+
+		case opcode.OP_DEC_LOCAL:
+			idx := v.curFrame.instructions[v.curFrame.ip+1]
+			i := v.stack[idx].GetInt()
+			v.stack[idx].SetInt(i - 1)
+			v.sp++
+			v.stack[v.sp].SetInt(i - 1)
+			v.curFrame.ip += 2
+
+		case opcode.OP_DEC_LOCAL_POP:
+			idx := v.curFrame.instructions[v.curFrame.ip+1]
+			v.stack[idx].SetInt(v.stack[idx].GetInt() - 1)
 			v.curFrame.ip += 2
 
 		case opcode.OP_LOAD:
@@ -410,33 +438,11 @@ func (v *VM) Run() {
 
 			v.sp++
 
-			var v1 Value
-
-			switch scope1 {
-			case opcode.ScopeTypeLocal:
-				v1 = v.stack[v.curFrame.stackOffset+index1]
-			case opcode.ScopeTypeFree:
-				v1 = v.curFrame.freeVars[index1]
-			case opcode.ScopeTypeGlobal:
-				v1 = v.stack[index1]
-			case opcode.ScopeTypeConst:
-				v1 = v.constants[index1]
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope1))
-			}
-
-			switch scope2 {
-			case opcode.ScopeTypeLocal:
-				v1.Add(v.stack[v.curFrame.stackOffset+index2], &v.stack[v.sp])
-			case opcode.ScopeTypeFree:
-				v1.Add(v.curFrame.freeVars[index2], &v.stack[v.sp])
-			case opcode.ScopeTypeGlobal:
-				v1.Add(v.stack[index2], &v.stack[v.sp])
-			case opcode.ScopeTypeConst:
-				v1.Add(v.constants[index2], &v.stack[v.sp])
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope2))
-			}
+			scopeGetters[scope1](v, index1).
+				Add(
+					scopeGetters[scope2](v, index2),
+					&v.stack[v.sp],
+				)
 
 			v.curFrame.ip += 5
 
@@ -444,18 +450,10 @@ func (v *VM) Run() {
 			scope := v.curFrame.instructions[v.curFrame.ip+1]
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 
-			switch scope {
-			case opcode.ScopeTypeLocal:
-				v.stack[v.sp].Add(v.stack[v.curFrame.stackOffset+index], &v.stack[v.sp])
-			case opcode.ScopeTypeFree:
-				v.stack[v.sp].Add(v.curFrame.freeVars[index], &v.stack[v.sp])
-			case opcode.ScopeTypeGlobal:
-				v.stack[v.sp].Add(v.stack[index], &v.stack[v.sp])
-			case opcode.ScopeTypeConst:
-				v.stack[v.sp].Add(v.constants[index], &v.stack[v.sp])
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope))
-			}
+			v.stack[v.sp].Add(
+				scopeGetters[scope](v, index),
+				&v.stack[v.sp],
+			)
 
 			v.curFrame.ip += 3
 
@@ -467,33 +465,11 @@ func (v *VM) Run() {
 
 			v.sp++
 
-			var v1 Value
-
-			switch scope1 {
-			case opcode.ScopeTypeLocal:
-				v1 = v.stack[v.curFrame.stackOffset+index1]
-			case opcode.ScopeTypeFree:
-				v1 = v.curFrame.freeVars[index1]
-			case opcode.ScopeTypeGlobal:
-				v1 = v.stack[index1]
-			case opcode.ScopeTypeConst:
-				v1 = v.constants[index1]
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope1))
-			}
-
-			switch scope2 {
-			case opcode.ScopeTypeLocal:
-				v1.Sub(v.stack[v.curFrame.stackOffset+index2], &v.stack[v.sp])
-			case opcode.ScopeTypeFree:
-				v1.Sub(v.curFrame.freeVars[index2], &v.stack[v.sp])
-			case opcode.ScopeTypeGlobal:
-				v1.Sub(v.stack[index2], &v.stack[v.sp])
-			case opcode.ScopeTypeConst:
-				v1.Sub(v.constants[index2], &v.stack[v.sp])
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope2))
-			}
+			scopeGetters[scope1](v, index1).
+				Sub(
+					scopeGetters[scope2](v, index2),
+					&v.stack[v.sp],
+				)
 
 			v.curFrame.ip += 5
 
@@ -501,18 +477,10 @@ func (v *VM) Run() {
 			scope := v.curFrame.instructions[v.curFrame.ip+1]
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 
-			switch scope {
-			case opcode.ScopeTypeLocal:
-				v.stack[v.sp].Sub(v.stack[v.curFrame.stackOffset+index], &v.stack[v.sp])
-			case opcode.ScopeTypeFree:
-				v.stack[v.sp].Sub(v.curFrame.freeVars[index], &v.stack[v.sp])
-			case opcode.ScopeTypeGlobal:
-				v.stack[v.sp].Sub(v.stack[index], &v.stack[v.sp])
-			case opcode.ScopeTypeConst:
-				v.stack[v.sp].Sub(v.constants[index], &v.stack[v.sp])
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope))
-			}
+			v.stack[v.sp].Sub(
+				scopeGetters[scope](v, index),
+				&v.stack[v.sp],
+			)
 
 			v.curFrame.ip += 3
 
@@ -524,33 +492,11 @@ func (v *VM) Run() {
 
 			v.sp++
 
-			var v1 Value
-
-			switch scope1 {
-			case opcode.ScopeTypeLocal:
-				v1 = v.stack[v.curFrame.stackOffset+index1]
-			case opcode.ScopeTypeFree:
-				v1 = v.curFrame.freeVars[index1]
-			case opcode.ScopeTypeGlobal:
-				v1 = v.stack[index1]
-			case opcode.ScopeTypeConst:
-				v1 = v.constants[index1]
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope1))
-			}
-
-			switch scope2 {
-			case opcode.ScopeTypeLocal:
-				v1.Mul(v.stack[v.curFrame.stackOffset+index2], &v.stack[v.sp])
-			case opcode.ScopeTypeFree:
-				v1.Mul(v.curFrame.freeVars[index2], &v.stack[v.sp])
-			case opcode.ScopeTypeGlobal:
-				v1.Mul(v.stack[index2], &v.stack[v.sp])
-			case opcode.ScopeTypeConst:
-				v1.Mul(v.constants[index2], &v.stack[v.sp])
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope2))
-			}
+			scopeGetters[scope1](v, index1).
+				Mul(
+					scopeGetters[scope2](v, index2),
+					&v.stack[v.sp],
+				)
 
 			v.curFrame.ip += 5
 
@@ -558,18 +504,10 @@ func (v *VM) Run() {
 			scope := v.curFrame.instructions[v.curFrame.ip+1]
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 
-			switch scope {
-			case opcode.ScopeTypeLocal:
-				v.stack[v.sp].Mul(v.stack[v.curFrame.stackOffset+index], &v.stack[v.sp])
-			case opcode.ScopeTypeFree:
-				v.stack[v.sp].Mul(v.curFrame.freeVars[index], &v.stack[v.sp])
-			case opcode.ScopeTypeGlobal:
-				v.stack[v.sp].Mul(v.stack[index], &v.stack[v.sp])
-			case opcode.ScopeTypeConst:
-				v.stack[v.sp].Mul(v.constants[index], &v.stack[v.sp])
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope))
-			}
+			v.stack[v.sp].Mul(
+				scopeGetters[scope](v, index),
+				&v.stack[v.sp],
+			)
 
 			v.curFrame.ip += 3
 
@@ -581,33 +519,11 @@ func (v *VM) Run() {
 
 			v.sp++
 
-			var v1 Value
-
-			switch scope1 {
-			case opcode.ScopeTypeLocal:
-				v1 = v.stack[v.curFrame.stackOffset+index1]
-			case opcode.ScopeTypeFree:
-				v1 = v.curFrame.freeVars[index1]
-			case opcode.ScopeTypeGlobal:
-				v1 = v.stack[index1]
-			case opcode.ScopeTypeConst:
-				v1 = v.constants[index1]
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope1))
-			}
-
-			switch scope2 {
-			case opcode.ScopeTypeLocal:
-				v1.Div(v.stack[v.curFrame.stackOffset+index2], &v.stack[v.sp])
-			case opcode.ScopeTypeFree:
-				v1.Div(v.curFrame.freeVars[index2], &v.stack[v.sp])
-			case opcode.ScopeTypeGlobal:
-				v1.Div(v.stack[index2], &v.stack[v.sp])
-			case opcode.ScopeTypeConst:
-				v1.Div(v.constants[index2], &v.stack[v.sp])
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope2))
-			}
+			scopeGetters[scope1](v, index1).
+				Div(
+					scopeGetters[scope2](v, index2),
+					&v.stack[v.sp],
+				)
 
 			v.curFrame.ip += 5
 
@@ -615,18 +531,10 @@ func (v *VM) Run() {
 			scope := v.curFrame.instructions[v.curFrame.ip+1]
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 
-			switch scope {
-			case opcode.ScopeTypeLocal:
-				v.stack[v.sp].Div(v.stack[v.curFrame.stackOffset+index], &v.stack[v.sp])
-			case opcode.ScopeTypeFree:
-				v.stack[v.sp].Div(v.curFrame.freeVars[index], &v.stack[v.sp])
-			case opcode.ScopeTypeGlobal:
-				v.stack[v.sp].Div(v.stack[index], &v.stack[v.sp])
-			case opcode.ScopeTypeConst:
-				v.stack[v.sp].Div(v.constants[index], &v.stack[v.sp])
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope))
-			}
+			v.stack[v.sp].Div(
+				scopeGetters[scope](v, index),
+				&v.stack[v.sp],
+			)
 
 			v.curFrame.ip += 3
 
@@ -638,33 +546,10 @@ func (v *VM) Run() {
 
 			v.sp++
 
-			var v1 Value
-
-			switch scope1 {
-			case opcode.ScopeTypeLocal:
-				v1 = v.stack[v.curFrame.stackOffset+index1]
-			case opcode.ScopeTypeFree:
-				v1 = v.curFrame.freeVars[index1]
-			case opcode.ScopeTypeGlobal:
-				v1 = v.stack[index1]
-			case opcode.ScopeTypeConst:
-				v1 = v.constants[index1]
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope1))
-			}
-
-			switch scope2 {
-			case opcode.ScopeTypeLocal:
-				v1.Mod(v.stack[v.curFrame.stackOffset+index2], &v.stack[v.sp])
-			case opcode.ScopeTypeFree:
-				v1.Mod(v.curFrame.freeVars[index2], &v.stack[v.sp])
-			case opcode.ScopeTypeGlobal:
-				v1.Mod(v.stack[index2], &v.stack[v.sp])
-			case opcode.ScopeTypeConst:
-				v1.Mod(v.constants[index2], &v.stack[v.sp])
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope2))
-			}
+			scopeGetters[scope1](v, index1).Mod(
+				scopeGetters[scope2](v, index2),
+				&v.stack[v.sp],
+			)
 
 			v.curFrame.ip += 5
 
@@ -672,18 +557,10 @@ func (v *VM) Run() {
 			scope := v.curFrame.instructions[v.curFrame.ip+1]
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 
-			switch scope {
-			case opcode.ScopeTypeLocal:
-				v.stack[v.sp].Mod(v.stack[v.curFrame.stackOffset+index], &v.stack[v.sp])
-			case opcode.ScopeTypeFree:
-				v.stack[v.sp].Mod(v.curFrame.freeVars[index], &v.stack[v.sp])
-			case opcode.ScopeTypeGlobal:
-				v.stack[v.sp].Mod(v.stack[index], &v.stack[v.sp])
-			case opcode.ScopeTypeConst:
-				v.stack[v.sp].Mod(v.constants[index], &v.stack[v.sp])
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope))
-			}
+			v.stack[v.sp].Mod(
+				scopeGetters[scope](v, index),
+				&v.stack[v.sp],
+			)
 
 			v.curFrame.ip += 3
 
@@ -695,33 +572,11 @@ func (v *VM) Run() {
 
 			v.sp++
 
-			var v1 Value
-
-			switch scope1 {
-			case opcode.ScopeTypeLocal:
-				v1 = v.stack[v.curFrame.stackOffset+index1]
-			case opcode.ScopeTypeFree:
-				v1 = v.curFrame.freeVars[index1]
-			case opcode.ScopeTypeGlobal:
-				v1 = v.stack[index1]
-			case opcode.ScopeTypeConst:
-				v1 = v.constants[index1]
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope1))
-			}
-
-			switch scope2 {
-			case opcode.ScopeTypeLocal:
-				v1.LessThan(v.stack[v.curFrame.stackOffset+index2], &v.stack[v.sp])
-			case opcode.ScopeTypeFree:
-				v1.LessThan(v.curFrame.freeVars[index2], &v.stack[v.sp])
-			case opcode.ScopeTypeGlobal:
-				v1.LessThan(v.stack[index2], &v.stack[v.sp])
-			case opcode.ScopeTypeConst:
-				v1.LessThan(v.constants[index2], &v.stack[v.sp])
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope2))
-			}
+			scopeGetters[scope1](v, index1).
+				LessThan(
+					scopeGetters[scope2](v, index2),
+					&v.stack[v.sp],
+				)
 
 			v.curFrame.ip += 5
 
@@ -729,18 +584,10 @@ func (v *VM) Run() {
 			scope := v.curFrame.instructions[v.curFrame.ip+1]
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 
-			switch scope {
-			case opcode.ScopeTypeLocal:
-				v.stack[v.sp].LessThan(v.stack[v.curFrame.stackOffset+index], &v.stack[v.sp])
-			case opcode.ScopeTypeFree:
-				v.stack[v.sp].LessThan(v.curFrame.freeVars[index], &v.stack[v.sp])
-			case opcode.ScopeTypeGlobal:
-				v.stack[v.sp].LessThan(v.stack[index], &v.stack[v.sp])
-			case opcode.ScopeTypeConst:
-				v.stack[v.sp].LessThan(v.constants[index], &v.stack[v.sp])
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope))
-			}
+			v.stack[v.sp].LessThan(
+				scopeGetters[scope](v, index),
+				&v.stack[v.sp],
+			)
 
 			v.curFrame.ip += 3
 
@@ -752,33 +599,11 @@ func (v *VM) Run() {
 
 			v.sp++
 
-			var v1 Value
-
-			switch scope1 {
-			case opcode.ScopeTypeLocal:
-				v1 = v.stack[v.curFrame.stackOffset+index1]
-			case opcode.ScopeTypeFree:
-				v1 = v.curFrame.freeVars[index1]
-			case opcode.ScopeTypeGlobal:
-				v1 = v.stack[index1]
-			case opcode.ScopeTypeConst:
-				v1 = v.constants[index1]
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope1))
-			}
-
-			switch scope2 {
-			case opcode.ScopeTypeLocal:
-				v1.LessThanEqual(v.stack[v.curFrame.stackOffset+index2], &v.stack[v.sp])
-			case opcode.ScopeTypeFree:
-				v1.LessThanEqual(v.curFrame.freeVars[index2], &v.stack[v.sp])
-			case opcode.ScopeTypeGlobal:
-				v1.LessThanEqual(v.stack[index2], &v.stack[v.sp])
-			case opcode.ScopeTypeConst:
-				v1.LessThanEqual(v.constants[index2], &v.stack[v.sp])
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope2))
-			}
+			scopeGetters[scope1](v, index1).
+				LessThanEqual(
+					scopeGetters[scope2](v, index2),
+					&v.stack[v.sp],
+				)
 
 			v.curFrame.ip += 5
 
@@ -786,18 +611,10 @@ func (v *VM) Run() {
 			scope := v.curFrame.instructions[v.curFrame.ip+1]
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 
-			switch scope {
-			case opcode.ScopeTypeLocal:
-				v.stack[v.sp].LessThanEqual(v.stack[v.curFrame.stackOffset+index], &v.stack[v.sp])
-			case opcode.ScopeTypeFree:
-				v.stack[v.sp].LessThanEqual(v.curFrame.freeVars[index], &v.stack[v.sp])
-			case opcode.ScopeTypeGlobal:
-				v.stack[v.sp].LessThanEqual(v.stack[index], &v.stack[v.sp])
-			case opcode.ScopeTypeConst:
-				v.stack[v.sp].LessThanEqual(v.constants[index], &v.stack[v.sp])
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope))
-			}
+			v.stack[v.sp].LessThanEqual(
+				scopeGetters[scope](v, index),
+				&v.stack[v.sp],
+			)
 
 			v.curFrame.ip += 3
 
@@ -809,33 +626,11 @@ func (v *VM) Run() {
 
 			v.sp++
 
-			var v1 Value
-
-			switch scope1 {
-			case opcode.ScopeTypeLocal:
-				v1 = v.stack[v.curFrame.stackOffset+index1]
-			case opcode.ScopeTypeFree:
-				v1 = v.curFrame.freeVars[index1]
-			case opcode.ScopeTypeGlobal:
-				v1 = v.stack[index1]
-			case opcode.ScopeTypeConst:
-				v1 = v.constants[index1]
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope1))
-			}
-
-			switch scope2 {
-			case opcode.ScopeTypeLocal:
-				v1.GreaterThan(v.stack[v.curFrame.stackOffset+index2], &v.stack[v.sp])
-			case opcode.ScopeTypeFree:
-				v1.GreaterThan(v.curFrame.freeVars[index2], &v.stack[v.sp])
-			case opcode.ScopeTypeGlobal:
-				v1.GreaterThan(v.stack[index2], &v.stack[v.sp])
-			case opcode.ScopeTypeConst:
-				v1.GreaterThan(v.constants[index2], &v.stack[v.sp])
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope2))
-			}
+			scopeGetters[scope1](v, index1).
+				GreaterThan(
+					scopeGetters[scope2](v, index2),
+					&v.stack[v.sp],
+				)
 
 			v.curFrame.ip += 5
 
@@ -843,18 +638,10 @@ func (v *VM) Run() {
 			scope := v.curFrame.instructions[v.curFrame.ip+1]
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 
-			switch scope {
-			case opcode.ScopeTypeLocal:
-				v.stack[v.sp].GreaterThan(v.stack[v.curFrame.stackOffset+index], &v.stack[v.sp])
-			case opcode.ScopeTypeFree:
-				v.stack[v.sp].GreaterThan(v.curFrame.freeVars[index], &v.stack[v.sp])
-			case opcode.ScopeTypeGlobal:
-				v.stack[v.sp].GreaterThan(v.stack[index], &v.stack[v.sp])
-			case opcode.ScopeTypeConst:
-				v.stack[v.sp].GreaterThan(v.constants[index], &v.stack[v.sp])
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope))
-			}
+			v.stack[v.sp].GreaterThan(
+				scopeGetters[scope](v, index),
+				&v.stack[v.sp],
+			)
 
 			v.curFrame.ip += 3
 
@@ -866,33 +653,11 @@ func (v *VM) Run() {
 
 			v.sp++
 
-			var v1 Value
-
-			switch scope1 {
-			case opcode.ScopeTypeLocal:
-				v1 = v.stack[v.curFrame.stackOffset+index1]
-			case opcode.ScopeTypeFree:
-				v1 = v.curFrame.freeVars[index1]
-			case opcode.ScopeTypeGlobal:
-				v1 = v.stack[index1]
-			case opcode.ScopeTypeConst:
-				v1 = v.constants[index1]
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope1))
-			}
-
-			switch scope2 {
-			case opcode.ScopeTypeLocal:
-				v1.GreaterThanEqual(v.stack[v.curFrame.stackOffset+index2], &v.stack[v.sp])
-			case opcode.ScopeTypeFree:
-				v1.GreaterThanEqual(v.curFrame.freeVars[index2], &v.stack[v.sp])
-			case opcode.ScopeTypeGlobal:
-				v1.GreaterThanEqual(v.stack[index2], &v.stack[v.sp])
-			case opcode.ScopeTypeConst:
-				v1.GreaterThanEqual(v.constants[index2], &v.stack[v.sp])
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope2))
-			}
+			scopeGetters[scope1](v, index1).
+				GreaterThanEqual(
+					scopeGetters[scope2](v, index2),
+					&v.stack[v.sp],
+				)
 
 			v.curFrame.ip += 5
 
@@ -900,18 +665,10 @@ func (v *VM) Run() {
 			scope := v.curFrame.instructions[v.curFrame.ip+1]
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 
-			switch scope {
-			case opcode.ScopeTypeLocal:
-				v.stack[v.sp].GreaterThanEqual(v.stack[v.curFrame.stackOffset+index], &v.stack[v.sp])
-			case opcode.ScopeTypeFree:
-				v.stack[v.sp].GreaterThanEqual(v.curFrame.freeVars[index], &v.stack[v.sp])
-			case opcode.ScopeTypeGlobal:
-				v.stack[v.sp].GreaterThanEqual(v.stack[index], &v.stack[v.sp])
-			case opcode.ScopeTypeConst:
-				v.stack[v.sp].GreaterThanEqual(v.constants[index], &v.stack[v.sp])
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope))
-			}
+			v.stack[v.sp].GreaterThanEqual(
+				scopeGetters[scope](v, index),
+				&v.stack[v.sp],
+			)
 
 			v.curFrame.ip += 3
 
@@ -923,33 +680,11 @@ func (v *VM) Run() {
 
 			v.sp++
 
-			var v1 Value
-
-			switch scope1 {
-			case opcode.ScopeTypeLocal:
-				v1 = v.stack[v.curFrame.stackOffset+index1]
-			case opcode.ScopeTypeFree:
-				v1 = v.curFrame.freeVars[index1]
-			case opcode.ScopeTypeGlobal:
-				v1 = v.stack[index1]
-			case opcode.ScopeTypeConst:
-				v1 = v.constants[index1]
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope1))
-			}
-
-			switch scope2 {
-			case opcode.ScopeTypeLocal:
-				v1.Equal(v.stack[v.curFrame.stackOffset+index2], &v.stack[v.sp])
-			case opcode.ScopeTypeFree:
-				v1.Equal(v.curFrame.freeVars[index2], &v.stack[v.sp])
-			case opcode.ScopeTypeGlobal:
-				v1.Equal(v.stack[index2], &v.stack[v.sp])
-			case opcode.ScopeTypeConst:
-				v1.Equal(v.constants[index2], &v.stack[v.sp])
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope2))
-			}
+			scopeGetters[scope1](v, index1).
+				Equal(
+					scopeGetters[scope2](v, index2),
+					&v.stack[v.sp],
+				)
 
 			v.curFrame.ip += 5
 
@@ -957,18 +692,10 @@ func (v *VM) Run() {
 			scope := v.curFrame.instructions[v.curFrame.ip+1]
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 
-			switch scope {
-			case opcode.ScopeTypeLocal:
-				v.stack[v.sp].Equal(v.stack[v.curFrame.stackOffset+index], &v.stack[v.sp])
-			case opcode.ScopeTypeFree:
-				v.stack[v.sp].Equal(v.curFrame.freeVars[index], &v.stack[v.sp])
-			case opcode.ScopeTypeGlobal:
-				v.stack[v.sp].Equal(v.stack[index], &v.stack[v.sp])
-			case opcode.ScopeTypeConst:
-				v.stack[v.sp].Equal(v.constants[index], &v.stack[v.sp])
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope))
-			}
+			v.stack[v.sp].Equal(
+				scopeGetters[scope](v, index),
+				&v.stack[v.sp],
+			)
 
 			v.curFrame.ip += 3
 
@@ -980,33 +707,11 @@ func (v *VM) Run() {
 
 			v.sp++
 
-			var v1 Value
-
-			switch scope1 {
-			case opcode.ScopeTypeLocal:
-				v1 = v.stack[v.curFrame.stackOffset+index1]
-			case opcode.ScopeTypeFree:
-				v1 = v.curFrame.freeVars[index1]
-			case opcode.ScopeTypeGlobal:
-				v1 = v.stack[index1]
-			case opcode.ScopeTypeConst:
-				v1 = v.constants[index1]
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope1))
-			}
-
-			switch scope2 {
-			case opcode.ScopeTypeLocal:
-				v1.NotEqual(v.stack[v.curFrame.stackOffset+index2], &v.stack[v.sp])
-			case opcode.ScopeTypeFree:
-				v1.NotEqual(v.curFrame.freeVars[index2], &v.stack[v.sp])
-			case opcode.ScopeTypeGlobal:
-				v1.NotEqual(v.stack[index2], &v.stack[v.sp])
-			case opcode.ScopeTypeConst:
-				v1.NotEqual(v.constants[index2], &v.stack[v.sp])
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope2))
-			}
+			scopeGetters[scope1](v, index1).
+				NotEqual(
+					scopeGetters[scope2](v, index2),
+					&v.stack[v.sp],
+				)
 
 			v.curFrame.ip += 5
 
@@ -1014,18 +719,10 @@ func (v *VM) Run() {
 			scope := v.curFrame.instructions[v.curFrame.ip+1]
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 
-			switch scope {
-			case opcode.ScopeTypeLocal:
-				v.stack[v.sp].NotEqual(v.stack[v.curFrame.stackOffset+index], &v.stack[v.sp])
-			case opcode.ScopeTypeFree:
-				v.stack[v.sp].NotEqual(v.curFrame.freeVars[index], &v.stack[v.sp])
-			case opcode.ScopeTypeGlobal:
-				v.stack[v.sp].NotEqual(v.stack[index], &v.stack[v.sp])
-			case opcode.ScopeTypeConst:
-				v.stack[v.sp].NotEqual(v.constants[index], &v.stack[v.sp])
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope))
-			}
+			v.stack[v.sp].NotEqual(
+				scopeGetters[scope](v, index),
+				&v.stack[v.sp],
+			)
 
 			v.curFrame.ip += 3
 

@@ -234,6 +234,13 @@ func increment() pargo.Parser[ast.Expr] {
 				return ast.VarIncrementExpr{Name: expr.(ast.IdentExpr).Name}
 			},
 		),
+		pargo.Sequence2(
+			identExpr(),
+			pargo.Exactly("--"),
+			func(expr ast.Expr, _ string) ast.Expr {
+				return ast.VarDecrementExpr{Name: expr.(ast.IdentExpr).Name}
+			},
+		),
 		atom(),
 	)
 }

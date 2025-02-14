@@ -348,6 +348,20 @@ func TestVM(t *testing.T) {
 			x--
 			x == 0 |> assert()
 		`,
+		29: `
+			even := 0
+			odd := 0
+			for i := 10; i > 0; i-- {
+				if i % 2 == 0 {
+					even++
+				} else {
+					odd++
+				}
+			}
+
+			even == 5 |> assert()
+			odd == 5  |> assert()
+		`,
 	}
 
 	for i, tc := range tests {

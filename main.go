@@ -13,18 +13,7 @@ import (
 
 func main() {
 	src := `
-		even := 0
-		odd := 0
-		for i := 0; i < 10000000; i++ {
-			if i % 2 == 0 {
-				even++
-			} else {
-				odd++
-			}
-		}
-
-		even |> echo()
-		odd |> echo()
+		
 	`
 
 	// defer profile.Start().Stop()

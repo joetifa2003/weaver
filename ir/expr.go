@@ -8,7 +8,7 @@ import (
 
 type Expr interface {
 	expr()
-	String() string
+	String(indent int) string
 }
 
 type Var struct {
@@ -33,7 +33,7 @@ type IntExpr struct {
 
 func (t IntExpr) expr() {}
 
-func (t IntExpr) String() string {
+func (t IntExpr) String(indent int) string {
 	return strconv.Itoa(t.Value)
 }
 
@@ -43,7 +43,7 @@ type FloatExpr struct {
 
 func (t FloatExpr) expr() {}
 
-func (t FloatExpr) String() string {
+func (t FloatExpr) String(indent int) string {
 	return fmt.Sprintf("%f", t.Value)
 }
 
@@ -53,7 +53,7 @@ type BoolExpr struct {
 
 func (t BoolExpr) expr() {}
 
-func (t BoolExpr) String() string {
+func (t BoolExpr) String(indent int) string {
 	if t.Value {
 		return "true"
 	}
@@ -66,7 +66,7 @@ type StringExpr struct {
 
 func (t StringExpr) expr() {}
 
-func (t StringExpr) String() string {
+func (t StringExpr) String(indent int) string {
 	return fmt.Sprintf("\"%s\"", t.Value)
 }
 
@@ -76,7 +76,7 @@ type BuiltInExpr struct {
 
 func (t BuiltInExpr) expr() {}
 
-func (t BuiltInExpr) String() string {
+func (t BuiltInExpr) String(indent int) string {
 	return "@" + t.Name
 }
 
@@ -86,7 +86,7 @@ type LoadExpr struct {
 
 func (t LoadExpr) expr() {}
 
-func (t LoadExpr) String() string {
+func (t LoadExpr) String(indent int) string {
 	return t.Var.String()
 }
 
@@ -98,8 +98,8 @@ type IdxAssignExpr struct {
 
 func (t IdxAssignExpr) expr() {}
 
-func (t IdxAssignExpr) String() string {
-	return fmt.Sprintf("%s[%s] = %s", t.Assignee.String(), t.Index.String(), t.Value.String())
+func (t IdxAssignExpr) String(indent int) string {
+	return fmt.Sprintf("%s[%s] = %s", t.Assignee.String(indent), t.Index.String(indent), t.Value.String(indent))
 }
 
 type VarAssignExpr struct {
@@ -109,8 +109,8 @@ type VarAssignExpr struct {
 
 func (t VarAssignExpr) expr() {}
 
-func (t VarAssignExpr) String() string {
-	return fmt.Sprintf("%s = %s", t.Var, t.Value.String())
+func (t VarAssignExpr) String(indent int) string {
+	return fmt.Sprintf("%s = %s", t.Var, t.Value.String(indent))
 }
 
 type VarIncrementExpr struct {
@@ -119,7 +119,7 @@ type VarIncrementExpr struct {
 
 func (t VarIncrementExpr) expr() {}
 
-func (t VarIncrementExpr) String() string {
+func (t VarIncrementExpr) String(indent int) string {
 	return fmt.Sprintf("%s++", t.Var)
 }
 
@@ -129,7 +129,7 @@ type VarDecrementExpr struct {
 
 func (t VarDecrementExpr) expr() {}
 
-func (t VarDecrementExpr) String() string {
+func (t VarDecrementExpr) String(indent int) string {
 	return fmt.Sprintf("%s--", t.Var)
 }
 
@@ -140,7 +140,7 @@ const (
 	UnaryOpNegate
 )
 
-func (t UnaryOp) String() string {
+func (t UnaryOp) String(index int) string {
 	switch t {
 	case UnaryOpNot:
 		return "!"
@@ -158,8 +158,8 @@ type UnaryExpr struct {
 
 func (t UnaryExpr) expr() {}
 
-func (t UnaryExpr) String() string {
-	return fmt.Sprintf("%s(%s)", t.Operator.String(), t.Expr.String())
+func (t UnaryExpr) String(indent int) string {
+	return fmt.Sprintf("%s(%s)", t.Operator.String(indent), t.Expr.String(indent))
 }
 
 type ArrayExpr struct {
@@ -168,10 +168,10 @@ type ArrayExpr struct {
 
 func (t ArrayExpr) expr() {}
 
-func (t ArrayExpr) String() string {
+func (t ArrayExpr) String(indent int) string {
 	res := make([]string, 0, len(t.Exprs))
 	for _, expr := range t.Exprs {
-		res = append(res, expr.String())
+		res = append(res, expr.String(indent))
 	}
 	return fmt.Sprintf("[%s]", strings.Join(res, ", "))
 }
@@ -182,10 +182,10 @@ type ObjectExpr struct {
 
 func (t ObjectExpr) expr() {}
 
-func (t ObjectExpr) String() string {
+func (t ObjectExpr) String(indent int) string {
 	res := make([]string, 0, len(t.KVs))
 	for key, expr := range t.KVs {
-		res = append(res, fmt.Sprintf("%s: %s", key, expr.String()))
+		res = append(res, fmt.Sprintf("%s: %s", key, expr.String(indent)))
 	}
 	return fmt.Sprintf("{%s}", strings.Join(res, ", "))
 }
@@ -199,8 +199,18 @@ type FrameExpr struct {
 
 func (t FrameExpr) expr() {}
 
-func (t FrameExpr) String() string {
-	return "frame"
+func (t FrameExpr) String(indent int) string {
+	stmts := make([]string, 0, len(t.Body))
+	for _, stmt := range t.Body {
+		stmts = append(stmts, stmt.String(indent+1))
+	}
+
+	return fmt.Sprintf(
+		"@frame(vars:%d, freeVars:%d,) %s",
+		t.VarCount,
+		len(t.FreeVars),
+		strings.Join(stmts, "\n"),
+	)
 }
 
 type BinaryOp int
@@ -262,10 +272,10 @@ type BinaryExpr struct {
 
 func (t BinaryExpr) expr() {}
 
-func (t BinaryExpr) String() string {
+func (t BinaryExpr) String(indent int) string {
 	res := make([]string, 0, len(t.Operands))
 	for i, expr := range t.Operands {
-		res = append(res, expr.String())
+		res = append(res, expr.String(indent))
 		if i != len(t.Operands)-1 {
 			res = append(res, t.Operator.String())
 		}
@@ -280,17 +290,17 @@ type PostFixExpr struct {
 
 func (t PostFixExpr) expr() {}
 
-func (t PostFixExpr) String() string {
+func (t PostFixExpr) String(indent int) string {
 	res := make([]string, 0, len(t.Ops))
 	for _, op := range t.Ops {
-		res = append(res, op.String())
+		res = append(res, op.String(indent))
 	}
-	return fmt.Sprintf("%s%s", t.Expr.String(), strings.Join(res, ""))
+	return fmt.Sprintf("%s%s", t.Expr.String(indent), strings.Join(res, ""))
 }
 
 type PostFixOp interface {
 	postFixOp()
-	String() string
+	String(indent int) string
 }
 
 type IndexOp struct {
@@ -299,8 +309,8 @@ type IndexOp struct {
 
 func (t IndexOp) postFixOp() {}
 
-func (t IndexOp) String() string {
-	return fmt.Sprintf("[%s]", t.Index.String())
+func (t IndexOp) String(indent int) string {
+	return fmt.Sprintf("[%s]", t.Index.String(indent))
 }
 
 type CallOp struct {
@@ -309,10 +319,10 @@ type CallOp struct {
 
 func (t CallOp) postFixOp() {}
 
-func (t CallOp) String() string {
+func (t CallOp) String(indent int) string {
 	res := make([]string, 0, len(t.Args))
 	for _, arg := range t.Args {
-		res = append(res, arg.String())
+		res = append(res, arg.String(indent))
 	}
 	return fmt.Sprintf("(%s)", strings.Join(res, ", "))
 }
@@ -321,6 +331,6 @@ type NilExpr struct{}
 
 func (t NilExpr) expr() {}
 
-func (t NilExpr) String() string {
+func (t NilExpr) String(indent int) string {
 	return "nil"
 }

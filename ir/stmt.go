@@ -50,9 +50,18 @@ func (t IfStmt) stmt() {}
 func (t IfStmt) String(i int) string {
 	var res []string
 	if t.Alternative != nil {
-		res = append(res, fmt.Sprintf("%sif %s {\n%s\n%s} else {\n%s\n%s}", strings.Repeat("\t", i), t.Condition.String(), t.Body.String(i+1), strings.Repeat("\t", i), (*t.Alternative).String(i+1), strings.Repeat("\t", i)))
+		res = append(res, fmt.Sprintf(
+			"%sif %s {\n%s\n%s} else {\n%s\n%s}",
+			strings.Repeat("\t", i),
+			t.Condition.String(i),
+			t.Body.String(i+1),
+			strings.Repeat("\t", i),
+			(*t.Alternative).String(i+1),
+			strings.Repeat("\t", i),
+		),
+		)
 	} else {
-		res = append(res, fmt.Sprintf("%sif %s {\n%s\n%s}", strings.Repeat("\t", i), t.Condition.String(), t.Body.String(i+1), strings.Repeat("\t", i)))
+		res = append(res, fmt.Sprintf("%sif %s {\n%s\n%s}", strings.Repeat("\t", i), t.Condition.String(i), t.Body.String(i+1), strings.Repeat("\t", i)))
 	}
 	return strings.Join(res, "\n")
 }
@@ -64,7 +73,7 @@ type ReturnStmt struct {
 func (t ReturnStmt) stmt() {}
 
 func (t ReturnStmt) String(i int) string {
-	return fmt.Sprintf("%sreturn %s", strings.Repeat("\t", i), t.Expr.String())
+	return fmt.Sprintf("%sreturn %s", strings.Repeat("\t", i), t.Expr.String(i))
 }
 
 type ExpressionStmt struct {
@@ -74,7 +83,7 @@ type ExpressionStmt struct {
 func (t ExpressionStmt) stmt() {}
 
 func (t ExpressionStmt) String(i int) string {
-	return fmt.Sprintf("%s%s", strings.Repeat("\t", i), t.Expr.String())
+	return fmt.Sprintf("%s%s", strings.Repeat("\t", i), t.Expr.String(i))
 }
 
 type ContinueStmt struct{}

@@ -352,7 +352,7 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 
 		fnValue := vm.Value{}
 		fnValue.SetFunction(vm.FunctionValue{
-			NumVars:      e.VarCount - e.ParamsCount,
+			NumVars:      e.VarCount,
 			Instructions: frameBodyInstructions,
 		})
 

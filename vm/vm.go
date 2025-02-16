@@ -359,6 +359,8 @@ func (v *VM) Run() {
 			case ValueTypeObject:
 				val := arr.GetObject()[index.GetString()]
 				v.stack[v.sp] = val
+			default:
+				panic(fmt.Sprintf("illegal index type %s", arr.VType))
 			}
 
 			v.curFrame.ip++

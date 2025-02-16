@@ -178,6 +178,22 @@ func (v *VM) Run() {
 			v.stack[v.sp].SetBool(!v.stack[v.sp].IsTruthy())
 			v.curFrame.ip++
 
+		case opcode.OP_EMPTY_FUNC:
+			v.sp++
+			v.stack[v.sp].SetFunction(FunctionValue{})
+			v.curFrame.ip++
+
+		case opcode.OP_FUNC_LET:
+			scope := v.curFrame.instructions[v.curFrame.ip+1]
+			index := int(v.curFrame.instructions[v.curFrame.ip+2])
+			f := v.stack[v.sp].GetFunction()
+
+			emptyFunc := scopeGetters[scope](v, index).GetFunction()
+			emptyFunc.FreeVars = f.FreeVars
+			emptyFunc.Instructions = f.Instructions
+			emptyFunc.NumVars = f.NumVars
+			v.curFrame.ip += 3
+
 		case opcode.OP_FUNC:
 			constantIndex := int(v.curFrame.instructions[v.curFrame.ip+1])
 			freeVarsCount := int(v.curFrame.instructions[v.curFrame.ip+2])
@@ -417,6 +433,8 @@ func (v *VM) Run() {
 				v.stack[v.sp] = r
 
 				v.curFrame.ip += 2
+			default:
+				panic(fmt.Sprintf("illegal callee type %s", callee.VType))
 			}
 
 		case opcode.OP_RET:

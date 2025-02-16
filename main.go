@@ -14,20 +14,18 @@ import (
 
 func main() {
 	src := `
-		new := |n| {
-			p := {
-				name: "joe",
+		fib := |n| {
+			if n <= 1 {
+				return n
 			}
 
-			return {
-				getName: || p.name,
-			}
+			return fib(n - 1) + fib(n - 2)
 		}
 
-		new("joe").getName() |> echo()
+		10 |> fib() |> echo()
 	`
 
-	// defer profile.Start().Stop()
+	// defer profile.Start(profile.MemProfile).Stop()
 
 	// src := `
 	// 	x := |i| {

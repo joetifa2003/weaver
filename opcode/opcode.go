@@ -55,7 +55,9 @@ const (
 	OP_NOT // !
 
 	OP_ECHO
-	OP_FUNC // arg1: constant index; arg2: free variables count
+	OP_EMPTY_FUNC
+	OP_FUNC     // arg1: constant index; arg2: free variables count
+	OP_FUNC_LET // arg1: scope; arg2: index
 
 	// Super instructions.
 	OP_LOAD_LOAD_ADD // arg1: v1 scope; arg2: v1 index; arg3: v2 scope; arg4: v2 index
@@ -128,6 +130,8 @@ var opCodeDefs = map[OpCode]OpCodeDef{
 	OP_ARRAY:         {OP_ARRAY, "arr", 0},
 	OP_INDEX:         {OP_INDEX, "idx", 0},
 	OP_FUNC:          {OP_FUNC, "func", 2},
+	OP_EMPTY_FUNC:    {OP_EMPTY_FUNC, "fune", 0},
+	OP_FUNC_LET:      {OP_FUNC_LET, "funcl", 2},
 	OP_STORE_IDX:     {OP_STORE_IDX, "storeidx", 0},
 	OP_OBJ:           {OP_OBJ, "obj", 0},
 	OP_OPUSH:         {OP_OPUSH, "opsh", 0},

@@ -362,6 +362,17 @@ func TestVM(t *testing.T) {
 			even == 5 |> assert()
 			odd == 5  |> assert()
 		`,
+		30: `
+			fib := |n| {
+				if n <= 1 {
+					return n
+				}
+
+				return fib(n - 1) + fib(n - 2)
+			}
+
+			fib(10) == 55 |> assert()
+		`,
 	}
 
 	for i, tc := range tests {

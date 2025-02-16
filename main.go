@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"os"
-	"time"
+
+	"github.com/urfave/cli/v3"
 
 	"github.com/joetifa2003/weaver/compiler"
 	"github.com/joetifa2003/weaver/ir"
@@ -13,17 +16,64 @@ import (
 )
 
 func main() {
-	src := `
-		forEach := |arr, f| {
-			for i := 0; i < len(arr); i++ {
-				f(arr[i])
-			}
-		}	
+	cmd := cli.Command{
+		Name:  "weaver",
+		Usage: "programming language",
+		Commands: []*cli.Command{
+			{
+				Name:        "run",
+				Usage:       "run a file",
+				Description: "run [file]",
+				Action: func(ctx context.Context, cc *cli.Command) error {
+					srcData, err := os.ReadFile(cc.Args().Get(0))
+					if err != nil {
+						return err
+					}
 
-		forEach([1, 2, 3], |x| {
-			echo(x)
-		})
-	`
+					src := string(srcData)
+
+					p, err := parser.Parse(src)
+					if err != nil {
+						return err
+					}
+
+					irc := ir.NewCompiler()
+					if err != nil {
+						return err
+					}
+
+					ircr, err := irc.Compile(p)
+					if err != nil {
+						return err
+					}
+
+					c := compiler.New(compiler.WithOptimization(true))
+					instructions, vars, constants, err := c.Compile(ircr)
+					if err != nil {
+						return err
+					}
+
+					fmt.Println(opcode.PrintOpcodes(instructions))
+					for _, c := range constants {
+						if c.VType == vm.ValueTypeFunction {
+							fn := c.GetFunction()
+							fmt.Println(opcode.PrintOpcodes(fn.Instructions))
+						}
+					}
+
+					vm := vm.New(constants, instructions, vars)
+					vm.Run()
+
+					return nil
+				},
+			},
+		},
+	}
+
+	err := cmd.Run(context.Background(), os.Args)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// defer profile.Start(profile.MemProfile).Stop()
 
@@ -39,54 +89,4 @@ func main() {
 	// 	x(10)
 	// `
 
-	pt := time.Now()
-	p, err := parser.Parse(src)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("parser took: ", time.Since(pt))
-
-	irc := ir.NewCompiler()
-	if err != nil {
-		panic(err)
-	}
-
-	irt := time.Now()
-	ircr, err := irc.Compile(p)
-	if err != nil {
-		panic(err)
-	}
-	res := ""
-	for _, s := range ircr.Statements {
-		res += s.String(0) + "\n"
-	}
-	iro, err := os.Create("ir.js")
-	if err != nil {
-		panic(err)
-	}
-	defer iro.Close()
-	iro.WriteString(res)
-	fmt.Println("ir took: ", time.Since(irt))
-
-	ct := time.Now()
-	c := compiler.New(compiler.WithOptimization(true))
-	instructions, vars, constants, err := c.Compile(ircr)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("compiler took: ", time.Since(ct))
-
-	fmt.Println(opcode.PrintOpcodes(instructions))
-
-	for _, c := range constants {
-		if c.VType == vm.ValueTypeFunction {
-			fn := c.GetFunction()
-			fmt.Println(opcode.PrintOpcodes(fn.Instructions))
-		}
-	}
-
-	vt := time.Now()
-	vm := vm.New(constants, instructions, vars)
-	vm.Run()
-	fmt.Println("vm took: ", time.Since(vt))
 }

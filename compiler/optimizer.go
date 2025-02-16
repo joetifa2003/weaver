@@ -55,11 +55,22 @@ var optimizers = []Optimizer{
 		},
 	},
 	{
-		Seq: seq(eq(opcode.OP_INC_LOCAL), eq(opcode.OP_POP)),
+		Seq: seq(eq(opcode.OP_INC), eq(opcode.OP_POP)),
 		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
 			return []opcode.OpCode{
-				opcode.OP_INC_LOCAL_POP,
+				opcode.OP_INC_POP,
 				doc[0].Args[0],
+				doc[0].Args[1],
+			}
+		},
+	},
+	{
+		Seq: seq(eq(opcode.OP_DEC), eq(opcode.OP_POP)),
+		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+			return []opcode.OpCode{
+				opcode.OP_DEC_POP,
+				doc[0].Args[0],
+				doc[0].Args[1],
 			}
 		},
 	},

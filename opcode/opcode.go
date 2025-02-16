@@ -16,10 +16,10 @@ const (
 	OP_CALL
 	OP_RET
 	OP_HALT
-	OP_INC_LOCAL
-	OP_INC_LOCAL_POP
-	OP_DEC_LOCAL
-	OP_DEC_LOCAL_POP
+	OP_INC     // arg1: scope; arg2: variable index
+	OP_INC_POP // arg1: scope; arg2: variable index
+	OP_DEC     // arg1: scope; arg2: variable index
+	OP_DEC_POP // arg1: scope; arg2: variable index
 
 	OP_LET          // arg1: variable index
 	OP_STORE        // arg1: variable index
@@ -100,46 +100,46 @@ type OpCodeDef struct {
 }
 
 var opCodeDefs = map[OpCode]OpCodeDef{
-	OP_POP:           {OP_POP, "pop", 0},
-	OP_CALL:          {OP_CALL, "call", 1},
-	OP_RET:           {OP_RET, "ret", 0},
-	OP_HALT:          {OP_HALT, "halt", 0},
-	OP_STORE:         {OP_STORE, "store", 1},
-	OP_STORE_FREE:    {OP_STORE_FREE, "storef", 1},
-	OP_STORE_GLOBAL:  {OP_STORE_GLOBAL, "storeg", 1},
-	OP_LET:           {OP_LET, "let", 1},
-	OP_LOAD:          {OP_LOAD, "load", 2},
-	OP_JUMP:          {OP_JUMP, "jmp", 1},
-	OP_PJUMP_F:       {OP_PJUMP_F, "pjmpf", 1},
-	OP_PJUMP_T:       {OP_PJUMP_T, "pjmpt", 1},
-	OP_JUMP_F:        {OP_JUMP_F, "jmpf", 1},
-	OP_JUMP_T:        {OP_JUMP_T, "jmpt", 1},
-	OP_ADD:           {OP_ADD, "add", 0},
-	OP_MUL:           {OP_MUL, "mul", 0},
-	OP_DIV:           {OP_DIV, "div", 0},
-	OP_MOD:           {OP_MOD, "mod", 0},
-	OP_SUB:           {OP_SUB, "sub", 0},
-	OP_LT:            {OP_LT, "lt", 0},
-	OP_LTE:           {OP_LTE, "lte", 0},
-	OP_GT:            {OP_GT, "gt", 0},
-	OP_GTE:           {OP_GTE, "gte", 0},
-	OP_EQ:            {OP_EQ, "eq", 0},
-	OP_NEQ:           {OP_NEQ, "neq", 0},
-	OP_NOT:           {OP_NOT, "not", 0},
-	OP_APUSH:         {OP_APUSH, "apsh", 0},
-	OP_ARRAY:         {OP_ARRAY, "arr", 0},
-	OP_INDEX:         {OP_INDEX, "idx", 0},
-	OP_FUNC:          {OP_FUNC, "func", 2},
-	OP_EMPTY_FUNC:    {OP_EMPTY_FUNC, "fune", 0},
-	OP_FUNC_LET:      {OP_FUNC_LET, "funcl", 2},
-	OP_STORE_IDX:     {OP_STORE_IDX, "storeidx", 0},
-	OP_OBJ:           {OP_OBJ, "obj", 0},
-	OP_OPUSH:         {OP_OPUSH, "opsh", 0},
-	OP_LABEL:         {OP_LABEL, "label", 1},
-	OP_INC_LOCAL:     {OP_INC_LOCAL, "incl", 1},
-	OP_INC_LOCAL_POP: {OP_INC_LOCAL_POP, "inclp", 1},
-	OP_DEC_LOCAL:     {OP_DEC_LOCAL, "decl", 1},
-	OP_DEC_LOCAL_POP: {OP_DEC_LOCAL_POP, "declp", 1},
+	OP_POP:          {OP_POP, "pop", 0},
+	OP_CALL:         {OP_CALL, "call", 1},
+	OP_RET:          {OP_RET, "ret", 0},
+	OP_HALT:         {OP_HALT, "halt", 0},
+	OP_STORE:        {OP_STORE, "store", 1},
+	OP_STORE_FREE:   {OP_STORE_FREE, "storef", 1},
+	OP_STORE_GLOBAL: {OP_STORE_GLOBAL, "storeg", 1},
+	OP_LET:          {OP_LET, "let", 1},
+	OP_LOAD:         {OP_LOAD, "load", 2},
+	OP_JUMP:         {OP_JUMP, "jmp", 1},
+	OP_PJUMP_F:      {OP_PJUMP_F, "pjmpf", 1},
+	OP_PJUMP_T:      {OP_PJUMP_T, "pjmpt", 1},
+	OP_JUMP_F:       {OP_JUMP_F, "jmpf", 1},
+	OP_JUMP_T:       {OP_JUMP_T, "jmpt", 1},
+	OP_ADD:          {OP_ADD, "add", 0},
+	OP_MUL:          {OP_MUL, "mul", 0},
+	OP_DIV:          {OP_DIV, "div", 0},
+	OP_MOD:          {OP_MOD, "mod", 0},
+	OP_SUB:          {OP_SUB, "sub", 0},
+	OP_LT:           {OP_LT, "lt", 0},
+	OP_LTE:          {OP_LTE, "lte", 0},
+	OP_GT:           {OP_GT, "gt", 0},
+	OP_GTE:          {OP_GTE, "gte", 0},
+	OP_EQ:           {OP_EQ, "eq", 0},
+	OP_NEQ:          {OP_NEQ, "neq", 0},
+	OP_NOT:          {OP_NOT, "not", 0},
+	OP_APUSH:        {OP_APUSH, "apsh", 0},
+	OP_ARRAY:        {OP_ARRAY, "arr", 0},
+	OP_INDEX:        {OP_INDEX, "idx", 0},
+	OP_FUNC:         {OP_FUNC, "func", 2},
+	OP_EMPTY_FUNC:   {OP_EMPTY_FUNC, "fune", 0},
+	OP_FUNC_LET:     {OP_FUNC_LET, "funcl", 2},
+	OP_STORE_IDX:    {OP_STORE_IDX, "storeidx", 0},
+	OP_OBJ:          {OP_OBJ, "obj", 0},
+	OP_OPUSH:        {OP_OPUSH, "opsh", 0},
+	OP_LABEL:        {OP_LABEL, "label", 1},
+	OP_INC:          {OP_INC, "incl", 2},
+	OP_INC_POP:      {OP_INC_POP, "inclp", 2},
+	OP_DEC:          {OP_DEC, "decl", 2},
+	OP_DEC_POP:      {OP_DEC_POP, "declp", 2},
 
 	OP_ECHO: {OP_ECHO, "echo", 0},
 

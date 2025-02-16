@@ -14,10 +14,15 @@ import (
 
 func main() {
 	src := `
-		match [1, 2] {
-			[0, x] => { echo(x) },
-			else => { echo("else") }
+		forEach := |arr, f| {
+			for i := 0; i < len(arr); i++ {
+				f(arr[i])
+			}
 		}	
+
+		forEach([1, 2, 3], |x| {
+			echo(x)
+		})
 	`
 
 	// defer profile.Start(profile.MemProfile).Stop()

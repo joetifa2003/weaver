@@ -11,8 +11,7 @@ const MaxStack = 1024
 const MaxCallStack = 1024
 
 type Frame struct {
-	ip int
-	// TODO: Embed the function value in the frame
+	ip           int
 	instructions []opcode.OpCode
 	numVars      int
 	freeVars     []Value
@@ -211,31 +210,37 @@ func (v *VM) Run() {
 
 			v.curFrame.ip += 3
 
-		case opcode.OP_INC_LOCAL:
-			idx := v.curFrame.instructions[v.curFrame.ip+1]
-			i := v.stack[idx].GetInt()
-			v.stack[idx].SetInt(i + 1)
+		case opcode.OP_INC:
+			scope := v.curFrame.instructions[v.curFrame.ip+1]
+			index := int(v.curFrame.instructions[v.curFrame.ip+2])
+			v1 := scopeGetters[scope](v, index)
+			v1.SetInt(v1.GetInt() + 1)
 			v.sp++
-			v.stack[v.sp].SetInt(i + 1)
-			v.curFrame.ip += 2
+			v.stack[v.sp] = *v1
+			v.curFrame.ip += 3
 
-		case opcode.OP_INC_LOCAL_POP:
-			idx := v.curFrame.instructions[v.curFrame.ip+1]
-			v.stack[idx].SetInt(v.stack[idx].GetInt() + 1)
-			v.curFrame.ip += 2
+		case opcode.OP_INC_POP:
+			scope := v.curFrame.instructions[v.curFrame.ip+1]
+			index := int(v.curFrame.instructions[v.curFrame.ip+2])
+			v1 := scopeGetters[scope](v, index)
+			v1.SetInt(v1.GetInt() + 1)
+			v.curFrame.ip += 3
 
-		case opcode.OP_DEC_LOCAL:
-			idx := v.curFrame.instructions[v.curFrame.ip+1]
-			i := v.stack[idx].GetInt()
-			v.stack[idx].SetInt(i - 1)
+		case opcode.OP_DEC:
+			scope := v.curFrame.instructions[v.curFrame.ip+1]
+			index := int(v.curFrame.instructions[v.curFrame.ip+2])
+			v1 := scopeGetters[scope](v, index)
+			v1.SetInt(v1.GetInt() - 1)
 			v.sp++
-			v.stack[v.sp].SetInt(i - 1)
-			v.curFrame.ip += 2
+			v.stack[v.sp] = *v1
+			v.curFrame.ip += 3
 
-		case opcode.OP_DEC_LOCAL_POP:
-			idx := v.curFrame.instructions[v.curFrame.ip+1]
-			v.stack[idx].SetInt(v.stack[idx].GetInt() - 1)
-			v.curFrame.ip += 2
+		case opcode.OP_DEC_POP:
+			scope := v.curFrame.instructions[v.curFrame.ip+1]
+			index := int(v.curFrame.instructions[v.curFrame.ip+2])
+			v1 := scopeGetters[scope](v, index)
+			v1.SetInt(v1.GetInt() - 1)
+			v.curFrame.ip += 3
 
 		case opcode.OP_LOAD:
 			scope := v.curFrame.instructions[v.curFrame.ip+1]

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/joetifa2003/weaver/compiler"
 	"github.com/joetifa2003/weaver/ir"
 	"github.com/joetifa2003/weaver/parser"
@@ -178,7 +180,7 @@ func TestVM(t *testing.T) {
 					},
 					5 => {
 						true |> assert()
-					}
+					},
 					else => {
 						false |> assert()
 					}
@@ -192,7 +194,7 @@ func TestVM(t *testing.T) {
 			},
 			3 => {
 				false |> assert()
-			}
+			},
 			else => {
 				false |> assert()
 			}
@@ -218,7 +220,7 @@ func TestVM(t *testing.T) {
 					},
 					0.7 => {
 						true |> assert()
-					}
+					},
 					else => {
 						false |> assert()
 					}
@@ -379,22 +381,18 @@ func TestVM(t *testing.T) {
 		for _, opt := range []bool{false, true} {
 			t.Run(fmt.Sprintf("%d opt=%t", i, opt), func(t *testing.T) {
 				t.Parallel()
+				assert := assert.New(t)
+
 				p, err := parser.Parse(tc)
-				if err != nil {
-					t.Fatal(fmt.Errorf("failed to parse: %w", err))
-				}
+				assert.NoError(err)
 
 				irc := ir.NewCompiler()
 				ircr, err := irc.Compile(p)
-				if err != nil {
-					t.Fatal(fmt.Errorf("failed to compile ir: %w", err))
-				}
+				assert.NoError(err)
 
 				c := compiler.New(compiler.WithOptimization(opt))
 				instructions, vars, constants, err := c.Compile(ircr)
-				if err != nil {
-					t.Fatal(fmt.Errorf("failed to compile: %w", err))
-				}
+				assert.NoError(err)
 				vm := vm.New(constants, instructions, vars)
 				vm.Run()
 			})

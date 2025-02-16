@@ -60,9 +60,8 @@ type BreakStmt struct{}
 func (t BreakStmt) stmt() {}
 
 type MatchStmt struct {
-	Expr     Expr
-	Cases    []MatchCase
-	ElseBody *Statement
+	Expr  Expr
+	Cases []MatchCase
 }
 
 func (t MatchStmt) stmt() {}

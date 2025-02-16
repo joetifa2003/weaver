@@ -14,15 +14,10 @@ import (
 
 func main() {
 	src := `
-		fib := |n| {
-			if n <= 1 {
-				return n
-			}
-
-			return fib(n - 1) + fib(n - 2)
-		}
-
-		10 |> fib() |> echo()
+		match [1, 2] {
+			[0, x] => { echo(x) },
+			else => { echo("else") }
+		}	
 	`
 
 	// defer profile.Start(profile.MemProfile).Stop()

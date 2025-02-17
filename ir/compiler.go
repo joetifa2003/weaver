@@ -589,6 +589,9 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 
 		return BuiltInExpr{e.Name}, nil
 
+	case ast.ModuleLoadExpr:
+		return ModuleLoadExpr{Name: e.Name, Load: e.Load}, nil
+
 	case ast.BinaryExpr:
 		var res []Expr
 		for _, expr := range e.Operands {

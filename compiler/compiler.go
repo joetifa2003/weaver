@@ -3,6 +3,7 @@ package compiler
 import (
 	"fmt"
 
+	"github.com/joetifa2003/weaver/builtin"
 	"github.com/joetifa2003/weaver/internal/pkg/ds"
 	"github.com/joetifa2003/weaver/ir"
 	"github.com/joetifa2003/weaver/opcode"
@@ -11,10 +12,11 @@ import (
 
 type Compiler struct {
 	constants           []vm.Value
+	optimizationEnabled bool
+	loopContext         *ds.Stack[loopContext]
 	functionsIdx        []int
 	labelCounter        int
-	loopContext         *ds.Stack[loopContext]
-	optimizationEnabled bool
+	reg                 *builtin.Registry
 }
 
 type loopContext struct {
@@ -30,7 +32,7 @@ func WithOptimization(enabled bool) CompilerOption {
 	}
 }
 
-func New(opts ...CompilerOption) *Compiler {
+func New(reg *builtin.Registry, opts ...CompilerOption) *Compiler {
 	nilValue := vm.Value{}
 	nilValue.SetNil()
 
@@ -40,6 +42,7 @@ func New(opts ...CompilerOption) *Compiler {
 			nilValue,
 		},
 		optimizationEnabled: true,
+		reg:                 reg,
 	}
 
 	for _, opt := range opts {
@@ -368,18 +371,33 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 		return c.loadVar(e.Var), nil
 
 	case ir.BuiltInExpr:
-		f, ok := builtInFunctions[e.Name]
+		val, ok := c.reg.ResolveFunc(e.Name)
 		if !ok {
 			return nil, fmt.Errorf("unknown built-in function %s", e.Name)
 		}
 
-		fVal := vm.Value{}
-		fVal.SetNativeFunction(f)
+		return []opcode.OpCode{
+			opcode.OP_LOAD,
+			opcode.ScopeTypeConst,
+			opcode.OpCode(c.defineConstant(val)),
+		}, nil
+
+	case ir.ModuleLoadExpr:
+		val, ok := c.reg.ResolveModule(e.Name)
+		if !ok {
+			return nil, fmt.Errorf("unknown module %s", e.Name)
+		}
+
+		mod := val.GetModule()
+		fn, ok := mod[e.Load]
+		if !ok {
+			return nil, fmt.Errorf("unknown module %s:%s", e.Name, e.Load)
+		}
 
 		return []opcode.OpCode{
 			opcode.OP_LOAD,
 			opcode.ScopeTypeConst,
-			opcode.OpCode(c.defineConstant(fVal)),
+			opcode.OpCode(c.defineConstant(fn)),
 		}, nil
 
 	case ir.IntExpr:

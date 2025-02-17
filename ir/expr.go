@@ -334,3 +334,14 @@ func (t NilExpr) expr() {}
 func (t NilExpr) String(indent int) string {
 	return "nil"
 }
+
+type ModuleLoadExpr struct {
+	Name string
+	Load string
+}
+
+func (t ModuleLoadExpr) expr() {}
+
+func (t ModuleLoadExpr) String(indent int) string {
+	return fmt.Sprintf("%s:%s", t.Name, t.Load)
+}

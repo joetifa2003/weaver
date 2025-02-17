@@ -20,6 +20,7 @@ const (
 	ValueTypeFunction
 	ValueTypeArray
 	ValueTypeNativeFunction
+	ValueTypeModule
 )
 
 func (t ValueType) String() string {
@@ -82,6 +83,19 @@ func (v *Value) SetObject(o map[string]Value) {
 func (v *Value) GetObject() map[string]Value {
 	if v.VType != ValueTypeObject {
 		panic("Value.GetObject(): not an object")
+	}
+
+	return *(*map[string]Value)(v.nonPrimitive)
+}
+
+func (v *Value) SetModule(m map[string]Value) {
+	v.VType = ValueTypeModule
+	v.nonPrimitive = unsafe.Pointer(&m)
+}
+
+func (v *Value) GetModule() map[string]Value {
+	if v.VType != ValueTypeModule {
+		panic("Value.GetModule(): not a module")
 	}
 
 	return *(*map[string]Value)(v.nonPrimitive)
@@ -174,8 +188,17 @@ func (v *Value) SetNativeFunction(f NativeFunction) {
 	v.nonPrimitive = unsafe.Pointer(&f)
 }
 
+func NewNativeFunction(f NativeFunction) Value {
+	val := Value{}
+	val.SetNativeFunction(f)
+	return val
+}
+
 func (v Value) String() string {
 	switch v.VType {
+	case ValueTypeModule:
+		return "module"
+
 	case ValueTypeString:
 		str := v.GetString()
 		return str

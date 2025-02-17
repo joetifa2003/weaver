@@ -1,4 +1,4 @@
-package compiler
+package builtin
 
 import (
 	"fmt"
@@ -6,8 +6,8 @@ import (
 	"github.com/joetifa2003/weaver/vm"
 )
 
-var builtInFunctions = map[string]vm.NativeFunction{
-	"echo": func(v *vm.VM, args ...vm.Value) (res vm.Value) {
+func registerBuiltinFuncs(builder *RegistryBuilder) {
+	builder.RegisterFunc("echo", func(v *vm.VM, args ...vm.Value) (res vm.Value) {
 		if len(args) != 1 {
 			panic("echo() takes exactly 1 argument")
 		}
@@ -17,8 +17,9 @@ var builtInFunctions = map[string]vm.NativeFunction{
 		fmt.Println(val.String())
 
 		return
-	},
-	"len": func(x *vm.VM, args ...vm.Value) (res vm.Value) {
+	})
+
+	builder.RegisterFunc("len", func(x *vm.VM, args ...vm.Value) (res vm.Value) {
 		if len(args) != 1 {
 			panic("len() takes exactly 1 argument")
 		}
@@ -37,8 +38,9 @@ var builtInFunctions = map[string]vm.NativeFunction{
 		}
 
 		return
-	},
-	"push": func(v *vm.VM, args ...vm.Value) vm.Value {
+	})
+
+	builder.RegisterFunc("push", func(v *vm.VM, args ...vm.Value) vm.Value {
 		if len(args) != 2 {
 			panic("expected 1 arg")
 		}
@@ -49,8 +51,9 @@ var builtInFunctions = map[string]vm.NativeFunction{
 		*arr = append(*arr, val)
 
 		return args[0]
-	},
-	"map": func(v *vm.VM, args ...vm.Value) (res vm.Value) {
+	})
+
+	builder.RegisterFunc("map", func(v *vm.VM, args ...vm.Value) (res vm.Value) {
 		if len(args) != 2 {
 			panic("map() takes exactly 2 arguments")
 		}
@@ -67,8 +70,9 @@ var builtInFunctions = map[string]vm.NativeFunction{
 		result.SetArray(newArr)
 
 		return result
-	},
-	"filter": func(v *vm.VM, args ...vm.Value) (res vm.Value) {
+	})
+
+	builder.RegisterFunc("filter", func(v *vm.VM, args ...vm.Value) (res vm.Value) {
 		if len(args) != 2 {
 			panic("filter() takes exactly 2 arguments")
 		}
@@ -87,8 +91,9 @@ var builtInFunctions = map[string]vm.NativeFunction{
 		result.SetArray(newArr)
 
 		return result
-	},
-	"assert": func(v *vm.VM, args ...vm.Value) (res vm.Value) {
+	})
+
+	builder.RegisterFunc("assert", func(v *vm.VM, args ...vm.Value) (res vm.Value) {
 		if len(args) != 1 {
 			panic("assert() takes exactly 1 argument")
 		}
@@ -99,8 +104,9 @@ var builtInFunctions = map[string]vm.NativeFunction{
 		}
 
 		return
-	},
-	"type": func(v *vm.VM, args ...vm.Value) (res vm.Value) {
+	})
+
+	builder.RegisterFunc("type", func(v *vm.VM, args ...vm.Value) (res vm.Value) {
 		if len(args) != 1 {
 			panic("type() takes exactly 1 argument")
 		}
@@ -109,8 +115,9 @@ var builtInFunctions = map[string]vm.NativeFunction{
 		res.SetString(val.VType.String())
 
 		return
-	},
-	"string": func(v *vm.VM, args ...vm.Value) (res vm.Value) {
+	})
+
+	builder.RegisterFunc("string", func(v *vm.VM, args ...vm.Value) (res vm.Value) {
 		if len(args) != 1 {
 			panic("string() takes exactly 1 argument")
 		}
@@ -119,5 +126,5 @@ var builtInFunctions = map[string]vm.NativeFunction{
 		res.SetString(val.String())
 
 		return
-	},
+	})
 }

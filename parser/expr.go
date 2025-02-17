@@ -241,6 +241,20 @@ func increment() pargo.Parser[ast.Expr] {
 				return ast.VarDecrementExpr{Name: expr.(ast.IdentExpr).Name}
 			},
 		),
+		moduleIndexExpr(),
+	)
+}
+
+func moduleIndexExpr() pargo.Parser[ast.Expr] {
+	return pargo.OneOf(
+		pargo.Sequence3(
+			pargo.TokenType(TT_IDENT),
+			pargo.Exactly(":"),
+			pargo.TokenType(TT_IDENT),
+			func(name string, _ string, val string) ast.Expr {
+				return ast.ModuleLoadExpr{Name: name, Load: val}
+			},
+		),
 		atom(),
 	)
 }

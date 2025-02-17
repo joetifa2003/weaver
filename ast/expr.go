@@ -155,3 +155,10 @@ func (t VarDecrementExpr) expr() {}
 type NilExpr struct{}
 
 func (t NilExpr) expr() {}
+
+type ModuleLoadExpr struct {
+	Name string
+	Load string
+}
+
+func (t ModuleLoadExpr) expr() {}

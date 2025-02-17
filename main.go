@@ -8,6 +8,7 @@ import (
 
 	"github.com/urfave/cli/v3"
 
+	"github.com/joetifa2003/weaver/builtin"
 	"github.com/joetifa2003/weaver/compiler"
 	"github.com/joetifa2003/weaver/ir"
 	"github.com/joetifa2003/weaver/opcode"
@@ -47,7 +48,7 @@ func main() {
 						return err
 					}
 
-					c := compiler.New(compiler.WithOptimization(true))
+					c := compiler.New(builtin.StdReg, compiler.WithOptimization(true))
 					instructions, vars, constants, err := c.Compile(ircr)
 					if err != nil {
 						return err

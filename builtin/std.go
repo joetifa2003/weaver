@@ -7,6 +7,7 @@ func init() {
 
 	registerBuiltinFuncs(builder)
 	registerIOModule(builder)
+	registerStringModule(builder)
 
 	StdReg = builder.Build()
 }

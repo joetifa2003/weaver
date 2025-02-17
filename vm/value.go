@@ -188,6 +188,18 @@ func (v *Value) SetNativeFunction(f NativeFunction) {
 	v.nonPrimitive = unsafe.Pointer(&f)
 }
 
+func NewString(s string) Value {
+	val := Value{}
+	val.SetString(s)
+	return val
+}
+
+func NewArray(a []Value) Value {
+	val := Value{}
+	val.SetArray(a)
+	return val
+}
+
 func NewNativeFunction(f NativeFunction) Value {
 	val := Value{}
 	val.SetNativeFunction(f)

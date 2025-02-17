@@ -17,5 +17,14 @@ func registerIOModule(builder *RegistryBuilder) {
 			fmt.Println(val.String())
 			return
 		}),
+		"print": vm.NewNativeFunction(func(v *vm.VM, args ...vm.Value) (res vm.Value) {
+			if len(args) != 1 {
+				panic("println() takes exactly 1 argument")
+			}
+
+			val := args[0]
+			fmt.Print(val.String())
+			return
+		}),
 	})
 }

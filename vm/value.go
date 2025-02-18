@@ -206,6 +206,30 @@ func NewNativeFunction(f NativeFunction) Value {
 	return val
 }
 
+func NewInt(i int) Value {
+	val := Value{}
+	val.SetInt(i)
+	return val
+}
+
+func NewFloat(f float64) Value {
+	val := Value{}
+	val.SetFloat(f)
+	return val
+}
+
+func NewObject(m map[string]Value) Value {
+	val := Value{}
+	val.SetObject(m)
+	return val
+}
+
+func NewBool(b bool) Value {
+	val := Value{}
+	val.SetBool(b)
+	return val
+}
+
 func (v Value) String() string {
 	switch v.VType {
 	case ValueTypeModule:

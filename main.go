@@ -48,6 +48,18 @@ func main() {
 						return err
 					}
 
+					irout, err := os.Create("irout.wvr")
+					defer irout.Close()
+					res := ""
+					for _, s := range ircr.Statements {
+						res += s.String(0)
+						res += "\n"
+					}
+					_, err = irout.WriteString(res)
+					if err != nil {
+						return err
+					}
+
 					c := compiler.New(builtin.StdReg, compiler.WithOptimization(true))
 					instructions, vars, constants, err := c.Compile(ircr)
 					if err != nil {

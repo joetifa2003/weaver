@@ -24,8 +24,9 @@ const (
 	TT_RPAREN
 	TT_ASSIGN
 	TT_VARDECL
-	TT_WHITESPACE
 	TT_KEYWORD
+	TT_WHITESPACE
+	TT_COMMENT
 )
 
 func newLexer() *lexer.RegexLexer {
@@ -38,6 +39,7 @@ func newLexer() *lexer.RegexLexer {
 			// ========== operators ==========
 			{TokenType: TT_SYMBOL, Regex: "{"},
 			{TokenType: TT_SYMBOL, Regex: "}"},
+			{TokenType: TT_SYMBOL, Regex: "\\.\\."},
 			{TokenType: TT_SYMBOL, Regex: "\\."},
 			{TokenType: TT_EQUAL, Regex: "!="},
 			{TokenType: TT_SYMBOL, Regex: "!"},
@@ -50,8 +52,8 @@ func newLexer() *lexer.RegexLexer {
 			{TokenType: TT_VARDECL, Regex: ":="},
 			{TokenType: TT_SYMBOL, Regex: "\\:"},
 
-			{TokenType: TT_SYMBOL, Regex: "\\++"},
-			{TokenType: TT_SYMBOL, Regex: "\\--"},
+			{TokenType: TT_SYMBOL, Regex: "\\+\\+"},
+			{TokenType: TT_SYMBOL, Regex: "\\-\\-"},
 			{TokenType: TT_SYMBOL, Regex: "%"},
 			{TokenType: TT_SYMBOL, Regex: "=>"},
 			{TokenType: TT_PLUS, Regex: "\\+"},
@@ -70,8 +72,10 @@ func newLexer() *lexer.RegexLexer {
 			{TokenType: TT_RPAREN, Regex: "\\)"},
 			// ===============================
 			{TokenType: TT_WHITESPACE, Regex: "\\s+"},
+			{TokenType: TT_COMMENT, Regex: "#.*"},
 		},
-		lexer.WithEllide(TT_WHITESPACE),
+		lexer.WithElide(TT_WHITESPACE),
+		lexer.WithElide(TT_COMMENT),
 		lexer.WithTransform(TT_STRING, func(s string) string {
 			return s[1 : len(s)-1]
 		}),

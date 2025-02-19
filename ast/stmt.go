@@ -111,3 +111,10 @@ type MatchCaseIdent struct {
 }
 
 func (t MatchCaseIdent) matchCaseCondition() {}
+
+type MatchCaseRange struct {
+	Begin Expr
+	End   Expr
+}
+
+func (t MatchCaseRange) matchCaseCondition() {}

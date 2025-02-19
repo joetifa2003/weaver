@@ -93,6 +93,36 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 		return result
 	})
 
+	builder.RegisterFunc("contains", func(v *vm.VM, args ...vm.Value) vm.Value {
+		if len(args) != 2 {
+			panic("filter() takes exactly 2 arguments")
+		}
+
+		arr := args[0]
+		if arr.VType != vm.ValueTypeArray {
+			panic("filter() argument must be an array")
+		}
+
+		f := args[1]
+		if f.VType == vm.ValueTypeFunction {
+			for _, val := range *arr.GetArray() {
+				if v.RunFunction(f, val).IsTruthy() {
+					return vm.NewBool(true)
+				}
+			}
+		} else {
+			isEqual := vm.Value{}
+			for _, val := range *arr.GetArray() {
+				val.Equal(&f, &isEqual)
+				if isEqual.IsTruthy() {
+					return vm.NewBool(true)
+				}
+			}
+		}
+
+		return vm.NewBool(false)
+	})
+
 	builder.RegisterFunc("assert", func(v *vm.VM, args ...vm.Value) (res vm.Value) {
 		if len(args) != 1 {
 			panic("assert() takes exactly 1 argument")

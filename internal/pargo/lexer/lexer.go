@@ -34,7 +34,7 @@ func (t RegexToken) Location() Location { return t.location }
 
 type RegexLexer struct {
 	patterns   []Pattern
-	ellide     map[int]struct{}
+	elide      map[int]struct{}
 	transforms map[int]func(string) string
 }
 
@@ -45,10 +45,10 @@ type Pattern struct {
 
 type RegexLexerOption func(*RegexLexer)
 
-func WithEllide(ellide ...int) RegexLexerOption {
+func WithElide(elide ...int) RegexLexerOption {
 	return func(l *RegexLexer) {
-		for _, ttype := range ellide {
-			l.ellide[ttype] = struct{}{}
+		for _, ttype := range elide {
+			l.elide[ttype] = struct{}{}
 		}
 	}
 }
@@ -62,7 +62,7 @@ func WithTransform(ttype int, transform func(string) string) RegexLexerOption {
 func New(patterns []Pattern, options ...RegexLexerOption) *RegexLexer {
 	l := &RegexLexer{
 		patterns:   patterns,
-		ellide:     map[int]struct{}{},
+		elide:      map[int]struct{}{},
 		transforms: map[int]func(string) string{},
 	}
 
@@ -82,7 +82,7 @@ func (l *RegexLexer) Lex(input string) ([]Token, error) {
 		for _, pattern := range l.patterns {
 			re := regexp.MustCompile("^" + pattern.Regex)
 			if match := re.FindString(input); match != "" {
-				if _, ok := l.ellide[pattern.TokenType]; !ok {
+				if _, ok := l.elide[pattern.TokenType]; !ok {
 					lit := match
 					if transform, ok := l.transforms[pattern.TokenType]; ok {
 						lit = transform(match)

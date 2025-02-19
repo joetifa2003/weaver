@@ -150,12 +150,30 @@ func matchCase() pargo.Parser[ast.MatchCase] {
 
 func matchCondition() pargo.Parser[ast.MatchCaseCondition] {
 	return pargo.OneOf(
+		matchRangeCondition(),
 		matchCaseInt(),
 		matchCaseFloat(),
 		matchCaseString(),
 		matchCaseArray(),
 		matchCaseObject(),
 		matchCaseIdent(),
+	)
+}
+
+func matchRangeCondition() pargo.Parser[ast.MatchCaseCondition] {
+	return pargo.Sequence3(
+		pargo.OneOf(
+			intExpr(),
+			floatExpr(),
+		),
+		pargo.Exactly(".."),
+		pargo.OneOf(
+			intExpr(),
+			floatExpr(),
+		),
+		func(left ast.Expr, _ string, right ast.Expr) ast.MatchCaseCondition {
+			return ast.MatchCaseRange{Begin: left, End: right}
+		},
 	)
 }
 

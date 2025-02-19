@@ -279,6 +279,53 @@ func (c *Compiler) compileMatchCase(m ast.MatchCase, expr Expr) (IfStmt, error) 
 
 func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr) (Expr, error) {
 	switch cond := cond.(type) {
+	case ast.MatchCaseRange:
+		begin, err := c.CompileExpr(cond.Begin)
+		if err != nil {
+			return nil, err
+		}
+
+		end, err := c.CompileExpr(cond.End)
+		if err != nil {
+			return nil, err
+		}
+
+		return BinaryExpr{
+			BinaryOpAnd,
+			[]Expr{
+				BinaryExpr{
+					BinaryOpEq,
+					[]Expr{
+						PostFixExpr{
+							BuiltInExpr{"type"},
+							[]PostFixOp{
+								CallOp{
+									Args: []Expr{
+										expr,
+									},
+								},
+							},
+						},
+						StringExpr{"int"},
+					},
+				},
+				BinaryExpr{
+					BinaryOpGt,
+					[]Expr{
+						expr,
+						begin,
+					},
+				},
+				BinaryExpr{
+					BinaryOpLt,
+					[]Expr{
+						expr,
+						end,
+					},
+				},
+			},
+		}, nil
+
 	case ast.MatchCaseInt:
 		return BinaryExpr{
 			BinaryOpAnd,

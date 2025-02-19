@@ -14,7 +14,7 @@ func TestSimpleLexer(t *testing.T) {
 	l := New([]Pattern{
 		{TT_IDENT, "[a-zA-Z]+"},
 		{TT_WHITESPACE, "\\s+"},
-	}, WithEllide(TT_WHITESPACE))
+	}, WithElide(TT_WHITESPACE))
 
 	tokens, err := l.Lex("axxx   xx")
 	if err != nil {

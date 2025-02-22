@@ -9,32 +9,28 @@ import (
 
 func registerIOModule(builder *RegistryBuilder) {
 	builder.RegisterModule("io", map[string]vm.Value{
-		"println": vm.NewNativeFunction(func(v *vm.VM, args ...vm.Value) (res vm.Value) {
-			if len(args) != 1 {
-				panic("println() takes exactly 1 argument")
+		"println": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
+			val, err := args.Get(0, vm.ValueTypeAny)
+			if err != nil {
+				return vm.Value{}, err
 			}
 
-			val := args[0]
 			fmt.Println(val.String())
-			return
+			return vm.Value{}, nil
 		}),
-		"print": vm.NewNativeFunction(func(v *vm.VM, args ...vm.Value) (res vm.Value) {
-			if len(args) != 1 {
-				panic("println() takes exactly 1 argument")
+		"print": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
+			val, err := args.Get(0, vm.ValueTypeAny)
+			if err != nil {
+				return vm.Value{}, err
 			}
 
-			val := args[0]
 			fmt.Print(val.String())
-			return
+			return vm.Value{}, nil
 		}),
-		"readFile": vm.NewNativeFunction(func(v *vm.VM, args ...vm.Value) vm.Value {
-			if len(args) != 1 {
-				panic("readFile() takes exactly 1 argument")
-			}
-
-			arg1 := args[0]
-			if arg1.VType != vm.ValueTypeString {
-				panic("readFile() argument must be a string")
+		"readFile": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
+			arg1, err := args.Get(0, vm.ValueTypeString)
+			if err != nil {
+				return vm.Value{}, err
 			}
 
 			filename := arg1.String()
@@ -44,7 +40,7 @@ func registerIOModule(builder *RegistryBuilder) {
 				panic(err)
 			}
 
-			return vm.NewString(string(file))
+			return vm.NewString(string(file)), nil
 		}),
 	})
 }

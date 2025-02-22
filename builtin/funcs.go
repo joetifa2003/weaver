@@ -7,24 +7,26 @@ import (
 )
 
 func registerBuiltinFuncs(builder *RegistryBuilder) {
-	builder.RegisterFunc("echo", func(v *vm.VM, args ...vm.Value) (res vm.Value) {
-		if len(args) != 1 {
-			panic("echo() takes exactly 1 argument")
-		}
+	builder.RegisterFunc("echo", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
+		res := vm.Value{}
 
-		val := args[0]
+		val, err := args.Get(0, vm.ValueTypeAny)
+		if err != nil {
+			return res, err
+		}
 
 		fmt.Println(val.String())
 
-		return
+		return res, nil
 	})
 
-	builder.RegisterFunc("len", func(x *vm.VM, args ...vm.Value) (res vm.Value) {
-		if len(args) != 1 {
-			panic("len() takes exactly 1 argument")
-		}
+	builder.RegisterFunc("len", func(x *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
+		res := vm.Value{}
 
-		val := args[0]
+		val, err := args.Get(0, vm.ValueTypeArray|vm.ValueTypeString|vm.ValueTypeObject)
+		if err != nil {
+			return res, err
+		}
 
 		switch val.VType {
 		case vm.ValueTypeArray:
@@ -37,52 +39,64 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 			panic("len() argument must be an array, string or object")
 		}
 
-		return
+		return res, nil
 	})
 
-	builder.RegisterFunc("push", func(v *vm.VM, args ...vm.Value) vm.Value {
-		if len(args) != 2 {
-			panic("expected 1 arg")
+	builder.RegisterFunc("push", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
+		arrArg, err := args.Get(0, vm.ValueTypeArray)
+		if err != nil {
+			return vm.Value{}, err
 		}
 
-		arr := args[0].GetArray()
-		val := args[1]
+		val, err := args.Get(1, vm.ValueTypeAny)
+		if err != nil {
+			return vm.Value{}, err
+		}
 
+		arr := arrArg.GetArray()
 		*arr = append(*arr, val)
 
-		return args[0]
+		return arrArg, nil
 	})
 
-	builder.RegisterFunc("map", func(v *vm.VM, args ...vm.Value) (res vm.Value) {
-		if len(args) != 2 {
-			panic("map() takes exactly 2 arguments")
+	builder.RegisterFunc("map", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
+		arrArg, err := args.Get(0, vm.ValueTypeArray)
+		if err != nil {
+			return vm.Value{}, err
+		}
+		fnArg, err := args.Get(1, vm.ValueTypeFunction)
+		if err != nil {
+			return vm.Value{}, err
 		}
 
-		arr := *args[0].GetArray()
-		fn := args[1]
+		arr := *arrArg.GetArray()
 
 		newArr := make([]vm.Value, len(arr))
 		for i, val := range arr {
-			newArr[i] = v.RunFunction(fn, val)
+			newArr[i] = v.RunFunction(fnArg, val)
 		}
 
 		var result vm.Value
 		result.SetArray(newArr)
 
-		return result
+		return result, nil
 	})
 
-	builder.RegisterFunc("filter", func(v *vm.VM, args ...vm.Value) (res vm.Value) {
-		if len(args) != 2 {
-			panic("filter() takes exactly 2 arguments")
+	builder.RegisterFunc("filter", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
+		arrArg, err := args.Get(0, vm.ValueTypeArray)
+		if err != nil {
+			return vm.Value{}, err
+		}
+		fnArg, err := args.Get(1, vm.ValueTypeFunction)
+		if err != nil {
+			return vm.Value{}, err
 		}
 
-		arr := *args[0].GetArray()
-		fn := args[1]
+		arr := *arrArg.GetArray()
 
 		newArr := make([]vm.Value, 0)
 		for _, val := range arr {
-			if v.RunFunction(fn, val).IsTruthy() {
+			if v.RunFunction(fnArg, val).IsTruthy() {
 				newArr = append(newArr, val)
 			}
 		}
@@ -90,71 +104,68 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 		var result vm.Value
 		result.SetArray(newArr)
 
-		return result
+		return result, nil
 	})
 
-	builder.RegisterFunc("contains", func(v *vm.VM, args ...vm.Value) vm.Value {
-		if len(args) != 2 {
-			panic("filter() takes exactly 2 arguments")
+	builder.RegisterFunc("contains", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
+		arrArg, err := args.Get(0, vm.ValueTypeArray)
+		if err != nil {
+			return vm.Value{}, err
+		}
+		f, err := args.Get(1, vm.ValueTypeAny)
+		if err != nil {
+			return vm.Value{}, err
 		}
 
-		arr := args[0]
-		if arr.VType != vm.ValueTypeArray {
-			panic("filter() argument must be an array")
-		}
+		arr := *arrArg.GetArray()
 
-		f := args[1]
 		if f.VType == vm.ValueTypeFunction {
-			for _, val := range *arr.GetArray() {
+			for _, val := range arr {
 				if v.RunFunction(f, val).IsTruthy() {
-					return vm.NewBool(true)
+					return vm.NewBool(true), nil
 				}
 			}
 		} else {
 			isEqual := vm.Value{}
-			for _, val := range *arr.GetArray() {
+			for _, val := range arr {
 				val.Equal(&f, &isEqual)
 				if isEqual.IsTruthy() {
-					return vm.NewBool(true)
+					return vm.NewBool(true), nil
 				}
 			}
 		}
 
-		return vm.NewBool(false)
+		return vm.NewBool(false), nil
 	})
 
-	builder.RegisterFunc("assert", func(v *vm.VM, args ...vm.Value) (res vm.Value) {
-		if len(args) != 1 {
-			panic("assert() takes exactly 1 argument")
+	builder.RegisterFunc("assert", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
+		val, err := args.Get(0, vm.ValueTypeAny)
+		if err != nil {
+			return vm.Value{}, err
 		}
 
-		val := args[0]
 		if !val.IsTruthy() {
 			panic("assertion failed")
 		}
 
-		return
+		return vm.Value{}, nil
 	})
 
-	builder.RegisterFunc("type", func(v *vm.VM, args ...vm.Value) (res vm.Value) {
-		if len(args) != 1 {
-			panic("type() takes exactly 1 argument")
+	builder.RegisterFunc("type", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
+		val, err := args.Get(0, vm.ValueTypeAny)
+		if err != nil {
+			return vm.Value{}, err
 		}
 
-		val := args[0]
-		res.SetString(val.VType.String())
-
-		return
+		return vm.NewString(val.VType.String()), nil
 	})
 
-	builder.RegisterFunc("string", func(v *vm.VM, args ...vm.Value) (res vm.Value) {
-		if len(args) != 1 {
-			panic("string() takes exactly 1 argument")
+	builder.RegisterFunc("string", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
+		val, err := args.Get(0, vm.ValueTypeAny)
+		if err != nil {
+			return vm.Value{}, err
 		}
 
-		val := args[0]
-		res.SetString(val.String())
-
-		return
+		return vm.NewString(val.String()), nil
 	})
 }

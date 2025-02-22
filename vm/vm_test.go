@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/joetifa2003/weaver/builtin"
 	"github.com/joetifa2003/weaver/compiler"
 	"github.com/joetifa2003/weaver/ir"
 	"github.com/joetifa2003/weaver/parser"
@@ -390,7 +391,7 @@ func TestVM(t *testing.T) {
 				ircr, err := irc.Compile(p)
 				assert.NoError(err)
 
-				c := compiler.New(compiler.WithOptimization(opt))
+				c := compiler.New(builtin.StdReg, compiler.WithOptimization(opt))
 				instructions, vars, constants, err := c.Compile(ircr)
 				assert.NoError(err)
 				vm := vm.New(constants, instructions, vars)

@@ -9,35 +9,34 @@ import (
 
 func registerStringModule(builder *RegistryBuilder) {
 	builder.RegisterModule("strings", map[string]vm.Value{
-		"concat": vm.NewNativeFunction(func(v *vm.VM, args ...vm.Value) vm.Value {
-			if len(args) < 2 {
-				panic("concat() takes at least 2 arguments")
-			}
+		"concat": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
 
 			var res string
 			for _, arg := range args {
 				res += arg.String()
 			}
 
-			return vm.NewString(res)
+			return vm.NewString(res), nil
 		}),
-		"split": vm.NewNativeFunction(func(v *vm.VM, args ...vm.Value) vm.Value {
-			str := args[0]
-			sep := args[1]
-
-			if str.VType != vm.ValueTypeString {
-				panic("split() first argument must be a string")
+		"split": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
+			strArg, err := args.Get(0, vm.ValueTypeString)
+			if err != nil {
+				return vm.Value{}, nil
 			}
 
-			if sep.VType != vm.ValueTypeString {
-				panic("split() second argument must be a string")
+			sepArg, err := args.Get(1, vm.ValueTypeString)
+			if err != nil {
+				return vm.Value{}, nil
 			}
 
-			parts := helpers.SliceMap(strings.Split(str.GetString(), sep.GetString()), func(s string) vm.Value {
+			str := strArg.GetString()
+			sep := sepArg.GetString()
+
+			parts := helpers.SliceMap(strings.Split(str, sep), func(s string) vm.Value {
 				return vm.NewString(s)
 			})
 
-			return vm.NewArray(parts)
+			return vm.NewArray(parts), nil
 		}),
 	})
 }

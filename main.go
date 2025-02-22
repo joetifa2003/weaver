@@ -39,9 +39,6 @@ func main() {
 					}
 
 					irc := ir.NewCompiler()
-					if err != nil {
-						return err
-					}
 
 					ircr, err := irc.Compile(p)
 					if err != nil {

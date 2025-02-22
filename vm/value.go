@@ -11,7 +11,7 @@ import (
 type ValueType int
 
 const (
-	ValueTypeNil ValueType = iota
+	ValueTypeNil ValueType = 1 << iota
 	ValueTypeInt
 	ValueTypeFloat
 	ValueTypeString
@@ -21,7 +21,13 @@ const (
 	ValueTypeArray
 	ValueTypeNativeFunction
 	ValueTypeModule
+	ValueTypeNativeObject
+	ValueTypeAny
 )
+
+func (t ValueType) Is(other ValueType) bool {
+	return t&other != 0 || other == ValueTypeAny
+}
 
 func (t ValueType) String() string {
 	switch t {
@@ -43,6 +49,8 @@ func (t ValueType) String() string {
 		return "array"
 	case ValueTypeNativeFunction:
 		return "native function"
+	case ValueTypeNativeObject:
+		return "native object"
 	default:
 		panic(fmt.Sprintf("unimplemented %T", t))
 	}
@@ -173,7 +181,35 @@ func (v *Value) GetString() string {
 	return *(*string)(v.nonPrimitive)
 }
 
-type NativeFunction func(v *VM, args ...Value) Value
+func (v *Value) SetNativeObject(obj interface{}) {
+	v.VType = ValueTypeNativeObject
+	v.nonPrimitive = unsafe.Pointer(&obj)
+}
+
+func (v *Value) GetNativeObject() interface{} {
+	if v.VType != ValueTypeNativeObject {
+		panic("Value.GetNativeObject(): not a native object")
+	}
+
+	return *(*interface{})(v.nonPrimitive)
+}
+
+type NativeFunctionArgs []Value
+
+func (a NativeFunctionArgs) Get(i int, valType ValueType) (Value, error) {
+	if i >= len(a) {
+		return Value{}, ErrInvalidNumberOfArguments
+	}
+
+	v := a[i]
+	if !v.VType.Is(valType) {
+		return Value{}, ErrInvalidArgType
+	}
+
+	return a[i], nil
+}
+
+type NativeFunction func(v *VM, args NativeFunctionArgs) (Value, error)
 
 func (v *Value) GetNativeFunction() NativeFunction {
 	if v.VType != ValueTypeNativeFunction {
@@ -203,6 +239,12 @@ func NewArray(a []Value) Value {
 func NewNativeFunction(f NativeFunction) Value {
 	val := Value{}
 	val.SetNativeFunction(f)
+	return val
+}
+
+func NewNativeObject(o interface{}) Value {
+	val := Value{}
+	val.SetNativeObject(o)
 	return val
 }
 

@@ -110,6 +110,15 @@ func (v *VM) Run() {
 
 			v.curFrame.ip++
 
+		case opcode.OP_DIV:
+			right := v.stack[v.sp]
+			left := v.stack[v.sp-1]
+			v.sp--
+
+			left.Div(&right, &v.stack[v.sp])
+
+			v.curFrame.ip++
+
 		case opcode.OP_MOD:
 			right := v.stack[v.sp]
 			left := v.stack[v.sp-1]
@@ -246,29 +255,9 @@ func (v *VM) Run() {
 			scope := v.curFrame.instructions[v.curFrame.ip+1]
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 
-			switch scope {
-			case opcode.ScopeTypeLocal:
-				v.sp++
-				v.stack[v.sp] = v.stack[v.curFrame.stackOffset+index]
-				v.curFrame.ip += 3
-
-			case opcode.ScopeTypeFree:
-				v.sp++
-				v.stack[v.sp] = v.curFrame.freeVars[index]
-				v.curFrame.ip += 3
-
-			case opcode.ScopeTypeGlobal:
-				v.sp++
-				v.stack[v.sp] = v.stack[index]
-				v.curFrame.ip += 3
-
-			case opcode.ScopeTypeConst:
-				v.sp++
-				v.stack[v.sp] = v.constants[index]
-				v.curFrame.ip += 3
-			default:
-				panic(fmt.Sprintf("unimplemented scope %d", scope))
-			}
+			v.sp++
+			v.stack[v.sp] = *scopeGetters[scope](v, index)
+			v.curFrame.ip += 3
 
 		case opcode.OP_STORE_FREE:
 			index := int(v.curFrame.instructions[v.curFrame.ip+1])

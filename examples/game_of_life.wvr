@@ -1,0 +1,44 @@
+# Game of Life
+
+CELL_SIZE := 50
+WORLD_WIDTH := 800
+WORLD_HEIGHT := 800
+
+ROWS := int(WORLD_HEIGHT / CELL_SIZE)
+COLS := int(WORLD_WIDTH / CELL_SIZE)
+
+cells := makeArr(ROWS)
+for i := 0; i < ROWS; i++ {
+    cells[i] = makeArr(COLS)
+}
+
+forEachCell := |fn| {
+  for y := 0; y < ROWS; y++ {
+      for x := 0; x < COLS; x++ {
+          fn(y, x)
+      }
+  }
+}
+
+forEachCell(|y, x| {
+  cells[y][x] = x == y
+})
+
+rl:initWindow(WORLD_WIDTH, WORLD_HEIGHT, "Weaver")
+
+# TODO: There is a bug here, if you replace any of the 10 below with CELL_SIZE
+# IT will fail, probably because some instruction is not handling stack properly.
+while !rl:windowShouldClose() {
+    rl:beginDrawing()
+    rl:clearBackground(rl:colorRayWhite)
+
+    forEachCell(|y, x| {
+        if cells[y][x] {
+            rl:drawRectangle(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE, rl:colorBlack)
+        }
+    })
+
+    rl:endDrawing()
+}
+
+rl:closeWindow()

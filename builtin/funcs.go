@@ -20,6 +20,20 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 		return res, nil
 	})
 
+	builder.RegisterFunc("makeArr", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
+		res := vm.Value{}
+
+		val, err := args.Get(0, vm.ValueTypeNumber)
+		if err != nil {
+			return res, err
+		}
+
+		arr := make([]vm.Value, val.GetInt())
+		res.SetArray(arr)
+
+		return res, nil
+	})
+
 	builder.RegisterFunc("len", func(x *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
 		res := vm.Value{}
 

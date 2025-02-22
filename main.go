@@ -84,19 +84,4 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// defer profile.Start(profile.MemProfile).Stop()
-
-	// src := `
-	// 	x := |i| {
-	// 		if i == 0 {
-	// 			return 0
-	// 		}
-	//
-	// 		x(i - 1)
-	// 	}
-	//
-	// 	x(10)
-	// `
-
 }

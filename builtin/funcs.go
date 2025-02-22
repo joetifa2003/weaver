@@ -168,4 +168,20 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 
 		return vm.NewString(val.String()), nil
 	})
+
+	builder.RegisterFunc("int", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
+		val, err := args.Get(0, vm.ValueTypeInt|vm.ValueTypeFloat)
+		if err != nil {
+			return vm.Value{}, err
+		}
+
+		switch val.VType {
+		case vm.ValueTypeInt:
+			return val, nil
+		case vm.ValueTypeFloat:
+			return vm.NewInt(int(val.GetFloat())), nil
+		default:
+			panic("unreachable")
+		}
+	})
 }

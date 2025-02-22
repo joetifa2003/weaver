@@ -5,6 +5,7 @@ import (
 
 	"github.com/joetifa2003/weaver/builtin"
 	"github.com/joetifa2003/weaver/internal/pkg/ds"
+	"github.com/joetifa2003/weaver/internal/pkg/helpers"
 	"github.com/joetifa2003/weaver/ir"
 	"github.com/joetifa2003/weaver/opcode"
 	"github.com/joetifa2003/weaver/vm"
@@ -356,7 +357,7 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 
 		var instructions []opcode.OpCode
 
-		for _, freeVar := range e.FreeVars {
+		for _, freeVar := range helpers.ReverseIter(e.FreeVars) {
 			instructions = append(instructions, c.loadVar(freeVar)...)
 		}
 		instructions = append(instructions,
@@ -453,13 +454,13 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 		}
 
 		switch e.Value.(type) {
-		case ir.FrameExpr:
-			instructions = append(instructions, opcode.OP_EMPTY_FUNC)
-			instructions = append(instructions, c.storeVar(e.Var)...)
-			instructions = append(instructions, opcode.OP_POP)
-			instructions = append(instructions, expr...)
-			instructions = append(instructions, opcode.OP_FUNC_LET, opcode.OpCode(e.Var.Scope), opcode.OpCode(e.Var.Idx))
-			return instructions, nil
+		// case ir.FrameExpr:
+		// 	instructions = append(instructions, opcode.OP_EMPTY_FUNC)
+		// 	instructions = append(instructions, c.storeVar(e.Var)...)
+		// 	instructions = append(instructions, opcode.OP_POP)
+		// 	instructions = append(instructions, expr...)
+		// 	instructions = append(instructions, opcode.OP_FUNC_LET, opcode.OpCode(e.Var.Scope), opcode.OpCode(e.Var.Idx))
+		// 	return instructions, nil
 		default:
 			instructions = append(instructions, expr...)
 			instructions = append(instructions, c.storeVar(e.Var)...)

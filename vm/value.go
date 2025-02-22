@@ -8,7 +8,7 @@ import (
 	"github.com/joetifa2003/weaver/opcode"
 )
 
-type ValueType int
+type ValueType uint16
 
 const (
 	ValueTypeNil ValueType = 1 << iota
@@ -24,6 +24,8 @@ const (
 	ValueTypeNativeObject
 	ValueTypeAny
 )
+
+const ValueTypeNumber = ValueTypeInt | ValueTypeFloat
 
 func (t ValueType) Is(other ValueType) bool {
 	return t&other != 0 || other == ValueTypeAny
@@ -68,19 +70,25 @@ func interpret[T any](b *[8]byte) *T {
 }
 
 func (v *Value) GetInt() int {
-	if v.VType != ValueTypeInt {
-		panic("Value.GetInt(): not an int")
+	switch v.VType {
+	case ValueTypeInt:
+		return *interpret[int](&v.primitive)
+	case ValueTypeFloat:
+		return int(*interpret[float64](&v.primitive))
+	default:
+		panic(fmt.Sprintf("Value.GetInt(): not a number"))
 	}
-
-	return *interpret[int](&v.primitive)
 }
 
 func (v *Value) GetFloat() float64 {
-	if v.VType != ValueTypeFloat {
-		panic("Value.GetFloat(): not a float")
+	switch v.VType {
+	case ValueTypeInt:
+		return float64(*interpret[int](&v.primitive))
+	case ValueTypeFloat:
+		return *interpret[float64](&v.primitive)
+	default:
+		panic(fmt.Sprintf("Value.GetFloat(): not a number"))
 	}
-
-	return *interpret[float64](&v.primitive)
 }
 
 func (v *Value) SetObject(o map[string]Value) {

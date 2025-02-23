@@ -2,6 +2,7 @@ package builtin
 
 import (
 	"fmt"
+	"math/rand/v2"
 
 	"github.com/joetifa2003/weaver/vm"
 )
@@ -18,6 +19,10 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 		fmt.Println(val.String())
 
 		return res, nil
+	})
+
+	builder.RegisterFunc("rand", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
+		return vm.NewFloat(rand.Float64()), nil
 	})
 
 	builder.RegisterFunc("makeArr", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {

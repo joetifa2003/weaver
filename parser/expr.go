@@ -278,6 +278,18 @@ func atom() pargo.Parser[ast.Expr] {
 		lambdaExpr(),
 		arrayExpr(),
 		objectExpr(),
+		parenExpr(),
+	)
+}
+
+func parenExpr() pargo.Parser[ast.Expr] {
+	return pargo.Sequence3(
+		pargo.Exactly("("),
+		pargo.Lazy(expr),
+		pargo.Exactly(")"),
+		func(_ string, expr ast.Expr, _ string) ast.Expr {
+			return expr
+		},
 	)
 }
 

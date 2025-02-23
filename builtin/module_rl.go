@@ -32,6 +32,14 @@ func registerModuleRL(builder *RegistryBuilder) {
 		"windowShouldClose": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
 			return vm.NewBool(rl.WindowShouldClose()), nil
 		}),
+		"setTargetFPS": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
+			fpsArg, err := args.Get(0, vm.ValueTypeNumber)
+			if err != nil {
+				return vm.Value{}, err
+			}
+			rl.SetTargetFPS(int32(fpsArg.GetInt()))
+			return vm.Value{}, nil
+		}),
 		"closeWindow": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
 			rl.CloseWindow()
 			return vm.Value{}, nil

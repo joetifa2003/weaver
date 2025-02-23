@@ -1,8 +1,9 @@
+
 # Game of Life
 
-CELL_SIZE := 50
-WORLD_WIDTH := 800
-WORLD_HEIGHT := 800
+CELL_SIZE := 10
+WORLD_WIDTH := 1024
+WORLD_HEIGHT := 1024
 
 ROWS := int(WORLD_HEIGHT / CELL_SIZE)
 COLS := int(WORLD_WIDTH / CELL_SIZE)
@@ -12,33 +13,81 @@ for i := 0; i < ROWS; i++ {
     cells[i] = makeArr(COLS)
 }
 
-forEachCell := |fn| {
-  for y := 0; y < ROWS; y++ {
-      for x := 0; x < COLS; x++ {
-          fn(y, x)
-      }
-  }
+# Initialize random starting pattern
+for y := 0; y < ROWS; y++ {
+    for x := 0; x < COLS; x++ {
+        cells[y][x] = rand() > 0.8
+    }
 }
 
-forEachCell(|y, x| {
-  cells[y][x] = x == y
-})
+# Function to count living neighbors for a cell
+countNeighbors := |y, x, cells| {
+    count := 0
 
-rl:initWindow(WORLD_WIDTH, WORLD_HEIGHT, "Weaver")
+    for dy := -1; dy <= 1; dy++ {
+        for dx := -1; dx <= 1; dx++ {
+            if dy == 0 && dx == 0 { 
+              continue 
+            }
 
-# TODO: There is a bug here, if you replace any of the 10 below with CELL_SIZE
-# IT will fail, probably because some instruction is not handling stack properly.
+            ny := (y + dy + ROWS) % ROWS    # Wrap around edges
+            nx := (x + dx + COLS) % COLS
+
+            if cells[ny][nx] { 
+              count++
+            }
+        }
+    }
+
+    return count
+}
+
+# Function to update the game state
+updateCells := |cells| {
+    # Create new array for next state
+    newCells := makeArr(ROWS)
+    for i := 0; i < ROWS; i++ {
+        newCells[i] = makeArr(COLS)
+    }
+    
+    for y := 0; y < ROWS; y++ {
+        for x := 0; x < COLS; x++ {
+            neighbors := countNeighbors(y, x, cells)
+            if cells[y][x] {
+                # Cell is alive
+                newCells[y][x] = neighbors == 2 || neighbors == 3
+            } else {
+                # Cell is dead
+                newCells[y][x] = neighbors == 3
+            }
+        }
+    }
+
+    return newCells
+}
+
+rl:initWindow(WORLD_WIDTH, WORLD_HEIGHT, "Game of Life")
+
 while !rl:windowShouldClose() {
+    # Update
+    newCells := updateCells(cells)
+    cells = newCells
+
+    # Draw
     rl:beginDrawing()
     rl:clearBackground(rl:colorRayWhite)
+    rl:drawFps(10, 10)
 
-    forEachCell(|y, x| {
-        if cells[y][x] {
-            rl:drawRectangle(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE, rl:colorBlack)
+    for y := 0; y < ROWS; y++ {
+        for x := 0; x < COLS; x++ {
+            if cells[y][x] {
+                rl:drawRectangle(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE, rl:colorBlack)
+            }
         }
-    })
+    }
 
     rl:endDrawing()
 }
 
 rl:closeWindow()
+

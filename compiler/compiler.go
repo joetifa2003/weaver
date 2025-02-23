@@ -465,13 +465,13 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 		}
 
 		switch e.Value.(type) {
-		// case ir.FrameExpr:
-		// 	instructions = append(instructions, opcode.OP_EMPTY_FUNC)
-		// 	instructions = append(instructions, c.storeVar(e.Var)...)
-		// 	instructions = append(instructions, opcode.OP_POP)
-		// 	instructions = append(instructions, expr...)
-		// 	instructions = append(instructions, opcode.OP_FUNC_LET, opcode.OpCode(e.Var.Scope), opcode.OpCode(e.Var.Idx))
-		// 	return instructions, nil
+		case ir.FrameExpr:
+			instructions = append(instructions, opcode.OP_EMPTY_FUNC)
+			instructions = append(instructions, c.storeVar(e.Var)...)
+			instructions = append(instructions, opcode.OP_POP)
+			instructions = append(instructions, expr...)
+			instructions = append(instructions, opcode.OP_FUNC_LET, opcode.OpCode(e.Var.Scope), opcode.OpCode(e.Var.Idx))
+			return instructions, nil
 		default:
 			instructions = append(instructions, expr...)
 			instructions = append(instructions, c.storeVar(e.Var)...)

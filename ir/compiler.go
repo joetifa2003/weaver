@@ -9,13 +9,27 @@ import (
 )
 
 type Compiler struct {
-	frames *ds.Stack[*frame]
+	frames      *ds.Stack[*frame]
+	loopContext *ds.Stack[loopContext]
 }
 
 func NewCompiler() *Compiler {
 	return &Compiler{
-		frames: ds.NewStack[*frame](),
+		frames:      ds.NewStack[*frame](),
+		loopContext: ds.NewStack[loopContext](),
 	}
+}
+
+type loopType int
+
+const (
+	loopTypeWhile loopType = iota
+	loopTypeFor
+)
+
+type loopContext struct {
+	loopType           loopType
+	incrementStatement Statement
 }
 
 func (c *Compiler) pushFrame() *frame {
@@ -53,6 +67,18 @@ func (c *Compiler) Compile(p ast.Program) (Program, error) {
 
 func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 	switch s := s.(type) {
+	case ast.BreakStmt:
+		return BreakStmt{}, nil
+
+	case ast.ContinueStmt:
+		if c.loopContext.Peek().loopType != loopTypeFor {
+			return ContinueStmt{}, nil
+		}
+
+		return ContinueStmt{
+			IncrementStatement: c.loopContext.Peek().incrementStatement,
+		}, nil
+
 	case ast.BlockStmt:
 		b := c.currentFrame().pushBlock()
 		for _, stmt := range s.Statements {
@@ -126,10 +152,16 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 			return nil, err
 		}
 
+		c.loopContext.Push(loopContext{
+			loopType: loopTypeWhile,
+		})
+
 		body, err := c.CompileStmt(s.Body)
 		if err != nil {
 			return nil, err
 		}
+
+		c.loopContext.Pop()
 
 		b.pushStmt(IfStmt{
 			Condition: UnaryExpr{
@@ -163,10 +195,19 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 			return nil, err
 		}
 
+		c.loopContext.Push(loopContext{
+			loopType: loopTypeFor,
+			incrementStatement: ExpressionStmt{
+				Expr: incr,
+			},
+		})
+
 		body, err := c.CompileStmt(s.Body)
 		if err != nil {
 			return nil, err
 		}
+
+		c.loopContext.Pop()
 
 		outer.pushStmt(init)
 

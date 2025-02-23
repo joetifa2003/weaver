@@ -53,6 +53,7 @@ const (
 	OP_EQ  // ==
 	OP_NEQ // !=
 	OP_NOT // !
+	OP_NEG // -
 
 	OP_ECHO
 	OP_EMPTY_FUNC
@@ -126,6 +127,7 @@ var opCodeDefs = map[OpCode]OpCodeDef{
 	OP_EQ:           {OP_EQ, "eq", 0},
 	OP_NEQ:          {OP_NEQ, "neq", 0},
 	OP_NOT:          {OP_NOT, "not", 0},
+	OP_NEG:          {OP_NOT, "neg", 0},
 	OP_APUSH:        {OP_APUSH, "apsh", 0},
 	OP_ARRAY:        {OP_ARRAY, "arr", 0},
 	OP_INDEX:        {OP_INDEX, "idx", 0},

@@ -146,6 +146,10 @@ func (v *VM) Run() {
 
 			v.curFrame.ip++
 
+		case opcode.OP_NEG:
+			v.stack[v.sp].Negate(&v.stack[v.sp])
+			v.curFrame.ip++
+
 		case opcode.OP_LT:
 			right := v.stack[v.sp]
 			left := v.stack[v.sp-1]

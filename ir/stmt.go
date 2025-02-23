@@ -86,7 +86,9 @@ func (t ExpressionStmt) String(i int) string {
 	return fmt.Sprintf("%s%s", strings.Repeat("\t", i), t.Expr.String(i))
 }
 
-type ContinueStmt struct{}
+type ContinueStmt struct {
+	IncrementStatement Statement
+}
 
 func (t ContinueStmt) stmt() {}
 

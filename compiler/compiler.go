@@ -163,11 +163,22 @@ func (c *Compiler) compileStmt(s ir.Statement) ([]opcode.OpCode, error) {
 		}, nil
 
 	case ir.ContinueStmt:
+		var instructions []opcode.OpCode
+
+		if s.IncrementStatement != nil {
+			incr, err := c.compileStmt(s.IncrementStatement)
+			if err != nil {
+				return nil, err
+			}
+
+			instructions = append(instructions, incr...)
+		}
+
 		loop := c.currentLoop()
-		return []opcode.OpCode{
-			opcode.OP_JUMP,
-			opcode.OpCode(loop.loopStart),
-		}, nil
+
+		instructions = append(instructions, opcode.OP_JUMP, opcode.OpCode(loop.loopStart))
+
+		return instructions, nil
 
 	case ir.IfStmt:
 		var instructions []opcode.OpCode
@@ -626,6 +637,9 @@ func (c *Compiler) unaryOperatorOpcode(operator ir.UnaryOp) opcode.OpCode {
 	switch operator {
 	case ir.UnaryOpNot:
 		return opcode.OP_NOT
+
+	case ir.UnaryOpNegate:
+		return opcode.OP_NEG
 
 	default:
 		panic(fmt.Sprintf("unimplemented operator %d", operator))

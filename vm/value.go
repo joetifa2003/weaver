@@ -628,3 +628,14 @@ func (v Value) NotEqual(other *Value, res *Value) {
 		res.SetBool(true)
 	}
 }
+
+func (v Value) Negate(res *Value) {
+	switch v.VType {
+	case ValueTypeInt:
+		res.SetInt(-v.GetInt())
+	case ValueTypeFloat:
+		res.SetFloat(-v.GetFloat())
+	default:
+		panic(fmt.Sprintf("illegal operation -%s", v))
+	}
+}

@@ -138,19 +138,26 @@ func mulExpr() pargo.Parser[ast.Expr] {
 
 func divExpr() pargo.Parser[ast.Expr] {
 	return binaryExpr(
-		notExpr(),
+		unaryExpr(),
 		pargo.Exactly(string(ast.BinaryOpDiv)),
 		ast.BinaryOpDiv,
 	)
 }
 
-func notExpr() pargo.Parser[ast.Expr] {
+func unaryExpr() pargo.Parser[ast.Expr] {
 	return pargo.OneOf(
 		pargo.Sequence2(
 			pargo.Exactly(string(ast.UnaryOpNot)),
-			pargo.Lazy(notExpr),
+			pargo.Lazy(unaryExpr),
 			func(_ string, expr ast.Expr) ast.Expr {
 				return ast.UnaryExpr{Operator: ast.UnaryOpNot, Expr: expr}
+			},
+		),
+		pargo.Sequence2(
+			pargo.Exactly(string(ast.UnaryOpNegate)),
+			pargo.Lazy(unaryExpr),
+			func(_ string, expr ast.Expr) ast.Expr {
+				return ast.UnaryExpr{Operator: ast.UnaryOpNegate, Expr: expr}
 			},
 		),
 		assignExpr(),

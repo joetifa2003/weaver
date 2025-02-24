@@ -1,0 +1,113 @@
+---
+name: Weaver
+scope: source.weaver
+file_extensions:
+  - weaver
+
+contexts:
+  main:
+    - include: keywords
+    - include: constants
+    - include: strings
+    - include: numbers
+    - include: comments
+    - include: function-calls
+    - include: identifiers
+    - include: operators
+    - include: data-structures
+    - include: match-statements
+
+  keywords:
+    - match: \b(if|else|for|while|match|return|break|continue)\b
+      scope: keyword.control.weaver
+
+  constants:
+    - match: \b(true)\b
+      scope: constant.language.boolean.true.weaver
+    - match: \b(false)\b
+      scope: constant.language.boolean.false.weaver
+
+  strings:
+    - match: '"'
+      push:
+        - meta_scope: string.quoted.double.weaver
+        - match: \\.
+          scope: constant.character.escape.weaver
+        - match: '"'
+          pop: true
+
+  numbers:
+    - match: \b[0-9]+\b
+      scope: constant.numeric.integer.weaver
+    - match: \b[0-9]+\.[0-9]+\b
+      scope: constant.numeric.float.weaver
+
+  comments:
+    - match: //.*$
+      scope: comment.line.double-slash.weaver
+
+  identifiers:
+    - match: \b[a-zA-Z_][a-zA-Z0-9_]*\b
+      scope: variable.other.readwrite.weaver
+    - match: (?<=\|)\s*[a-zA-Z_][a-zA-Z0-9_]*\s*(?=\|)
+      scope: variable.parameter.function.weaver
+
+  operators:
+    - match: :=|=
+      scope: keyword.operator.assignment.weaver
+    - match: ==|!=|>|<|>=|<=
+      scope: keyword.operator.comparison.weaver
+    - match: \+|-|\*|/|%
+      scope: keyword.operator.arithmetic.weaver
+    # - match: &&|\|\||\|
+    #   scope: keyword.operator.logical.weaver
+    - match: \|>
+      scope: keyword.operator.pipe.weaver
+    - match: \.
+      scope: keyword.operator.accessor.weaver
+
+  function-calls:
+    - match: \b[a-zA-Z_][a-zA-Z0-9_]*\s*(?=\()
+      scope: entity.name.function.weaver
+    - match: \(
+      scope: punctuation.definition.parameters.begin.weaver
+    - match: \)
+      scope: punctuation.definition.parameters.end.weaver
+
+  data-structures:
+    - match: \[
+      push:
+        - meta_scope: meta.structure.list.weaver
+        - match: \]
+          pop: true
+        - include: main
+    - match: \{
+      push:
+        - meta_scope: meta.structure.dictionary.weaver
+        - match: \}
+          pop: true
+        - include: main
+        - match: \b([a-zA-Z_][a-zA-Z0-9_]*)\s*(:)
+          captures:
+            1: support.type.property-name.weaver
+            2: punctuation.separator.key-value.weaver
+    - match: \{
+      scope: punctuation.definition.object.begin.weaver
+    - match: \}
+      scope: punctuation.definition.object.end.weaver
+    - match: \,
+      scope: punctuation.separator.object.comma.weaver
+
+  match-statements:
+    - match: \bmatch\b
+      scope: keyword.control.match.weaver
+    - match: =>
+      scope: keyword.control.match.case.weaver
+    - match: \belse\b
+      scope: keyword.control.match.else.weaver
+    - match: \{
+      push:
+        - meta_scope: meta.structure.match.weaver
+        - match: \}
+          pop: true
+        - include: main

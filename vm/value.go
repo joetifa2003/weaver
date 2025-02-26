@@ -373,16 +373,16 @@ func (v *Value) Sub(other *Value, res *Value) {
 
 var mulTable = initOpTable("*",
 	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
-		res.SetInt(v.GetInt() - other.GetInt())
+		res.SetInt(v.GetInt() * other.GetInt())
 	}},
 	opDef{ValueTypeInt, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
-		res.SetFloat(v.GetFloat() - other.GetFloat())
+		res.SetFloat(v.GetFloat() * other.GetFloat())
 	}},
 	opDef{ValueTypeFloat, ValueTypeInt, func(v *Value, other *Value, res *Value) {
-		res.SetFloat(v.GetFloat() - other.GetFloat())
+		res.SetFloat(v.GetFloat() * other.GetFloat())
 	}},
 	opDef{ValueTypeFloat, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
-		res.SetFloat(v.GetFloat() - other.GetFloat())
+		res.SetFloat(v.GetFloat() * other.GetFloat())
 	}},
 )
 

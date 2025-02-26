@@ -335,19 +335,40 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 			BinaryOpAnd,
 			[]Expr{
 				BinaryExpr{
-					BinaryOpEq,
+					BinaryOpOr,
 					[]Expr{
-						PostFixExpr{
-							BuiltInExpr{"type"},
-							[]PostFixOp{
-								CallOp{
-									Args: []Expr{
-										expr,
+						BinaryExpr{
+							BinaryOpEq,
+							[]Expr{
+								PostFixExpr{
+									BuiltInExpr{"type"},
+									[]PostFixOp{
+										CallOp{
+											Args: []Expr{
+												expr,
+											},
+										},
 									},
 								},
+								StringExpr{"int"},
 							},
 						},
-						StringExpr{"int"},
+						BinaryExpr{
+							BinaryOpEq,
+							[]Expr{
+								PostFixExpr{
+									BuiltInExpr{"type"},
+									[]PostFixOp{
+										CallOp{
+											Args: []Expr{
+												expr,
+											},
+										},
+									},
+								},
+								StringExpr{"float"},
+							},
+						},
 					},
 				},
 				BinaryExpr{

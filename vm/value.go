@@ -33,6 +33,9 @@ func (t ValueType) Is(other ValueType) bool {
 
 func (t ValueType) String() string {
 	switch t {
+	// TODO: Value zero value should be nil
+	case 0:
+		return "nil"
 	case ValueTypeInt:
 		return "int"
 	case ValueTypeFloat:
@@ -54,7 +57,7 @@ func (t ValueType) String() string {
 	case ValueTypeNativeObject:
 		return "native object"
 	default:
-		panic(fmt.Sprintf("unimplemented %T", t))
+		panic(fmt.Sprintf("unimplemented %d", t))
 	}
 }
 

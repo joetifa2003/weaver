@@ -185,8 +185,6 @@ If operators are used with incorrect types, Weaver will throw an error, and if e
   caption: [Weaver operators with incorrect/different type operands.],
 ) <fig:weaver-equality-different-types>
 
-
-
 == Control Flow
 
 If statements are used to execute a block of code if a certain condition expression is true, as shown in @fig:if.

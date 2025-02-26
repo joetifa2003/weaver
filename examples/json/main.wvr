@@ -1,0 +1,14 @@
+data := io:readFile("test.json")
+
+candidates := data |> json:parse()
+
+for i := 0; i < len(candidates); i++ {
+  match candidates[i] {
+    {name: n, age: a, job: {experience: 5..10}} => {
+      n + " is a valid candidate" |> echo()
+    },
+    {name: n} => {
+      n + " not a valid candidate" |> echo()
+    }
+  }
+}

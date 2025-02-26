@@ -23,6 +23,7 @@ const (
 	ValueTypeModule
 	ValueTypeNativeObject
 	ValueTypeRef
+	valueTypeEnd
 )
 
 func (t ValueType) Is(other ...ValueType) bool {
@@ -105,7 +106,7 @@ func (v *Value) GetInt() int {
 	case ValueTypeFloat:
 		return int(*interpret[float64](&v.primitive))
 	default:
-		panic(fmt.Sprintf("Value.GetInt(): not a number"))
+		return 0
 	}
 }
 
@@ -116,7 +117,7 @@ func (v *Value) GetFloat() float64 {
 	case ValueTypeFloat:
 		return *interpret[float64](&v.primitive)
 	default:
-		panic(fmt.Sprintf("Value.GetFloat(): not a number"))
+		return 0
 	}
 }
 
@@ -126,10 +127,6 @@ func (v *Value) SetObject(o map[string]Value) {
 }
 
 func (v *Value) GetObject() map[string]Value {
-	if v.VType != ValueTypeObject {
-		panic("Value.GetObject(): not an object")
-	}
-
 	return *(*map[string]Value)(v.nonPrimitive)
 }
 
@@ -139,26 +136,14 @@ func (v *Value) SetModule(m map[string]Value) {
 }
 
 func (v *Value) GetModule() map[string]Value {
-	if v.VType != ValueTypeModule {
-		panic("Value.GetModule(): not a module")
-	}
-
 	return *(*map[string]Value)(v.nonPrimitive)
 }
 
 func (v *Value) GetBool() bool {
-	if v.VType != ValueTypeBool {
-		panic("Value.GetBool(): not a bool")
-	}
-
 	return *interpret[bool](&v.primitive)
 }
 
 func (v *Value) GetArray() *[]Value {
-	if v.VType != ValueTypeArray {
-		panic("Value.GetArray(): not an array")
-	}
-
 	return (*[]Value)(v.nonPrimitive)
 }
 
@@ -198,10 +183,6 @@ func (v *Value) SetFunction(f FunctionValue) {
 }
 
 func (v *Value) GetFunction() *FunctionValue {
-	if v.VType != ValueTypeFunction {
-		panic("Value.GetFunction(): not a function")
-	}
-
 	return (*FunctionValue)(v.nonPrimitive)
 }
 
@@ -211,10 +192,6 @@ func (v *Value) SetString(s string) {
 }
 
 func (v *Value) GetString() string {
-	if v.VType != ValueTypeString {
-		panic("Value.GetString(): not a string")
-	}
-
 	return *(*string)(v.nonPrimitive)
 }
 
@@ -224,10 +201,6 @@ func (v *Value) SetNativeObject(obj interface{}) {
 }
 
 func (v *Value) GetNativeObject() interface{} {
-	if v.VType != ValueTypeNativeObject {
-		panic("Value.GetNativeObject(): not a native object")
-	}
-
 	return *(*interface{})(v.nonPrimitive)
 }
 
@@ -249,10 +222,6 @@ func (a NativeFunctionArgs) Get(i int, types ...ValueType) (Value, error) {
 type NativeFunction func(v *VM, args NativeFunctionArgs) (Value, error)
 
 func (v *Value) GetNativeFunction() NativeFunction {
-	if v.VType != ValueTypeNativeFunction {
-		panic("Value.GetNativeFunction(): not a native function")
-	}
-
 	return *(*NativeFunction)(v.nonPrimitive)
 }
 
@@ -309,7 +278,7 @@ func NewBool(b bool) Value {
 	return val
 }
 
-func (v Value) String() string {
+func (v *Value) String() string {
 	switch v.VType {
 	case ValueTypeModule:
 		return "module"
@@ -350,263 +319,173 @@ func (v Value) String() string {
 	}
 }
 
-func (v Value) IsTruthy() bool {
+func (v *Value) IsTruthy() bool {
 	switch v.VType {
 	case ValueTypeBool:
 		return v.GetBool()
-	case ValueTypeInt:
-		return v.GetInt() != 0
-	case ValueTypeFloat:
-		return v.GetFloat() != 0
-	case ValueTypeString:
-		return len(v.GetString()) != 0
-	case ValueTypeObject:
-		return len(v.GetObject()) != 0
-	case ValueTypeArray:
-		return len(*v.GetArray()) != 0
 	case ValueTypeNil:
 		return false
 	default:
-		return false
+		return true
 	}
 }
 
-func (v Value) Add(other *Value, res *Value) {
-	switch v.VType {
-	case ValueTypeString:
-		switch other.VType {
-		case ValueTypeString:
-			res.SetString(v.GetString() + other.GetString())
-		default:
-			panic(fmt.Sprintf("illegal operation %s + %s", v, other))
-		}
-	case ValueTypeInt:
-		switch other.VType {
-		case ValueTypeInt:
-			res.SetInt(v.GetInt() + other.GetInt())
-		case ValueTypeFloat:
-			res.SetFloat(float64(v.GetInt()) + other.GetFloat())
-		default:
-			panic(fmt.Sprintf("illegal operation %s + %s", v, other))
-		}
-	case ValueTypeFloat:
-		switch other.VType {
-		case ValueTypeInt:
-			res.SetFloat(v.GetFloat() + float64(other.GetInt()))
-		case ValueTypeFloat:
-			res.SetFloat(v.GetFloat() + other.GetFloat())
-		default:
-			panic(fmt.Sprintf("illegal operation %s + %s", v, other))
-		}
-	default:
-		panic(fmt.Sprintf("illegal operation %s + %s", v, other))
-	}
+var addTable = initOpTable(
+	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
+		res.SetInt(v.GetInt() + other.GetInt())
+	}},
+	opDef{ValueTypeInt, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
+		res.SetFloat(v.GetFloat() + other.GetFloat())
+	}},
+	opDef{ValueTypeFloat, ValueTypeInt, func(v *Value, other *Value, res *Value) {
+		res.SetFloat(v.GetFloat() + other.GetFloat())
+	}},
+	opDef{ValueTypeFloat, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
+		res.SetFloat(v.GetFloat() + other.GetFloat())
+	}},
+	opDef{ValueTypeString, ValueTypeString, func(v *Value, other *Value, res *Value) {
+		res.SetString(v.GetString() + other.GetString())
+	}},
+)
+
+func (v *Value) Add(other *Value, res *Value) {
+	addTable.Call(v, other, res)
 }
 
-func (v Value) Sub(other *Value, res *Value) {
-	switch v.VType {
-	case ValueTypeInt:
-		switch other.VType {
-		case ValueTypeInt:
-			res.SetInt(v.GetInt() - other.GetInt())
-		case ValueTypeFloat:
-			res.SetFloat(float64(v.GetInt()) - other.GetFloat())
-		default:
-			panic(fmt.Sprintf("illegal operation %s - %s", v, other))
-		}
-	case ValueTypeFloat:
-		switch other.VType {
-		case ValueTypeInt:
-			res.SetFloat(v.GetFloat() - float64(other.GetInt()))
-		case ValueTypeFloat:
-			res.SetFloat(v.GetFloat() - other.GetFloat())
-		default:
-			panic(fmt.Sprintf("illegal operation %s - %s", v, other))
-		}
-	default:
-		panic(fmt.Sprintf("illegal operation %s - %s", v, other))
-	}
+var subTable = initOpTable(
+	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
+		res.SetInt(v.GetInt() - other.GetInt())
+	}},
+	opDef{ValueTypeInt, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
+		res.SetFloat(v.GetFloat() - other.GetFloat())
+	}},
+	opDef{ValueTypeFloat, ValueTypeInt, func(v *Value, other *Value, res *Value) {
+		res.SetFloat(v.GetFloat() - other.GetFloat())
+	}},
+	opDef{ValueTypeFloat, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
+		res.SetFloat(v.GetFloat() - other.GetFloat())
+	}},
+)
+
+func (v *Value) Sub(other *Value, res *Value) {
+	subTable.Call(v, other, res)
 }
 
-func (v Value) Mul(other *Value, res *Value) {
-	switch v.VType {
-	case ValueTypeInt:
-		switch other.VType {
-		case ValueTypeInt:
-			res.SetInt(v.GetInt() * other.GetInt())
-		case ValueTypeFloat:
-			res.SetFloat(float64(v.GetInt()) * other.GetFloat())
-		default:
-			panic(fmt.Sprintf("illegal operation %s * %s", v, other))
-		}
-	case ValueTypeFloat:
-		switch other.VType {
-		case ValueTypeInt:
-			res.SetFloat(v.GetFloat() * float64(other.GetInt()))
-		case ValueTypeFloat:
-			res.SetFloat(v.GetFloat() * other.GetFloat())
-		default:
-			panic(fmt.Sprintf("illegal operation %s * %s", v, other))
-		}
-	default:
-		panic(fmt.Sprintf("illegal operation %s * %s", v, other))
-	}
+var mulTable = initOpTable(
+	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
+		res.SetInt(v.GetInt() - other.GetInt())
+	}},
+	opDef{ValueTypeInt, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
+		res.SetFloat(v.GetFloat() - other.GetFloat())
+	}},
+	opDef{ValueTypeFloat, ValueTypeInt, func(v *Value, other *Value, res *Value) {
+		res.SetFloat(v.GetFloat() - other.GetFloat())
+	}},
+	opDef{ValueTypeFloat, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
+		res.SetFloat(v.GetFloat() - other.GetFloat())
+	}},
+)
+
+func (v *Value) Mul(other *Value, res *Value) {
+	mulTable.Call(v, other, res)
 }
 
-func (v Value) Div(other *Value, res *Value) {
-	switch v.VType {
-	case ValueTypeInt:
-		switch other.VType {
-		case ValueTypeInt:
-			res.SetFloat(float64(v.GetInt()) / float64(other.GetInt()))
-		case ValueTypeFloat:
-			res.SetFloat(float64(v.GetInt()) / other.GetFloat())
-		default:
-			panic(fmt.Sprintf("illegal operation %s / %s", v, other))
-		}
+var divTable = initOpTable(
+	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
+		res.SetInt(v.GetInt() / other.GetInt())
+	}},
+	opDef{ValueTypeInt, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
+		res.SetFloat(v.GetFloat() / other.GetFloat())
+	}},
+	opDef{ValueTypeFloat, ValueTypeInt, func(v *Value, other *Value, res *Value) {
+		res.SetFloat(v.GetFloat() / other.GetFloat())
+	}},
+	opDef{ValueTypeFloat, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
+		res.SetFloat(v.GetFloat() / other.GetFloat())
+	}},
+)
 
-	case ValueTypeFloat:
-		switch other.VType {
-		case ValueTypeInt:
-			res.SetFloat(v.GetFloat() / float64(other.GetInt()))
-		case ValueTypeFloat:
-			res.SetFloat(v.GetFloat() / other.GetFloat())
-		default:
-			panic(fmt.Sprintf("illegal operation %s / %s", v, other))
-		}
-	default:
-		panic(fmt.Sprintf("illegal operation %s / %s", v, other))
-	}
+func (v *Value) Div(other *Value, res *Value) {
+	divTable.Call(v, other, res)
 }
 
-func (v Value) Mod(other *Value, res *Value) {
-	switch v.VType {
-	case ValueTypeInt:
-		switch other.VType {
-		case ValueTypeInt:
-			res.SetInt(v.GetInt() % other.GetInt())
-		case ValueTypeFloat:
-			res.SetInt(v.GetInt() % int(other.GetFloat()))
-		default:
-			panic(fmt.Sprintf("illegal operation %s %% %s", v, other))
-		}
+var lessThanTable = initOpTable(
+	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
+		res.SetBool(v.GetInt() < other.GetInt())
+	}},
+	opDef{ValueTypeInt, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
+		res.SetBool(v.GetFloat() < other.GetFloat())
+	}},
+	opDef{ValueTypeFloat, ValueTypeInt, func(v *Value, other *Value, res *Value) {
+		res.SetBool(v.GetFloat() < other.GetFloat())
+	}},
+	opDef{ValueTypeFloat, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
+		res.SetBool(v.GetFloat() < other.GetFloat())
+	}},
+)
 
-	case ValueTypeFloat:
-		switch other.VType {
-		case ValueTypeInt:
-			res.SetInt(int(v.GetFloat()) % other.GetInt())
-		case ValueTypeFloat:
-			res.SetInt(int(v.GetFloat()) % int(other.GetFloat()))
-		default:
-			panic(fmt.Sprintf("illegal operation %s %% %s", v, other))
-		}
-	default:
-		panic(fmt.Sprintf("illegal operation %s %% %s", v, other))
-	}
+func (v *Value) LessThan(other *Value, res *Value) {
+	lessThanTable.Call(v, other, res)
 }
 
-func (v Value) LessThan(other *Value, res *Value) {
-	switch v.VType {
-	case ValueTypeInt:
-		switch other.VType {
-		case ValueTypeInt:
-			res.SetBool(v.GetInt() < other.GetInt())
-		case ValueTypeFloat:
-			res.SetBool(float64(v.GetInt()) < other.GetFloat())
-		default:
-			panic(fmt.Sprintf("illegal operation %s < %s", v, other))
-		}
-	case ValueTypeFloat:
-		switch other.VType {
-		case ValueTypeInt:
-			res.SetBool(v.GetFloat() < float64(other.GetInt()))
-		case ValueTypeFloat:
-			res.SetBool(v.GetFloat() < other.GetFloat())
-		default:
-			panic(fmt.Sprintf("illegal operation %s < %s", v, other))
-		}
-	default:
-		panic(fmt.Sprintf("illegal operation %s < %s", v, other))
-	}
+var lessThanEqualTable = initOpTable(
+	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
+		res.SetBool(v.GetInt() <= other.GetInt())
+	}},
+	opDef{ValueTypeInt, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
+		res.SetBool(v.GetFloat() <= other.GetFloat())
+	}},
+	opDef{ValueTypeFloat, ValueTypeInt, func(v *Value, other *Value, res *Value) {
+		res.SetBool(v.GetFloat() <= other.GetFloat())
+	}},
+	opDef{ValueTypeFloat, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
+		res.SetBool(v.GetFloat() <= other.GetFloat())
+	}},
+)
+
+func (v *Value) LessThanEqual(other *Value, res *Value) {
+	lessThanEqualTable.Call(v, other, res)
 }
 
-func (v Value) LessThanEqual(other *Value, res *Value) {
-	switch v.VType {
-	case ValueTypeInt:
-		switch other.VType {
-		case ValueTypeInt:
-			res.SetBool(v.GetInt() <= other.GetInt())
-		case ValueTypeFloat:
-			res.SetBool(float64(v.GetInt()) <= other.GetFloat())
-		default:
-			panic(fmt.Sprintf("illegal operation %s <= %s", v, other))
-		}
-	case ValueTypeFloat:
-		switch other.VType {
-		case ValueTypeInt:
-			res.SetBool(v.GetFloat() <= float64(other.GetInt()))
-		case ValueTypeFloat:
-			res.SetBool(v.GetFloat() <= other.GetFloat())
-		default:
-			panic(fmt.Sprintf("illegal operation %s <= %s", v, other))
-		}
-	default:
-		panic(fmt.Sprintf("illegal operation %s <= %s", v, other))
-	}
+var greaterThanTable = initOpTable(
+	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
+		res.SetBool(v.GetInt() > other.GetInt())
+	}},
+	opDef{ValueTypeInt, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
+		res.SetBool(v.GetFloat() > other.GetFloat())
+	}},
+	opDef{ValueTypeFloat, ValueTypeInt, func(v *Value, other *Value, res *Value) {
+		res.SetBool(v.GetFloat() > other.GetFloat())
+	}},
+	opDef{ValueTypeFloat, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
+		res.SetBool(v.GetFloat() > other.GetFloat())
+	}},
+)
+
+func (v *Value) GreaterThan(other *Value, res *Value) {
+	greaterThanTable.Call(v, other, res)
 }
 
-func (v Value) GreaterThan(other *Value, res *Value) {
-	switch v.VType {
-	case ValueTypeInt:
-		switch other.VType {
-		case ValueTypeInt:
-			res.SetBool(v.GetInt() > other.GetInt())
-		case ValueTypeFloat:
-			res.SetBool(float64(v.GetInt()) > other.GetFloat())
-		default:
-			panic(fmt.Sprintf("illegal operation %s > %s", v, other))
-		}
-	case ValueTypeFloat:
-		switch other.VType {
-		case ValueTypeInt:
-			res.SetBool(v.GetFloat() > float64(other.GetInt()))
-		case ValueTypeFloat:
-			res.SetBool(v.GetFloat() > other.GetFloat())
-		default:
-			panic(fmt.Sprintf("illegal operation %s > %s", v, other))
-		}
-	default:
-		panic(fmt.Sprintf("illegal operation %s > %s", v, other))
-	}
+var greaterThanEqual = initOpTable(
+	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
+		res.SetBool(v.GetInt() >= other.GetInt())
+	}},
+	opDef{ValueTypeInt, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
+		res.SetBool(v.GetFloat() >= other.GetFloat())
+	}},
+	opDef{ValueTypeFloat, ValueTypeInt, func(v *Value, other *Value, res *Value) {
+		res.SetBool(v.GetFloat() >= other.GetFloat())
+	}},
+	opDef{ValueTypeFloat, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
+		res.SetBool(v.GetFloat() >= other.GetFloat())
+	}},
+)
+
+func (v *Value) GreaterThanEqual(other *Value, res *Value) {
+	greaterThanEqual.Call(v, other, res)
 }
 
-func (v Value) GreaterThanEqual(other *Value, res *Value) {
-	switch v.VType {
-	case ValueTypeInt:
-		switch other.VType {
-		case ValueTypeInt:
-			res.SetBool(v.GetInt() >= other.GetInt())
-		case ValueTypeFloat:
-			res.SetBool(float64(v.GetInt()) >= other.GetFloat())
-		default:
-			panic(fmt.Sprintf("illegal operation %s >= %s", v, other))
-		}
-	case ValueTypeFloat:
-		switch other.VType {
-		case ValueTypeInt:
-			res.SetBool(v.GetFloat() >= float64(other.GetInt()))
-		case ValueTypeFloat:
-			res.SetBool(v.GetFloat() >= other.GetFloat())
-		default:
-			panic(fmt.Sprintf("illegal operation %s >= %s", v, other))
-		}
-	default:
-		panic(fmt.Sprintf("illegal operation %s >= %s", v, other))
-	}
-}
-
-// TODO: implement object equality.
-func (v Value) Equal(other *Value, res *Value) {
+func (v *Value) Equal(other *Value, res *Value) {
 	if v.VType != other.VType {
 		res.SetBool(false)
 		return
@@ -632,7 +511,7 @@ func (v Value) Equal(other *Value, res *Value) {
 	}
 }
 
-func (v Value) NotEqual(other *Value, res *Value) {
+func (v *Value) NotEqual(other *Value, res *Value) {
 	if v.VType != other.VType {
 		res.SetBool(true)
 		return
@@ -658,7 +537,7 @@ func (v Value) NotEqual(other *Value, res *Value) {
 	}
 }
 
-func (v Value) Negate(res *Value) {
+func (v *Value) Negate(res *Value) {
 	switch v.VType {
 	case ValueTypeInt:
 		res.SetInt(-v.GetInt())
@@ -667,4 +546,12 @@ func (v Value) Negate(res *Value) {
 	default:
 		panic(fmt.Sprintf("illegal operation -%s", v))
 	}
+}
+
+func (v *Value) Mod(other *Value, res *Value) {
+	if (v.VType != ValueTypeInt && v.VType != ValueTypeFloat) || (other.VType != ValueTypeInt && other.VType != ValueTypeFloat) {
+		panic(fmt.Sprintf("illegal operation %s %% %s", v, other))
+	}
+
+	res.SetInt(v.GetInt() % other.GetInt())
 }

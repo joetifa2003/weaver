@@ -115,7 +115,8 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 
 		newArr := make([]vm.Value, 0)
 		for _, val := range arr {
-			if v.RunFunction(fnArg, val).IsTruthy() {
+			r := v.RunFunction(fnArg, val)
+			if r.IsTruthy() {
 				newArr = append(newArr, val)
 			}
 		}
@@ -140,7 +141,8 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 
 		if f.VType == vm.ValueTypeFunction {
 			for _, val := range arr {
-				if v.RunFunction(f, val).IsTruthy() {
+				r := v.RunFunction(f, val)
+				if r.IsTruthy() {
 					return vm.NewBool(true), nil
 				}
 			}

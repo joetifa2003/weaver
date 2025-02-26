@@ -9,11 +9,11 @@ import (
 func registerModuleRL(builder *RegistryBuilder) {
 	m := map[string]vm.Value{
 		"initWindow": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-			widthArg, err := args.Get(0, vm.ValueTypeNumber)
+			widthArg, err := args.Get(0, vm.ValueTypeFloat, vm.ValueTypeInt)
 			if err != nil {
 				return vm.Value{}, err
 			}
-			heightArg, err := args.Get(1, vm.ValueTypeNumber)
+			heightArg, err := args.Get(1, vm.ValueTypeFloat, vm.ValueTypeInt)
 			if err != nil {
 				return vm.Value{}, err
 			}
@@ -33,7 +33,7 @@ func registerModuleRL(builder *RegistryBuilder) {
 			return vm.NewBool(rl.WindowShouldClose()), nil
 		}),
 		"setTargetFPS": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-			fpsArg, err := args.Get(0, vm.ValueTypeNumber)
+			fpsArg, err := args.Get(0, vm.ValueTypeFloat, vm.ValueTypeInt)
 			if err != nil {
 				return vm.Value{}, err
 			}
@@ -62,19 +62,19 @@ func registerModuleRL(builder *RegistryBuilder) {
 			return vm.Value{}, nil
 		}),
 		"drawRectangle": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-			posXArg, err := args.Get(0, vm.ValueTypeNumber)
+			posXArg, err := args.Get(0, vm.ValueTypeFloat, vm.ValueTypeInt)
 			if err != nil {
 				return vm.Value{}, err
 			}
-			posYArg, err := args.Get(1, vm.ValueTypeNumber)
+			posYArg, err := args.Get(1, vm.ValueTypeFloat, vm.ValueTypeInt)
 			if err != nil {
 				return vm.Value{}, err
 			}
-			widthArg, err := args.Get(2, vm.ValueTypeNumber)
+			widthArg, err := args.Get(2, vm.ValueTypeFloat, vm.ValueTypeInt)
 			if err != nil {
 				return vm.Value{}, err
 			}
-			heightArg, err := args.Get(3, vm.ValueTypeNumber)
+			heightArg, err := args.Get(3, vm.ValueTypeFloat, vm.ValueTypeInt)
 			if err != nil {
 				return vm.Value{}, err
 			}
@@ -93,11 +93,11 @@ func registerModuleRL(builder *RegistryBuilder) {
 			return vm.Value{}, nil
 		}),
 		"drawFps": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-			posXArg, err := args.Get(0, vm.ValueTypeNumber)
+			posXArg, err := args.Get(0, vm.ValueTypeFloat, vm.ValueTypeInt)
 			if err != nil {
 				return vm.Value{}, err
 			}
-			posYArg, err := args.Get(1, vm.ValueTypeNumber)
+			posYArg, err := args.Get(1, vm.ValueTypeFloat, vm.ValueTypeInt)
 			if err != nil {
 				return vm.Value{}, err
 			}
@@ -105,14 +105,14 @@ func registerModuleRL(builder *RegistryBuilder) {
 			return vm.Value{}, nil
 		}),
 		"isKeyPressed": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-			keyArg, err := args.Get(0, vm.ValueTypeNumber)
+			keyArg, err := args.Get(0, vm.ValueTypeFloat, vm.ValueTypeInt)
 			if err != nil {
 				return vm.Value{}, err
 			}
 			return vm.NewBool(rl.IsKeyPressed(int32(keyArg.GetInt()))), nil
 		}),
 		"isKeyDown": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-			keyArg, err := args.Get(0, vm.ValueTypeNumber)
+			keyArg, err := args.Get(0, vm.ValueTypeFloat, vm.ValueTypeInt)
 			if err != nil {
 				return vm.Value{}, err
 			}

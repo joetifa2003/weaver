@@ -11,7 +11,7 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 	builder.RegisterFunc("echo", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
 		res := vm.Value{}
 
-		val, err := args.Get(0, vm.ValueTypeAny)
+		val, err := args.Get(0)
 		if err != nil {
 			return res, err
 		}
@@ -28,7 +28,7 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 	builder.RegisterFunc("makeArr", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
 		res := vm.Value{}
 
-		val, err := args.Get(0, vm.ValueTypeNumber)
+		val, err := args.Get(0)
 		if err != nil {
 			return res, err
 		}
@@ -67,7 +67,7 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 			return vm.Value{}, err
 		}
 
-		val, err := args.Get(1, vm.ValueTypeAny)
+		val, err := args.Get(1)
 		if err != nil {
 			return vm.Value{}, err
 		}
@@ -131,7 +131,7 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 		if err != nil {
 			return vm.Value{}, err
 		}
-		f, err := args.Get(1, vm.ValueTypeAny)
+		f, err := args.Get(1)
 		if err != nil {
 			return vm.Value{}, err
 		}
@@ -158,7 +158,7 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 	})
 
 	builder.RegisterFunc("assert", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-		val, err := args.Get(0, vm.ValueTypeAny)
+		val, err := args.Get(0)
 		if err != nil {
 			return vm.Value{}, err
 		}
@@ -171,7 +171,7 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 	})
 
 	builder.RegisterFunc("type", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-		val, err := args.Get(0, vm.ValueTypeAny)
+		val, err := args.Get(0)
 		if err != nil {
 			return vm.Value{}, err
 		}
@@ -180,7 +180,7 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 	})
 
 	builder.RegisterFunc("string", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-		val, err := args.Get(0, vm.ValueTypeAny)
+		val, err := args.Get(0)
 		if err != nil {
 			return vm.Value{}, err
 		}

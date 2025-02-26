@@ -8,10 +8,10 @@ import (
 	"github.com/joetifa2003/weaver/opcode"
 )
 
-type ValueType uint16
+type ValueType uint8
 
 const (
-	ValueTypeNil ValueType = 1 << iota
+	ValueTypeNil ValueType = iota
 	ValueTypeInt
 	ValueTypeFloat
 	ValueTypeString
@@ -22,20 +22,26 @@ const (
 	ValueTypeNativeFunction
 	ValueTypeModule
 	ValueTypeNativeObject
-	ValueTypeAny
+	ValueTypeRef
 )
 
-const ValueTypeNumber = ValueTypeInt | ValueTypeFloat
+func (t ValueType) Is(other ...ValueType) bool {
+	if len(other) == 0 {
+		return true
+	}
 
-func (t ValueType) Is(other ValueType) bool {
-	return t&other != 0 || other == ValueTypeAny
+	for _, o := range other {
+		if t == o {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (t ValueType) String() string {
 	switch t {
 	// TODO: Value zero value should be nil
-	case 0:
-		return "nil"
 	case ValueTypeInt:
 		return "int"
 	case ValueTypeFloat:
@@ -70,6 +76,26 @@ type Value struct {
 
 func interpret[T any](b *[8]byte) *T {
 	return (*T)(unsafe.Pointer(b))
+}
+
+func (v *Value) SetRef(r Value) {
+	v.VType = ValueTypeRef
+	v.nonPrimitive = unsafe.Pointer(&r)
+}
+
+func (v *Value) deref() *Value {
+	switch v.VType {
+	case ValueTypeRef:
+		return (*Value)(v.nonPrimitive)
+	default:
+		return v
+	}
+}
+
+func (v *Value) Set(other Value) {
+	v.VType = other.VType
+	v.nonPrimitive = other.nonPrimitive
+	v.primitive = other.primitive
 }
 
 func (v *Value) GetInt() int {
@@ -207,13 +233,13 @@ func (v *Value) GetNativeObject() interface{} {
 
 type NativeFunctionArgs []Value
 
-func (a NativeFunctionArgs) Get(i int, valType ValueType) (Value, error) {
+func (a NativeFunctionArgs) Get(i int, types ...ValueType) (Value, error) {
 	if i >= len(a) {
 		return Value{}, ErrInvalidNumberOfArguments
 	}
 
 	v := a[i]
-	if !v.VType.Is(valType) {
+	if !v.VType.Is(types...) {
 		return Value{}, ErrInvalidArgType
 	}
 

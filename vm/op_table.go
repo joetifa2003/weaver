@@ -16,12 +16,12 @@ func (t *opTable) Call(v *Value, other *Value, res *Value) {
 	t[v.VType][other.VType](v, other, res)
 }
 
-var illegalOp = func(v *Value, other *Value, res *Value) {
-	panic(fmt.Sprintf("illegal operation %s %s", v, other))
-}
-
-func initOpTable(defs ...opDef) opTable {
+func initOpTable(op string, defs ...opDef) opTable {
 	var table [valueTypeEnd][valueTypeEnd]opFunc
+
+	illegalOp := func(v *Value, other *Value, res *Value) {
+		panic(fmt.Sprintf("illegal operation %s %s %s", v.VType, op, other.VType))
+	}
 
 	for i := range table {
 		for j := range table[i] {

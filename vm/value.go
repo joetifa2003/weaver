@@ -330,7 +330,7 @@ func (v *Value) IsTruthy() bool {
 	}
 }
 
-var addTable = initOpTable(
+var addTable = initOpTable("+",
 	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
 		res.SetInt(v.GetInt() + other.GetInt())
 	}},
@@ -352,7 +352,7 @@ func (v *Value) Add(other *Value, res *Value) {
 	addTable.Call(v, other, res)
 }
 
-var subTable = initOpTable(
+var subTable = initOpTable("-",
 	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
 		res.SetInt(v.GetInt() - other.GetInt())
 	}},
@@ -371,7 +371,7 @@ func (v *Value) Sub(other *Value, res *Value) {
 	subTable.Call(v, other, res)
 }
 
-var mulTable = initOpTable(
+var mulTable = initOpTable("*",
 	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
 		res.SetInt(v.GetInt() - other.GetInt())
 	}},
@@ -390,7 +390,7 @@ func (v *Value) Mul(other *Value, res *Value) {
 	mulTable.Call(v, other, res)
 }
 
-var divTable = initOpTable(
+var divTable = initOpTable("/",
 	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
 		res.SetInt(v.GetInt() / other.GetInt())
 	}},
@@ -409,7 +409,7 @@ func (v *Value) Div(other *Value, res *Value) {
 	divTable.Call(v, other, res)
 }
 
-var lessThanTable = initOpTable(
+var lessThanTable = initOpTable("<",
 	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
 		res.SetBool(v.GetInt() < other.GetInt())
 	}},
@@ -428,7 +428,7 @@ func (v *Value) LessThan(other *Value, res *Value) {
 	lessThanTable.Call(v, other, res)
 }
 
-var lessThanEqualTable = initOpTable(
+var lessThanEqualTable = initOpTable("<=",
 	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
 		res.SetBool(v.GetInt() <= other.GetInt())
 	}},
@@ -447,7 +447,7 @@ func (v *Value) LessThanEqual(other *Value, res *Value) {
 	lessThanEqualTable.Call(v, other, res)
 }
 
-var greaterThanTable = initOpTable(
+var greaterThanTable = initOpTable(">",
 	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
 		res.SetBool(v.GetInt() > other.GetInt())
 	}},
@@ -466,7 +466,7 @@ func (v *Value) GreaterThan(other *Value, res *Value) {
 	greaterThanTable.Call(v, other, res)
 }
 
-var greaterThanEqual = initOpTable(
+var greaterThanEqual = initOpTable(">=",
 	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
 		res.SetBool(v.GetInt() >= other.GetInt())
 	}},

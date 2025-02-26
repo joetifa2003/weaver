@@ -42,7 +42,7 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 	builder.RegisterFunc("len", func(x *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
 		res := vm.Value{}
 
-		val, err := args.Get(0, vm.ValueTypeArray|vm.ValueTypeString|vm.ValueTypeObject)
+		val, err := args.Get(0, vm.ValueTypeArray, vm.ValueTypeString, vm.ValueTypeObject)
 		if err != nil {
 			return res, err
 		}
@@ -189,7 +189,7 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 	})
 
 	builder.RegisterFunc("int", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-		val, err := args.Get(0, vm.ValueTypeInt|vm.ValueTypeFloat)
+		val, err := args.Get(0, vm.ValueTypeInt, vm.ValueTypeFloat)
 		if err != nil {
 			return vm.Value{}, err
 		}

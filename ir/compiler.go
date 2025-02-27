@@ -350,7 +350,7 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 										},
 									},
 								},
-								StringExpr{"int"},
+								StringExpr{"number"},
 							},
 						},
 						BinaryExpr{
@@ -366,7 +366,7 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 										},
 									},
 								},
-								StringExpr{"float"},
+								StringExpr{"number"},
 							},
 						},
 					},
@@ -405,7 +405,7 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 								},
 							},
 						},
-						StringExpr{"int"},
+						StringExpr{"number"},
 					},
 				},
 				BinaryExpr{
@@ -435,7 +435,7 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 								},
 							},
 						},
-						StringExpr{"float"},
+						StringExpr{"number"},
 					},
 				},
 				BinaryExpr{

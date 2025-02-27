@@ -22,7 +22,7 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 	})
 
 	builder.RegisterFunc("rand", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-		return vm.NewFloat(rand.Float64()), nil
+		return vm.NewNumber(rand.Float64()), nil
 	})
 
 	builder.RegisterFunc("makeArr", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
@@ -33,7 +33,7 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 			return res, err
 		}
 
-		arr := make([]vm.Value, val.GetInt())
+		arr := make([]vm.Value, int(val.GetNumber()))
 		res.SetArray(arr)
 
 		return res, nil
@@ -49,11 +49,11 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 
 		switch val.VType {
 		case vm.ValueTypeArray:
-			res.SetInt(len(*val.GetArray()))
+			res.SetNumber(float64(len(*val.GetArray())))
 		case vm.ValueTypeString:
-			res.SetInt(len(val.GetString()))
+			res.SetNumber(float64(len(val.GetString())))
 		case vm.ValueTypeObject:
-			res.SetInt(len(val.GetObject()))
+			res.SetNumber(float64(len(val.GetObject())))
 		default:
 			panic("len() argument must be an array, string or object")
 		}
@@ -191,16 +191,15 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 	})
 
 	builder.RegisterFunc("int", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-		val, err := args.Get(0, vm.ValueTypeInt, vm.ValueTypeFloat)
+		val, err := args.Get(0, vm.ValueTypeNumber)
 		if err != nil {
 			return vm.Value{}, err
 		}
 
 		switch val.VType {
-		case vm.ValueTypeInt:
+		case vm.ValueTypeNumber:
+			val.SetNumber(float64(int(val.GetNumber())))
 			return val, nil
-		case vm.ValueTypeFloat:
-			return vm.NewInt(int(val.GetFloat())), nil
 		default:
 			panic("unreachable")
 		}

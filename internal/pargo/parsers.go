@@ -2,7 +2,6 @@ package pargo
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 
 	"github.com/joetifa2003/weaver/internal/pargo/lexer"
@@ -104,9 +103,6 @@ func OneOf[T any](parsers ...Parser[T]) Parser[T] {
 				}
 			}
 		}
-
-		fmt.Println(loc)
-		fmt.Println(ferr)
 
 		return zero[T](), initState, ferr
 	}

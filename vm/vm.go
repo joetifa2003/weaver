@@ -227,7 +227,7 @@ func (v *VM) Run() {
 			scope := v.curFrame.instructions[v.curFrame.ip+1]
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 			v1 := scopeGetters[scope](v, index)
-			v1.SetInt(v1.GetInt() + 1)
+			v1.SetNumber(v1.GetNumber() + 1)
 			v.sp++
 			v.stack[v.sp] = *v1
 			v.curFrame.ip += 3
@@ -236,14 +236,14 @@ func (v *VM) Run() {
 			scope := v.curFrame.instructions[v.curFrame.ip+1]
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 			v1 := scopeGetters[scope](v, index)
-			v1.SetInt(v1.GetInt() + 1)
+			v1.SetNumber(v1.GetNumber() + 1)
 			v.curFrame.ip += 3
 
 		case opcode.OP_DEC:
 			scope := v.curFrame.instructions[v.curFrame.ip+1]
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 			v1 := scopeGetters[scope](v, index)
-			v1.SetInt(v1.GetInt() - 1)
+			v1.SetNumber(v1.GetNumber() - 1)
 			v.sp++
 			v.stack[v.sp] = *v1
 			v.curFrame.ip += 3
@@ -252,7 +252,7 @@ func (v *VM) Run() {
 			scope := v.curFrame.instructions[v.curFrame.ip+1]
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 			v1 := scopeGetters[scope](v, index)
-			v1.SetInt(v1.GetInt() - 1)
+			v1.SetNumber(v1.GetNumber() - 1)
 			v.curFrame.ip += 3
 
 		case opcode.OP_LOAD:
@@ -368,7 +368,7 @@ func (v *VM) Run() {
 
 			switch arr.VType {
 			case ValueTypeArray:
-				val := (*arr.GetArray())[index.GetInt()]
+				val := (*arr.GetArray())[int(index.GetNumber())]
 				v.stack[v.sp] = val
 			case ValueTypeObject:
 				val := arr.GetObject()[index.GetString()]
@@ -390,7 +390,7 @@ func (v *VM) Run() {
 
 			switch assignee.VType {
 			case ValueTypeArray:
-				(*assignee.GetArray())[idx.GetInt()] = val
+				(*assignee.GetArray())[int(idx.GetNumber())] = val
 			case ValueTypeObject:
 				assignee.GetObject()[idx.String()] = val
 			}

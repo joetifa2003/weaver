@@ -7,10 +7,15 @@ WORLD_HEIGHT := 1024
 ROWS := int(WORLD_HEIGHT / CELL_SIZE)
 COLS := int(WORLD_WIDTH / CELL_SIZE)
 
+"here" |> echo()
+ROWS |> echo()
+COLS |> echo()
+
 cells := makeArr(ROWS)
 for i := 0; i < ROWS; i++ {
     cells[i] = makeArr(COLS)
 }
+
 
 # Initialize random starting pattern
 for y := 0; y < ROWS; y++ {
@@ -76,7 +81,7 @@ while !rl:windowShouldClose() {
     rl:beginDrawing()
     rl:clearBackground(rl:colorRayWhite)
     rl:drawFps(10, 10)
-
+    
     for y := 0; y < ROWS; y++ {
         for x := 0; x < COLS; x++ {
             if cells[y][x] {

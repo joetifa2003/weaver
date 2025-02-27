@@ -414,7 +414,7 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 
 	case ir.IntExpr:
 		value := vm.Value{}
-		value.SetInt(e.Value)
+		value.SetNumber(float64(e.Value))
 		return []opcode.OpCode{
 			opcode.OP_LOAD,
 			opcode.ScopeTypeConst,
@@ -423,7 +423,7 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 
 	case ir.FloatExpr:
 		value := vm.Value{}
-		value.SetFloat(e.Value)
+		value.SetNumber(e.Value)
 		return []opcode.OpCode{
 			opcode.OP_LOAD,
 			opcode.ScopeTypeConst,

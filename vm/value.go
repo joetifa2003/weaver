@@ -12,8 +12,7 @@ type ValueType uint8
 
 const (
 	ValueTypeNil ValueType = iota
-	ValueTypeInt
-	ValueTypeFloat
+	ValueTypeNumber
 	ValueTypeString
 	ValueTypeObject
 	ValueTypeBool
@@ -43,10 +42,8 @@ func (t ValueType) Is(other ...ValueType) bool {
 func (t ValueType) String() string {
 	switch t {
 	// TODO: Value zero value should be nil
-	case ValueTypeInt:
-		return "int"
-	case ValueTypeFloat:
-		return "float"
+	case ValueTypeNumber:
+		return "number"
 	case ValueTypeString:
 		return "string"
 	case ValueTypeObject:
@@ -99,22 +96,9 @@ func (v *Value) Set(other Value) {
 	v.primitive = other.primitive
 }
 
-func (v *Value) GetInt() int {
+func (v *Value) GetNumber() float64 {
 	switch v.VType {
-	case ValueTypeInt:
-		return *interpret[int](&v.primitive)
-	case ValueTypeFloat:
-		return int(*interpret[float64](&v.primitive))
-	default:
-		return 0
-	}
-}
-
-func (v *Value) GetFloat() float64 {
-	switch v.VType {
-	case ValueTypeInt:
-		return float64(*interpret[int](&v.primitive))
-	case ValueTypeFloat:
+	case ValueTypeNumber:
 		return *interpret[float64](&v.primitive)
 	default:
 		return 0
@@ -157,13 +141,8 @@ func (v *Value) SetBool(b bool) {
 	*interpret[bool](&v.primitive) = b
 }
 
-func (v *Value) SetInt(i int) {
-	v.VType = ValueTypeInt
-	*interpret[int](&v.primitive) = i
-}
-
-func (v *Value) SetFloat(f float64) {
-	v.VType = ValueTypeFloat
+func (v *Value) SetNumber(f float64) {
+	v.VType = ValueTypeNumber
 	*interpret[float64](&v.primitive) = f
 }
 
@@ -254,15 +233,9 @@ func NewNativeObject(o interface{}) Value {
 	return val
 }
 
-func NewInt(i int) Value {
+func NewNumber(f float64) Value {
 	val := Value{}
-	val.SetInt(i)
-	return val
-}
-
-func NewFloat(f float64) Value {
-	val := Value{}
-	val.SetFloat(f)
+	val.SetNumber(f)
 	return val
 }
 
@@ -287,13 +260,9 @@ func (v *Value) String() string {
 		str := v.GetString()
 		return str
 
-	case ValueTypeInt:
-		integer := v.GetInt()
-		return strconv.Itoa(integer)
-
-	case ValueTypeFloat:
-		float := v.GetFloat()
-		return fmt.Sprint(float)
+	case ValueTypeNumber:
+		num := v.GetNumber()
+		return strconv.FormatFloat(num, 'f', -1, 64)
 
 	case ValueTypeNil:
 		return "nil"
@@ -330,159 +299,81 @@ func (v *Value) IsTruthy() bool {
 	}
 }
 
-var addTable = initOpTable("+",
-	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
-		res.SetInt(v.GetInt() + other.GetInt())
-	}},
-	opDef{ValueTypeInt, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
-		res.SetFloat(v.GetFloat() + other.GetFloat())
-	}},
-	opDef{ValueTypeFloat, ValueTypeInt, func(v *Value, other *Value, res *Value) {
-		res.SetFloat(v.GetFloat() + other.GetFloat())
-	}},
-	opDef{ValueTypeFloat, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
-		res.SetFloat(v.GetFloat() + other.GetFloat())
-	}},
-	opDef{ValueTypeString, ValueTypeString, func(v *Value, other *Value, res *Value) {
-		res.SetString(v.GetString() + other.GetString())
-	}},
-)
-
 func (v *Value) Add(other *Value, res *Value) {
-	addTable.Call(v, other, res)
-}
+	if v.VType == ValueTypeNumber && other.VType == ValueTypeNumber {
+		res.SetNumber(v.GetNumber() + other.GetNumber())
+		return
+	}
 
-var subTable = initOpTable("-",
-	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
-		res.SetInt(v.GetInt() - other.GetInt())
-	}},
-	opDef{ValueTypeInt, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
-		res.SetFloat(v.GetFloat() - other.GetFloat())
-	}},
-	opDef{ValueTypeFloat, ValueTypeInt, func(v *Value, other *Value, res *Value) {
-		res.SetFloat(v.GetFloat() - other.GetFloat())
-	}},
-	opDef{ValueTypeFloat, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
-		res.SetFloat(v.GetFloat() - other.GetFloat())
-	}},
-)
+	if v.VType == ValueTypeString && other.VType == ValueTypeString {
+		res.SetString(v.GetString() + other.GetString())
+		return
+	}
+
+	panic(fmt.Sprintf("illegal operation %s - %s", v.VType, other.VType))
+}
 
 func (v *Value) Sub(other *Value, res *Value) {
-	subTable.Call(v, other, res)
-}
+	if v.VType == ValueTypeNumber && other.VType == ValueTypeNumber {
+		res.SetNumber(v.GetNumber() - other.GetNumber())
+		return
+	}
 
-var mulTable = initOpTable("*",
-	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
-		res.SetInt(v.GetInt() * other.GetInt())
-	}},
-	opDef{ValueTypeInt, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
-		res.SetFloat(v.GetFloat() * other.GetFloat())
-	}},
-	opDef{ValueTypeFloat, ValueTypeInt, func(v *Value, other *Value, res *Value) {
-		res.SetFloat(v.GetFloat() * other.GetFloat())
-	}},
-	opDef{ValueTypeFloat, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
-		res.SetFloat(v.GetFloat() * other.GetFloat())
-	}},
-)
+	panic(fmt.Sprintf("illegal operation %s - %s", v.VType, other.VType))
+}
 
 func (v *Value) Mul(other *Value, res *Value) {
-	mulTable.Call(v, other, res)
-}
+	if v.VType == ValueTypeNumber && other.VType == ValueTypeNumber {
+		res.SetNumber(v.GetNumber() * other.GetNumber())
+		return
+	}
 
-var divTable = initOpTable("/",
-	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
-		res.SetInt(v.GetInt() / other.GetInt())
-	}},
-	opDef{ValueTypeInt, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
-		res.SetFloat(v.GetFloat() / other.GetFloat())
-	}},
-	opDef{ValueTypeFloat, ValueTypeInt, func(v *Value, other *Value, res *Value) {
-		res.SetFloat(v.GetFloat() / other.GetFloat())
-	}},
-	opDef{ValueTypeFloat, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
-		res.SetFloat(v.GetFloat() / other.GetFloat())
-	}},
-)
+	panic(fmt.Sprintf("illegal operation %s * %s", v.VType, other.VType))
+}
 
 func (v *Value) Div(other *Value, res *Value) {
-	divTable.Call(v, other, res)
-}
+	if v.VType == ValueTypeNumber && other.VType == ValueTypeNumber {
+		res.SetNumber(v.GetNumber() / other.GetNumber())
+		return
+	}
 
-var lessThanTable = initOpTable("<",
-	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
-		res.SetBool(v.GetInt() < other.GetInt())
-	}},
-	opDef{ValueTypeInt, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
-		res.SetBool(v.GetFloat() < other.GetFloat())
-	}},
-	opDef{ValueTypeFloat, ValueTypeInt, func(v *Value, other *Value, res *Value) {
-		res.SetBool(v.GetFloat() < other.GetFloat())
-	}},
-	opDef{ValueTypeFloat, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
-		res.SetBool(v.GetFloat() < other.GetFloat())
-	}},
-)
+	panic(fmt.Sprintf("illegal operation %s / %s", v.VType, other.VType))
+}
 
 func (v *Value) LessThan(other *Value, res *Value) {
-	lessThanTable.Call(v, other, res)
-}
+	if v.VType == ValueTypeNumber && other.VType == ValueTypeNumber {
+		res.SetBool(v.GetNumber() < other.GetNumber())
+		return
+	}
 
-var lessThanEqualTable = initOpTable("<=",
-	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
-		res.SetBool(v.GetInt() <= other.GetInt())
-	}},
-	opDef{ValueTypeInt, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
-		res.SetBool(v.GetFloat() <= other.GetFloat())
-	}},
-	opDef{ValueTypeFloat, ValueTypeInt, func(v *Value, other *Value, res *Value) {
-		res.SetBool(v.GetFloat() <= other.GetFloat())
-	}},
-	opDef{ValueTypeFloat, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
-		res.SetBool(v.GetFloat() <= other.GetFloat())
-	}},
-)
+	panic(fmt.Sprintf("illegal operation %s < %s", v.VType, other.VType))
+}
 
 func (v *Value) LessThanEqual(other *Value, res *Value) {
-	lessThanEqualTable.Call(v, other, res)
-}
+	if v.VType == ValueTypeNumber && other.VType == ValueTypeNumber {
+		res.SetBool(v.GetNumber() <= other.GetNumber())
+		return
+	}
 
-var greaterThanTable = initOpTable(">",
-	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
-		res.SetBool(v.GetInt() > other.GetInt())
-	}},
-	opDef{ValueTypeInt, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
-		res.SetBool(v.GetFloat() > other.GetFloat())
-	}},
-	opDef{ValueTypeFloat, ValueTypeInt, func(v *Value, other *Value, res *Value) {
-		res.SetBool(v.GetFloat() > other.GetFloat())
-	}},
-	opDef{ValueTypeFloat, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
-		res.SetBool(v.GetFloat() > other.GetFloat())
-	}},
-)
+	panic(fmt.Sprintf("illegal operation %s <= %s", v.VType, other.VType))
+}
 
 func (v *Value) GreaterThan(other *Value, res *Value) {
-	greaterThanTable.Call(v, other, res)
+	if v.VType == ValueTypeNumber && other.VType == ValueTypeNumber {
+		res.SetBool(v.GetNumber() > other.GetNumber())
+		return
+	}
+
+	panic(fmt.Sprintf("illegal operation %s > %s", v.VType, other.VType))
 }
 
-var greaterThanEqual = initOpTable(">=",
-	opDef{ValueTypeInt, ValueTypeInt, func(v *Value, other *Value, res *Value) {
-		res.SetBool(v.GetInt() >= other.GetInt())
-	}},
-	opDef{ValueTypeInt, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
-		res.SetBool(v.GetFloat() >= other.GetFloat())
-	}},
-	opDef{ValueTypeFloat, ValueTypeInt, func(v *Value, other *Value, res *Value) {
-		res.SetBool(v.GetFloat() >= other.GetFloat())
-	}},
-	opDef{ValueTypeFloat, ValueTypeFloat, func(v *Value, other *Value, res *Value) {
-		res.SetBool(v.GetFloat() >= other.GetFloat())
-	}},
-)
-
 func (v *Value) GreaterThanEqual(other *Value, res *Value) {
-	greaterThanEqual.Call(v, other, res)
+	if v.VType == ValueTypeNumber && other.VType == ValueTypeNumber {
+		res.SetBool(v.GetNumber() >= other.GetNumber())
+		return
+	}
+
+	panic(fmt.Sprintf("illegal operation %s >= %s", v.VType, other.VType))
 }
 
 func (v *Value) Equal(other *Value, res *Value) {
@@ -494,10 +385,8 @@ func (v *Value) Equal(other *Value, res *Value) {
 	switch v.VType {
 	case ValueTypeNil:
 		res.SetBool(true)
-	case ValueTypeInt:
-		res.SetBool(v.GetInt() == other.GetInt())
-	case ValueTypeFloat:
-		res.SetBool(v.GetFloat() == other.GetFloat())
+	case ValueTypeNumber:
+		res.SetBool(v.GetNumber() == other.GetNumber())
 	case ValueTypeString:
 		res.SetBool(v.GetString() == other.GetString())
 	case ValueTypeArray:
@@ -520,10 +409,8 @@ func (v *Value) NotEqual(other *Value, res *Value) {
 	switch v.VType {
 	case ValueTypeNil:
 		res.SetBool(false)
-	case ValueTypeInt:
-		res.SetBool(v.GetInt() != other.GetInt())
-	case ValueTypeFloat:
-		res.SetBool(v.GetFloat() != other.GetFloat())
+	case ValueTypeNumber:
+		res.SetBool(v.GetNumber() != other.GetNumber())
 	case ValueTypeString:
 		res.SetBool(v.GetString() != other.GetString())
 	case ValueTypeArray:
@@ -539,19 +426,17 @@ func (v *Value) NotEqual(other *Value, res *Value) {
 
 func (v *Value) Negate(res *Value) {
 	switch v.VType {
-	case ValueTypeInt:
-		res.SetInt(-v.GetInt())
-	case ValueTypeFloat:
-		res.SetFloat(-v.GetFloat())
+	case ValueTypeNumber:
+		res.SetNumber(-v.GetNumber())
 	default:
 		panic(fmt.Sprintf("illegal operation -%s", v))
 	}
 }
 
 func (v *Value) Mod(other *Value, res *Value) {
-	if (v.VType != ValueTypeInt && v.VType != ValueTypeFloat) || (other.VType != ValueTypeInt && other.VType != ValueTypeFloat) {
+	if (v.VType != ValueTypeNumber) || (other.VType != ValueTypeNumber) {
 		panic(fmt.Sprintf("illegal operation %s %% %s", v, other))
 	}
 
-	res.SetInt(v.GetInt() % other.GetInt())
+	res.SetNumber(float64(int(v.GetNumber()) % int(other.GetNumber())))
 }

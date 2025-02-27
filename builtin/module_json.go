@@ -13,17 +13,17 @@ func valufiyJSON(v interface{}) vm.Value {
 	case bool:
 		return vm.NewBool(v)
 	case int:
-		return vm.NewInt(v)
+		return vm.NewNumber(float64(v))
 	case int8:
-		return vm.NewInt(int(v))
+		return vm.NewNumber(float64(v))
 	case int16:
-		return vm.NewInt(int(v))
+		return vm.NewNumber(float64(v))
 	case int32:
-		return vm.NewInt(int(v))
+		return vm.NewNumber(float64(v))
 	case float64:
-		return vm.NewFloat(v)
+		return vm.NewNumber(v)
 	case float32:
-		return vm.NewFloat(float64(v))
+		return vm.NewNumber(float64(v))
 	case map[string]interface{}:
 		m := make(map[string]vm.Value)
 		for k, v := range v {

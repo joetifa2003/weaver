@@ -18,6 +18,10 @@ func (e ParseError) Error() string {
 	return fmt.Sprintf("expected %s but found %s at %d:%d", e.Expected, e.Found.String(), location.Line, location.Column)
 }
 
+func (e ParseError) Location() lexer.Location {
+	return e.Found.Location()
+}
+
 func NewParseError(src string, expected string, found lexer.Token) ParseError {
 	return ParseError{
 		Expected: expected,

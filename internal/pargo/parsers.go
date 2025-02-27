@@ -1,7 +1,8 @@
 package pargo
 
 import (
-	"io"
+	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/joetifa2003/weaver/internal/pargo/lexer"
@@ -19,7 +20,7 @@ func (s *State) done() bool {
 
 func (s *State) consume() (lexer.Token, error) {
 	if s.pos >= len(s.tokens) {
-		return nil, io.EOF
+		return nil, NewParseError(s.source, "EOF", s.tokens[0])
 	}
 
 	val := s.tokens[s.pos]
@@ -82,18 +83,32 @@ func Except(s string) Parser[string] {
 }
 
 func OneOf[T any](parsers ...Parser[T]) Parser[T] {
-	return func(state State) (T, State, error) {
-		var res T
+	return func(initState State) (T, State, error) {
 		var err error
+		var res T
+		var state State
+		var loc lexer.Location
+		var ferr error
 
 		for _, p := range parsers {
-			res, state, err = p(state)
+			res, state, err = p(initState)
 			if err == nil {
 				return res, state, nil
 			}
+
+			var parseError ParseError
+			if errors.As(err, &parseError) {
+				if parseError.Location().IsAfter(loc) {
+					loc = parseError.Location()
+					ferr = err
+				}
+			}
 		}
 
-		return zero[T](), state, err
+		fmt.Println(loc)
+		fmt.Println(ferr)
+
+		return zero[T](), initState, ferr
 	}
 }
 
@@ -189,6 +204,27 @@ func Many[T any](p Parser[T]) Parser[[]T] {
 			r, state, err = p(state)
 			if err != nil {
 				return res, state, nil
+			}
+			res = append(res, r)
+		}
+	}
+}
+
+func ManyUntil[T any, E any](p Parser[T], end Parser[E]) Parser[[]T] {
+	return func(state State) ([]T, State, error) {
+		var res []T
+		var err error
+		var r T
+
+		for {
+			_, _, err = end(state)
+			if err == nil {
+				return res, state, nil
+			}
+
+			r, state, err = p(state)
+			if err != nil {
+				return res, state, err
 			}
 			res = append(res, r)
 		}

@@ -19,7 +19,7 @@ func varDeclStmt() pargo.Parser[ast.Statement] {
 func blockStmt() pargo.Parser[ast.Statement] {
 	return pargo.Sequence3(
 		pargo.Exactly("{"),
-		pargo.Many(pargo.Lazy(stmt)),
+		pargo.ManyUntil(pargo.Lazy(stmt), pargo.Exactly("}")),
 		pargo.Exactly("}"),
 		func(_ string, stmts []ast.Statement, _ string) ast.Statement {
 			return ast.BlockStmt{Statements: stmts}

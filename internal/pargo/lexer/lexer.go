@@ -20,6 +20,10 @@ type Location struct {
 	Column int
 }
 
+func (l Location) IsAfter(other Location) bool {
+	return l.Line > other.Line || (l.Line == other.Line && l.Column > other.Column)
+}
+
 type RegexToken struct {
 	location Location
 	ttype    int

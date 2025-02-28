@@ -78,16 +78,6 @@ func ifStmt() pargo.Parser[ast.Statement] {
 	)
 }
 
-func returnStmt() pargo.Parser[ast.Statement] {
-	return pargo.Sequence2(
-		pargo.Exactly("return"),
-		expr(),
-		func(_ string, expr ast.Expr) ast.Statement {
-			return ast.ReturnStmt{Expr: expr}
-		},
-	)
-}
-
 func exprStmt() pargo.Parser[ast.Statement] {
 	return pargo.Map(
 		expr(),
@@ -263,7 +253,6 @@ func stmt() pargo.Parser[ast.Statement] {
 		blockStmt(),
 		whileStmt(),
 		ifStmt(),
-		returnStmt(),
 		forStmt(),
 		continueStmt(),
 		breakStmt(),

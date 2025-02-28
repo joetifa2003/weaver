@@ -232,10 +232,17 @@ func (c *Compiler) compileStmt(s ir.Statement) ([]opcode.OpCode, error) {
 
 		return instructions, nil
 
-	case ir.ReturnStmt:
+	default:
+		panic(fmt.Sprintf("Unimplemented: %T", s))
+	}
+}
+
+func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
+	switch e := e.(type) {
+	case ir.ReturnExpr:
 		var instructions []opcode.OpCode
 
-		expr, err := c.compileExpr(s.Expr)
+		expr, err := c.compileExpr(e.Expr)
 		if err != nil {
 			return nil, err
 		}
@@ -245,13 +252,6 @@ func (c *Compiler) compileStmt(s ir.Statement) ([]opcode.OpCode, error) {
 
 		return instructions, nil
 
-	default:
-		panic(fmt.Sprintf("Unimplemented: %T", s))
-	}
-}
-
-func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
-	switch e := e.(type) {
 	case ir.BinaryExpr:
 		var instructions []opcode.OpCode
 

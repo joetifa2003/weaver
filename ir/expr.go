@@ -357,3 +357,13 @@ func (t IfExpr) expr() {}
 func (t IfExpr) String(indent int) string {
 	return fmt.Sprintf("if (%s) %s else %s", t.Condition.String(indent), t.TrueExpr.String(indent), t.FalseExpr.String(indent))
 }
+
+type ReturnExpr struct {
+	Expr Expr
+}
+
+func (t ReturnExpr) expr() {}
+
+func (t ReturnExpr) String(i int) string {
+	return fmt.Sprintf("%sreturn %s", strings.Repeat("\t", i), t.Expr.String(i))
+}

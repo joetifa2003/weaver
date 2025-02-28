@@ -131,13 +131,6 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 			Alternative: &alternative,
 		}, nil
 
-	case ast.ReturnStmt:
-		expr, err := c.CompileExpr(s.Expr)
-		if err != nil {
-			return nil, err
-		}
-		return ReturnStmt{Expr: expr}, nil
-
 	case ast.ExprStmt:
 		expr, err := c.CompileExpr(s.Expr)
 		if err != nil {
@@ -615,6 +608,13 @@ func orTrue(value Expr) Expr {
 
 func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 	switch e := e.(type) {
+	case ast.ReturnExpr:
+		expr, err := c.CompileExpr(e.Expr)
+		if err != nil {
+			return nil, err
+		}
+		return ReturnExpr{Expr: expr}, nil
+
 	case ast.IntExpr:
 		return IntExpr{Value: e.Value}, nil
 
@@ -825,8 +825,10 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 				Params: e.Params,
 				Body: ast.BlockStmt{
 					Statements: []ast.Statement{
-						ast.ReturnStmt{
-							Expr: e.Expr,
+						ast.ExprStmt{
+							Expr: ast.ReturnExpr{
+								Expr: e.Expr,
+							},
 						},
 					},
 				},

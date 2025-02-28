@@ -66,16 +66,6 @@ func (t IfStmt) String(i int) string {
 	return strings.Join(res, "\n")
 }
 
-type ReturnStmt struct {
-	Expr Expr
-}
-
-func (t ReturnStmt) stmt() {}
-
-func (t ReturnStmt) String(i int) string {
-	return fmt.Sprintf("%sreturn %s", strings.Repeat("\t", i), t.Expr.String(i))
-}
-
 type ExpressionStmt struct {
 	Expr Expr
 }

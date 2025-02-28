@@ -170,3 +170,9 @@ type TernaryExpr struct {
 }
 
 func (t TernaryExpr) expr() {}
+
+type ReturnExpr struct {
+	Expr Expr
+}
+
+func (t ReturnExpr) expr() {}

@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"errors"
 	"strconv"
 
 	"github.com/joetifa2003/weaver/ast"
@@ -26,7 +25,20 @@ func binaryExpr(
 }
 
 func expr() pargo.Parser[ast.Expr] {
-	return ternaryExpr()
+	return returnExpr()
+}
+
+func returnExpr() pargo.Parser[ast.Expr] {
+	return pargo.OneOf(
+		pargo.Sequence2(
+			pargo.Exactly("return"),
+			ternaryExpr(),
+			func(_ string, expr ast.Expr) ast.Expr {
+				return ast.ReturnExpr{Expr: expr}
+			},
+		),
+		ternaryExpr(),
+	)
 }
 
 type ternaryBody struct {
@@ -35,33 +47,30 @@ type ternaryBody struct {
 }
 
 func ternaryExpr() pargo.Parser[ast.Expr] {
-	return pargo.OneOf(
-		pargo.Sequence2(
-			orExpr(),
-			pargo.Optional(
-				pargo.Sequence4(
-					pargo.Exactly("?"),
-					pargo.Lazy(expr),
-					pargo.Exactly(":"),
-					pargo.Lazy(expr),
-					func(_ string, trueExpr ast.Expr, _ string, falseExpr ast.Expr) ternaryBody {
-						return ternaryBody{trueExpr, falseExpr}
-					},
-				),
-			),
-			func(expr ast.Expr, body *ternaryBody) ast.Expr {
-				if body == nil {
-					return expr
-				}
-
-				return ast.TernaryExpr{
-					Expr:      expr,
-					TrueExpr:  body.trueExpr,
-					FalseExpr: body.falseExpr,
-				}
-			},
-		),
+	return pargo.Sequence2(
 		orExpr(),
+		pargo.Optional(
+			pargo.Sequence4(
+				pargo.Exactly("?"),
+				pargo.Lazy(expr),
+				pargo.Exactly("|"),
+				pargo.Lazy(expr),
+				func(_ string, trueExpr ast.Expr, _ string, falseExpr ast.Expr) ternaryBody {
+					return ternaryBody{trueExpr, falseExpr}
+				},
+			),
+		),
+		func(expr ast.Expr, body *ternaryBody) ast.Expr {
+			if body == nil {
+				return expr
+			}
+
+			return ast.TernaryExpr{
+				Expr:      expr,
+				TrueExpr:  body.trueExpr,
+				FalseExpr: body.falseExpr,
+			}
+		},
 	)
 }
 
@@ -416,10 +425,6 @@ func booleanExpr() pargo.Parser[ast.Expr] {
 			pargo.Exactly("false"),
 		),
 		func(s string) (ast.Expr, error) {
-			if s != "true" && s != "false" {
-				return nil, errors.New("invalid boolean") // TODO: handle errors in a better way
-			}
-
 			return ast.BoolExpr{Value: s == "true"}, nil
 		},
 	)

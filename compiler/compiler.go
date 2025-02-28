@@ -538,6 +538,35 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 		}
 
 		return instructions, nil
+
+	case ir.IfExpr:
+		var instructions []opcode.OpCode
+
+		falseLabel := c.label()
+		trueLabel := c.label()
+
+		cond, err := c.compileExpr(e.Condition)
+		if err != nil {
+			return nil, err
+		}
+		trueExpr, err := c.compileExpr(e.TrueExpr)
+		if err != nil {
+			return nil, err
+		}
+		falseExpr, err := c.compileExpr(e.FalseExpr)
+		if err != nil {
+			return nil, err
+		}
+
+		instructions = append(instructions, cond...)
+		instructions = append(instructions, opcode.OP_JUMP_F, opcode.OpCode(falseLabel))
+		instructions = append(instructions, trueExpr...)
+		instructions = append(instructions, opcode.OP_JUMP, opcode.OpCode(trueLabel))
+		instructions = append(instructions, opcode.OP_LABEL, opcode.OpCode(falseLabel))
+		instructions = append(instructions, falseExpr...)
+		instructions = append(instructions, opcode.OP_LABEL, opcode.OpCode(trueLabel))
+
+		return instructions, nil
 	}
 
 	panic(fmt.Sprintf("unimplemented %T", e))

@@ -26,7 +26,43 @@ func binaryExpr(
 }
 
 func expr() pargo.Parser[ast.Expr] {
-	return orExpr()
+	return ternaryExpr()
+}
+
+type ternaryBody struct {
+	trueExpr  ast.Expr
+	falseExpr ast.Expr
+}
+
+func ternaryExpr() pargo.Parser[ast.Expr] {
+	return pargo.OneOf(
+		pargo.Sequence2(
+			orExpr(),
+			pargo.Optional(
+				pargo.Sequence4(
+					pargo.Exactly("?"),
+					pargo.Lazy(expr),
+					pargo.Exactly(":"),
+					pargo.Lazy(expr),
+					func(_ string, trueExpr ast.Expr, _ string, falseExpr ast.Expr) ternaryBody {
+						return ternaryBody{trueExpr, falseExpr}
+					},
+				),
+			),
+			func(expr ast.Expr, body *ternaryBody) ast.Expr {
+				if body == nil {
+					return expr
+				}
+
+				return ast.TernaryExpr{
+					Expr:      expr,
+					TrueExpr:  body.trueExpr,
+					FalseExpr: body.falseExpr,
+				}
+			},
+		),
+		orExpr(),
+	)
 }
 
 func orExpr() pargo.Parser[ast.Expr] {

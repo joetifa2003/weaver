@@ -162,3 +162,11 @@ type ModuleLoadExpr struct {
 }
 
 func (t ModuleLoadExpr) expr() {}
+
+type TernaryExpr struct {
+	Expr      Expr
+	TrueExpr  Expr
+	FalseExpr Expr
+}
+
+func (t TernaryExpr) expr() {}

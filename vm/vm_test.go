@@ -376,6 +376,10 @@ func TestVM(t *testing.T) {
 
 			fib(10) == 55 |> assert()
 		`,
+		31: `
+		true ? assert(true) : assert(false)
+		false ? assert(false) : assert(true)
+		`,
 	}
 
 	for i, tc := range tests {

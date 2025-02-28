@@ -345,3 +345,15 @@ func (t ModuleLoadExpr) expr() {}
 func (t ModuleLoadExpr) String(indent int) string {
 	return fmt.Sprintf("%s:%s", t.Name, t.Load)
 }
+
+type IfExpr struct {
+	Condition Expr
+	TrueExpr  Expr
+	FalseExpr Expr
+}
+
+func (t IfExpr) expr() {}
+
+func (t IfExpr) String(indent int) string {
+	return fmt.Sprintf("if (%s) %s else %s", t.Condition.String(indent), t.TrueExpr.String(indent), t.FalseExpr.String(indent))
+}

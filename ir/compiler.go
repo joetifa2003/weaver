@@ -836,6 +836,26 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 	case ast.NilExpr:
 		return NilExpr{}, nil
 
+	case ast.TernaryExpr:
+		cond, err := c.CompileExpr(e.Expr)
+		if err != nil {
+			return nil, err
+		}
+		trueExpr, err := c.CompileExpr(e.TrueExpr)
+		if err != nil {
+			return nil, err
+		}
+		falseExpr, err := c.CompileExpr(e.FalseExpr)
+		if err != nil {
+			return nil, err
+		}
+
+		return IfExpr{
+			Condition: cond,
+			TrueExpr:  trueExpr,
+			FalseExpr: falseExpr,
+		}, nil
+
 	default:
 		panic(fmt.Sprintf("unimplemented %T", e))
 	}

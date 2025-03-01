@@ -319,15 +319,15 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 			irHasType(expr, "error"),
 		)
 
-		v := c.currentFrame().define("")
-		res.Operands = append(res.Operands, v.assign(irIndex(expr, irString("data"))))
-
-		c, err := c.compileMatchCondition(cond.Cond, v.load())
-		if err != nil {
-			return nil, err
+		if cond.Cond != nil {
+			v := c.currentFrame().define("")
+			res.Operands = append(res.Operands, v.assign(irIndex(expr, irString("data"))))
+			c, err := c.compileMatchCondition(*cond.Cond, v.load())
+			if err != nil {
+				return nil, err
+			}
+			res.Operands = append(res.Operands, c)
 		}
-
-		res.Operands = append(res.Operands, c)
 
 		return res, nil
 

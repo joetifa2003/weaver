@@ -114,7 +114,7 @@ type MatchCaseRange struct {
 func (t MatchCaseRange) matchCaseCondition() {}
 
 type MatchCaseError struct {
-	Cond MatchCaseCondition
+	Cond *MatchCaseCondition
 }
 
 func (t MatchCaseError) matchCaseCondition() {}

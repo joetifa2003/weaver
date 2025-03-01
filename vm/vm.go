@@ -363,19 +363,10 @@ func (v *VM) Run() {
 
 		case opcode.OP_INDEX:
 			index := v.stack[v.sp]
-			arr := v.stack[v.sp-1]
+			val := v.stack[v.sp-1]
 			v.sp--
 
-			switch arr.VType {
-			case ValueTypeArray:
-				val := (*arr.GetArray())[int(index.GetNumber())]
-				v.stack[v.sp] = val
-			case ValueTypeObject:
-				val := arr.GetObject()[index.GetString()]
-				v.stack[v.sp] = val
-			default:
-				panic(fmt.Sprintf("illegal index type %s", arr.VType))
-			}
+			val.Index(&index, &v.stack[v.sp])
 
 			v.curFrame.ip++
 
@@ -388,12 +379,7 @@ func (v *VM) Run() {
 			assignee := v.stack[v.sp-1]
 			val := v.stack[v.sp-2]
 
-			switch assignee.VType {
-			case ValueTypeArray:
-				(*assignee.GetArray())[int(idx.GetNumber())] = val
-			case ValueTypeObject:
-				assignee.GetObject()[idx.String()] = val
-			}
+			assignee.SetIndex(&idx, val)
 
 			v.sp -= 2
 			v.stack[v.sp] = assignee

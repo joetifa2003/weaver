@@ -21,6 +21,15 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 		return res, nil
 	})
 
+	builder.RegisterFunc("error", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
+		dataArg, err := args.Get(0)
+		if err != nil {
+			return vm.Value{}, err
+		}
+
+		return vm.NewError(dataArg), nil
+	})
+
 	builder.RegisterFunc("rand", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
 		return vm.NewNumber(rand.Float64()), nil
 	})

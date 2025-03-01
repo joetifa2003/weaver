@@ -7,10 +7,6 @@ WORLD_HEIGHT := 1024
 ROWS := int(WORLD_HEIGHT / CELL_SIZE)
 COLS := int(WORLD_WIDTH / CELL_SIZE)
 
-"here" |> echo()
-ROWS |> echo()
-COLS |> echo()
-
 cells := makeArr(ROWS)
 for i := 0; i < ROWS; i++ {
     cells[i] = makeArr(COLS)

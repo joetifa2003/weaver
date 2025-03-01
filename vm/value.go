@@ -1,8 +1,10 @@
 package vm
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"unsafe"
 
 	"github.com/joetifa2003/weaver/opcode"
@@ -22,7 +24,7 @@ const (
 	ValueTypeModule
 	ValueTypeNativeObject
 	ValueTypeRef
-	valueTypeEnd
+	ValueTypeError
 )
 
 func (t ValueType) Is(other ...ValueType) bool {
@@ -60,6 +62,8 @@ func (t ValueType) String() string {
 		return "native function"
 	case ValueTypeNativeObject:
 		return "native object"
+	case ValueTypeError:
+		return "error"
 	default:
 		panic(fmt.Sprintf("unimplemented %d", t))
 	}
@@ -94,6 +98,11 @@ func (v *Value) Set(other Value) {
 	v.VType = other.VType
 	v.nonPrimitive = other.nonPrimitive
 	v.primitive = other.primitive
+}
+
+func (v *Value) SetNumber(f float64) {
+	v.VType = ValueTypeNumber
+	*interpret[float64](&v.primitive) = f
 }
 
 func (v *Value) GetNumber() float64 {
@@ -141,13 +150,22 @@ func (v *Value) SetBool(b bool) {
 	*interpret[bool](&v.primitive) = b
 }
 
-func (v *Value) SetNumber(f float64) {
-	v.VType = ValueTypeNumber
-	*interpret[float64](&v.primitive) = f
-}
-
 func (v *Value) SetNil() {
 	v.VType = ValueTypeNil
+}
+
+type Error struct {
+	Data Value
+}
+
+func (v *Value) SetError(data Value) {
+	e := Error{Data: data}
+	v.VType = ValueTypeError
+	v.nonPrimitive = unsafe.Pointer(&e)
+}
+
+func (v *Value) GetError() *Error {
+	return (*Error)(v.nonPrimitive)
 }
 
 type FunctionValue struct {
@@ -251,6 +269,12 @@ func NewBool(b bool) Value {
 	return val
 }
 
+func NewError(data Value) Value {
+	val := Value{}
+	val.SetError(data)
+	return val
+}
+
 func (v *Value) String() string {
 	switch v.VType {
 	case ValueTypeModule:
@@ -268,7 +292,13 @@ func (v *Value) String() string {
 		return "nil"
 
 	case ValueTypeObject:
-		return fmt.Sprint(v.GetObject())
+		builder := strings.Builder{}
+		builder.WriteString("{")
+		for k, v := range v.GetObject() {
+			builder.WriteString(fmt.Sprintf("%s: %s, ", k, v.String()))
+		}
+		builder.WriteString("}")
+		return builder.String()
 
 	case ValueTypeBool:
 		return strconv.FormatBool(v.GetBool())
@@ -282,6 +312,10 @@ func (v *Value) String() string {
 
 	case ValueTypeNativeFunction:
 		return "native function"
+
+	case ValueTypeError:
+		data := v.GetError().Data
+		return fmt.Sprintf("error(%s)", data.String())
 
 	default:
 		panic(fmt.Sprintf("Value.String(): unimplemented %T", v.VType))
@@ -439,4 +473,70 @@ func (v *Value) Mod(other *Value, res *Value) {
 	}
 
 	res.SetNumber(float64(int(v.GetNumber()) % int(other.GetNumber())))
+}
+
+var (
+	ErrInvalidArrayIndexType  = errors.New("invalid array index type")
+	ErrInvalidObjectIndexType = errors.New("invalid object index type")
+	ErrInvalidErrorIndexType  = errors.New("invalid error index type")
+)
+
+func (v *Value) Index(idx *Value, res *Value) {
+	switch v.VType {
+	case ValueTypeArray:
+		switch idx.VType {
+		case ValueTypeNumber:
+			res.Set((*v.GetArray())[int(idx.GetNumber())])
+		default:
+			panic(ErrInvalidArrayIndexType)
+		}
+	case ValueTypeObject:
+		switch idx.VType {
+		case ValueTypeString:
+			res.Set(v.GetObject()[idx.GetString()])
+		default:
+			panic(ErrInvalidObjectIndexType)
+		}
+	case ValueTypeError:
+		switch idx.VType {
+		case ValueTypeString:
+			if idx.GetString() == "data" {
+				res.Set(v.GetError().Data)
+			} else {
+				res.Set(Value{})
+			}
+		default:
+			panic(ErrInvalidErrorIndexType)
+		}
+	}
+}
+
+func (v *Value) SetIndex(idx *Value, val Value) {
+	switch v.VType {
+	case ValueTypeArray:
+		switch idx.VType {
+		case ValueTypeNumber:
+			(*v.GetArray())[int(idx.GetNumber())] = val
+		default:
+			panic(ErrInvalidArrayIndexType)
+		}
+	case ValueTypeObject:
+		switch idx.VType {
+		case ValueTypeString:
+			v.GetObject()[idx.GetString()] = val
+		default:
+			panic(ErrInvalidObjectIndexType)
+		}
+	case ValueTypeError:
+		switch idx.VType {
+		case ValueTypeString:
+			if idx.GetString() == "data" {
+				v.GetError().Data = val
+			} else {
+				panic(ErrInvalidErrorIndexType)
+			}
+		default:
+			panic(ErrInvalidErrorIndexType)
+		}
+	}
 }

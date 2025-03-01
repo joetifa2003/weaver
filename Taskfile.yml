@@ -1,0 +1,7 @@
+version: '3'
+tasks:
+  coverage:
+    # dir: vm
+    cmds:
+      - go test ./... -v -coverprofile=coverage.out
+      - go tool cover -html=coverage.out

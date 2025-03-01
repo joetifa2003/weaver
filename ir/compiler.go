@@ -313,6 +313,24 @@ func (c *Compiler) compileMatchCase(m ast.MatchCase, expr Expr) (IfStmt, error) 
 
 func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr) (Expr, error) {
 	switch cond := cond.(type) {
+
+	case ast.MatchCaseError:
+		res := irAnd(
+			irHasType(expr, "error"),
+		)
+
+		v := c.currentFrame().define("")
+		res.Operands = append(res.Operands, v.assign(irIndex(expr, irString("data"))))
+
+		c, err := c.compileMatchCondition(cond.Cond, v.load())
+		if err != nil {
+			return nil, err
+		}
+
+		res.Operands = append(res.Operands, c)
+
+		return res, nil
+
 	case ast.MatchCaseRange:
 		begin, err := c.CompileExpr(cond.Begin)
 		if err != nil {
@@ -324,203 +342,52 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 			return nil, err
 		}
 
-		return BinaryExpr{
-			BinaryOpAnd,
-			[]Expr{
-				BinaryExpr{
-					BinaryOpOr,
-					[]Expr{
-						BinaryExpr{
-							BinaryOpEq,
-							[]Expr{
-								PostFixExpr{
-									BuiltInExpr{"type"},
-									[]PostFixOp{
-										CallOp{
-											Args: []Expr{
-												expr,
-											},
-										},
-									},
-								},
-								StringExpr{"number"},
-							},
-						},
-						BinaryExpr{
-							BinaryOpEq,
-							[]Expr{
-								PostFixExpr{
-									BuiltInExpr{"type"},
-									[]PostFixOp{
-										CallOp{
-											Args: []Expr{
-												expr,
-											},
-										},
-									},
-								},
-								StringExpr{"number"},
-							},
-						},
-					},
-				},
-				BinaryExpr{
-					BinaryOpGt,
-					[]Expr{
-						expr,
-						begin,
-					},
-				},
-				BinaryExpr{
-					BinaryOpLt,
-					[]Expr{
-						expr,
-						end,
-					},
-				},
-			},
-		}, nil
+		return irAnd(
+			irHasType(expr, "number"),
+			irGt(expr, begin),
+			irLt(expr, end),
+		), nil
 
 	case ast.MatchCaseInt:
-		return BinaryExpr{
-			BinaryOpAnd,
-			[]Expr{
-				BinaryExpr{
-					BinaryOpEq,
-					[]Expr{
-						PostFixExpr{
-							BuiltInExpr{"type"},
-							[]PostFixOp{
-								CallOp{
-									Args: []Expr{
-										expr,
-									},
-								},
-							},
-						},
-						StringExpr{"number"},
-					},
-				},
-				BinaryExpr{
-					BinaryOpEq,
-					[]Expr{
-						expr,
-						IntExpr{cond.Value},
-					},
-				},
-			},
-		}, nil
+		return irAnd(
+			irHasType(expr, "number"),
+			irEq(expr, irInt(cond.Value)),
+		), nil
 
 	case ast.MatchCaseFloat:
-		return BinaryExpr{
-			BinaryOpAnd,
-			[]Expr{
-				BinaryExpr{
-					BinaryOpEq,
-					[]Expr{
-						PostFixExpr{
-							BuiltInExpr{"type"},
-							[]PostFixOp{
-								CallOp{
-									Args: []Expr{
-										expr,
-									},
-								},
-							},
-						},
-						StringExpr{"number"},
-					},
-				},
-				BinaryExpr{
-					BinaryOpEq,
-					[]Expr{
-						expr,
-						FloatExpr{cond.Value},
-					},
-				},
-			},
-		}, nil
+		return irAnd(
+			irHasType(expr, "number"),
+			irEq(expr, irFloat(cond.Value)),
+		), nil
 
 	case ast.MatchCaseString:
-		return BinaryExpr{
-			BinaryOpAnd,
-			[]Expr{
-				BinaryExpr{
-					BinaryOpEq,
-					[]Expr{
-						PostFixExpr{
-							BuiltInExpr{"type"},
-							[]PostFixOp{
-								CallOp{
-									Args: []Expr{
-										expr,
-									},
-								},
-							},
-						},
-						StringExpr{"string"},
-					},
-				},
-				BinaryExpr{
-					BinaryOpEq,
-					[]Expr{
-						expr,
-						StringExpr{cond.Value},
-					},
-				},
-			},
-		}, nil
+		return irAnd(
+			irHasType(expr, "string"),
+			irEq(
+				expr,
+				irString(cond.Value),
+			),
+		), nil
 
 	case ast.MatchCaseIdent:
 		v := c.currentFrame().define(cond.Name)
-		return orTrue(v.assign(expr)), nil
+		return irOrTrue(v.assign(expr)), nil
 
 	case ast.MatchCaseObject:
-		isObject := BinaryExpr{
-			BinaryOpEq,
-			[]Expr{
-				PostFixExpr{
-					BuiltInExpr{"type"},
-					[]PostFixOp{
-						CallOp{[]Expr{expr}},
-					},
-				},
-				StringExpr{"object"},
-			},
-		}
-
-		hasCorrectLength := BinaryExpr{
-			BinaryOpGte,
-			[]Expr{
-				PostFixExpr{
-					BuiltInExpr{"len"},
-					[]PostFixOp{
-						CallOp{[]Expr{expr}},
-					},
-				},
-				IntExpr{len(cond.KVs)},
-			},
-		}
-
-		res := BinaryExpr{
-			BinaryOpAnd,
-			[]Expr{
-				isObject,
-				hasCorrectLength,
-			},
-		}
+		res := irAnd(
+			irHasType(expr, "object"),
+			irGte(
+				irCall(irBuiltIn("len"), expr),
+				irInt(len(cond.KVs)),
+			),
+		)
 
 		for key, cond := range cond.KVs {
 			v := c.currentFrame().define("")
 
 			res.Operands = append(res.Operands,
-				orTrue(
-					v.assign(PostFixExpr{
-						expr,
-						[]PostFixOp{
-							IndexOp{Index: StringExpr{Value: key}},
-						},
-					}),
+				irOrTrue(
+					v.assign(irIndex(expr, irString(key))),
 				),
 			)
 			child, err := c.compileMatchCondition(cond, v.load())
@@ -534,51 +401,20 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 		return res, nil
 
 	case ast.MatchCaseArray:
-		isArray := BinaryExpr{
-			BinaryOpEq,
-			[]Expr{
-				PostFixExpr{
-					BuiltInExpr{"type"},
-					[]PostFixOp{
-						CallOp{[]Expr{expr}},
-					},
-				},
-				StringExpr{"array"},
-			},
-		}
-
-		hasCorrectLength := BinaryExpr{
-			BinaryOpGte,
-			[]Expr{
-				PostFixExpr{
-					BuiltInExpr{"len"},
-					[]PostFixOp{
-						CallOp{[]Expr{expr}},
-					},
-				},
-				IntExpr{len(cond.Conditions)},
-			},
-		}
-
-		res := BinaryExpr{
-			BinaryOpAnd,
-			[]Expr{
-				isArray,
-				hasCorrectLength,
-			},
-		}
+		res := irAnd(
+			irHasType(expr, "array"),
+			irGte(
+				irCall(irBuiltIn("len"), expr),
+				irInt(len(cond.Conditions)),
+			),
+		)
 
 		for i, cond := range cond.Conditions {
 			v := c.currentFrame().define("")
 
 			res.Operands = append(res.Operands,
-				orTrue(
-					v.assign(PostFixExpr{
-						expr,
-						[]PostFixOp{
-							IndexOp{Index: IntExpr{Value: i}},
-						},
-					}),
+				irOrTrue(
+					v.assign(irIndex(expr, irInt(i))),
 				),
 			)
 			child, err := c.compileMatchCondition(cond, v.load())
@@ -593,16 +429,6 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 
 	default:
 		panic(fmt.Sprintf("unimplemented %T", cond))
-	}
-}
-
-func orTrue(value Expr) Expr {
-	return BinaryExpr{
-		BinaryOpOr,
-		[]Expr{
-			value,
-			BoolExpr{Value: true},
-		},
 	}
 }
 

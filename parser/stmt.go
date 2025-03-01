@@ -140,6 +140,7 @@ func matchCase() pargo.Parser[ast.MatchCase] {
 
 func matchCondition() pargo.Parser[ast.MatchCaseCondition] {
 	return pargo.OneOf(
+		matchCaseError(),
 		matchRangeCondition(),
 		matchCaseInt(),
 		matchCaseFloat(),
@@ -234,6 +235,18 @@ func matchCaseObject() pargo.Parser[ast.MatchCaseCondition] {
 				m[kv.key] = kv.value
 			}
 			return ast.MatchCaseObject{KVs: m}
+		},
+	)
+}
+
+func matchCaseError() pargo.Parser[ast.MatchCaseCondition] {
+	return pargo.Sequence4(
+		pargo.Exactly("error"),
+		pargo.Exactly("("),
+		pargo.Lazy(matchCondition),
+		pargo.Exactly(")"),
+		func(_ string, _ string, cond ast.MatchCaseCondition, _ string) ast.MatchCaseCondition {
+			return ast.MatchCaseError{Cond: cond}
 		},
 	)
 }

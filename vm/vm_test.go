@@ -380,6 +380,19 @@ func TestVM(t *testing.T) {
 		true  ? assert(true)  | assert(false)
 		false ? assert(false) | assert(true)
 		`,
+		32: `
+		e := error({name: "test"})
+		e.data.name = "hi"
+
+		match e {
+			error({name: n}) => {
+				n == "hi" |> assert()
+			},
+			else => {
+				false |> assert()
+			}
+		}
+		`,
 	}
 
 	for i, tc := range tests {

@@ -17,6 +17,15 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 		return vm.NewError(dataArg), nil
 	})
 
+	builder.RegisterFunc("isError", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
+		val, err := args.Get(0)
+		if err != nil {
+			return vm.Value{}, err
+		}
+
+		return vm.NewBool(val.VType == vm.ValueTypeError), nil
+	})
+
 	builder.RegisterFunc("assert", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
 		val, err := args.Get(0)
 		if err != nil {

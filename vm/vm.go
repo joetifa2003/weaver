@@ -11,11 +11,12 @@ const MaxStack = 1024
 const MaxCallStack = 1024
 
 type Frame struct {
-	ip           int
 	instructions []opcode.OpCode
-	numVars      int
 	freeVars     []Value
+	ip           int
+	numVars      int
 	stackOffset  int
+	returnAddr   int
 	haltAfter    bool
 }
 
@@ -40,6 +41,7 @@ func New(constants []Value, instructions []opcode.OpCode, vars int) *VM {
 		instructions: instructions,
 		numVars:      vars,
 		ip:           0,
+		haltAfter:    true,
 	}, 0)
 
 	return vm
@@ -47,6 +49,8 @@ func New(constants []Value, instructions []opcode.OpCode, vars int) *VM {
 
 func (v *VM) RunFunction(f Value, args ...Value) Value {
 	fn := f.GetFunction()
+	v.sp++
+	retAddr := v.sp
 	for _, arg := range args {
 		v.sp++
 		v.stack[v.sp] = arg
@@ -57,7 +61,8 @@ func (v *VM) RunFunction(f Value, args ...Value) Value {
 		freeVars:     fn.FreeVars,
 		ip:           0,
 		haltAfter:    true,
-		stackOffset:  v.sp - len(args) + 1,
+		stackOffset:  retAddr + 1,
+		returnAddr:   retAddr,
 	}, len(args))
 	v.Run()
 
@@ -406,6 +411,7 @@ func (v *VM) Run() {
 					freeVars:     fn.FreeVars,
 					ip:           0,
 					stackOffset:  argsBegin,
+					returnAddr:   calleeIdx,
 				}
 				v.curFrame.ip += 2
 				v.pushFrame(frame, numArgs)
@@ -426,11 +432,11 @@ func (v *VM) Run() {
 
 		case opcode.OP_RET:
 			val := v.stack[v.sp]
-			v.sp = v.curFrame.stackOffset - 1
+			v.sp = v.curFrame.returnAddr
 			v.stack[v.sp] = val
-			heltAfter := v.curFrame.haltAfter
+			haltAfter := v.curFrame.haltAfter
 			v.popFrame()
-			if heltAfter {
+			if haltAfter {
 				return
 			}
 
@@ -755,5 +761,9 @@ func (v *VM) pushFrame(f *Frame, args int) {
 
 func (v *VM) popFrame() {
 	v.fp--
-	v.curFrame = v.callStack[v.fp]
+	if v.fp >= 0 {
+		v.curFrame = v.callStack[v.fp]
+	} else {
+		v.curFrame = nil
+	}
 }

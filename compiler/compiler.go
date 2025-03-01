@@ -559,7 +559,7 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 		}
 
 		instructions = append(instructions, cond...)
-		instructions = append(instructions, opcode.OP_JUMP_F, opcode.OpCode(falseLabel))
+		instructions = append(instructions, opcode.OP_PJUMP_F, opcode.OpCode(falseLabel))
 		instructions = append(instructions, trueExpr...)
 		instructions = append(instructions, opcode.OP_JUMP, opcode.OpCode(trueLabel))
 		instructions = append(instructions, opcode.OP_LABEL, opcode.OpCode(falseLabel))

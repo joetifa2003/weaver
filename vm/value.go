@@ -328,6 +328,8 @@ func (v *Value) IsTruthy() bool {
 		return v.GetBool()
 	case ValueTypeNil:
 		return false
+	case ValueTypeError:
+		return false
 	default:
 		return true
 	}

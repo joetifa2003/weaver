@@ -6,6 +6,8 @@ func init() {
 	builder := NewRegBuilder()
 
 	registerBuiltinFuncs(builder)
+	registerBuiltinFuncsArr(builder)
+
 	registerIOModule(builder)
 	registerStringModule(builder)
 	registerJSONModule(builder)

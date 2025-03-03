@@ -42,6 +42,7 @@ func New(constants []Value, instructions []opcode.OpCode, vars int) *VM {
 		numVars:      vars,
 		ip:           0,
 		haltAfter:    true,
+		returnAddr:   vars,
 	}, 0)
 
 	return vm
@@ -87,7 +88,7 @@ var scopeGetters = [4]func(v *VM, idx int) *Value{
 	},
 }
 
-func (v *VM) Run() {
+func (v *VM) Run() Value {
 	for {
 		switch v.curFrame.instructions[v.curFrame.ip] {
 		case opcode.OP_ADD:
@@ -437,11 +438,11 @@ func (v *VM) Run() {
 			haltAfter := v.curFrame.haltAfter
 			v.popFrame()
 			if haltAfter {
-				return
+				return val
 			}
 
 		case opcode.OP_HALT:
-			return
+			return Value{}
 
 		case opcode.OP_LOAD_LOAD_ADD:
 			scope1 := v.curFrame.instructions[v.curFrame.ip+1]

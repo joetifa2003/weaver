@@ -32,8 +32,8 @@ func returnExpr() pargo.Parser[ast.Expr] {
 	return pargo.OneOf(
 		pargo.Sequence2(
 			pargo.Exactly("return"),
-			ternaryExpr(),
-			func(_ string, expr ast.Expr) ast.Expr {
+			pargo.Optional(ternaryExpr()),
+			func(_ string, expr *ast.Expr) ast.Expr {
 				return ast.ReturnExpr{Expr: expr}
 			},
 		),
@@ -255,12 +255,13 @@ func postFixIndexOp() pargo.Parser[ast.PostFixOp] {
 }
 
 func postFixCallOp() pargo.Parser[ast.PostFixOp] {
-	return pargo.Sequence3(
+	return pargo.Sequence4(
 		pargo.Exactly("("),
 		pargo.ManySep(pargo.Lazy(expr), pargo.Exactly(",")),
 		pargo.Exactly(")"),
-		func(_ string, args []ast.Expr, _ string) ast.PostFixOp {
-			return ast.CallOp{Args: args}
+		pargo.Optional(pargo.Exactly("!")),
+		func(_ string, args []ast.Expr, _ string, bang *string) ast.PostFixOp {
+			return ast.CallOp{Args: args, Bang: bang != nil}
 		},
 	)
 }

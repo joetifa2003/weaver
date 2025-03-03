@@ -71,8 +71,11 @@ func main() {
 						}
 					}
 
-					vm := vm.New(constants, instructions, vars)
-					vm.Run()
+					v := vm.New(constants, instructions, vars)
+					val := v.Run()
+					if val.VType == vm.ValueTypeError {
+						fmt.Println(val.String())
+					}
 
 					return nil
 				},

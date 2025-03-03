@@ -435,7 +435,12 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 	switch e := e.(type) {
 	case ast.ReturnExpr:
-		expr, err := c.CompileExpr(e.Expr)
+		if e.Expr == nil {
+			return ReturnExpr{
+				Expr: NilExpr{},
+			}, nil
+		}
+		expr, err := c.CompileExpr(*e.Expr)
 		if err != nil {
 			return nil, err
 		}
@@ -518,6 +523,10 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 		return ModuleLoadExpr{Name: e.Name, Load: e.Load}, nil
 
 	case ast.BinaryExpr:
+		if e.Operator == ast.BinaryOpPipe {
+			return c.compilePipeExpr(e.Operands)
+		}
+
 		var res []Expr
 		for _, expr := range e.Operands {
 			expr, err := c.CompileExpr(expr)
@@ -525,10 +534,6 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 				return nil, err
 			}
 			res = append(res, expr)
-		}
-
-		if e.Operator == ast.BinaryOpPipe {
-			return c.compilePipeExpr(res)
 		}
 
 		return BinaryExpr{
@@ -585,10 +590,18 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 					args = append(args, expr)
 				}
 
-				expr = CallExpr{
-					Expr: expr,
-					Args: args,
+				if op.Bang {
+					expr = irCall(expr, args...)
+					continue
 				}
+
+				v := c.currentFrame().define("")
+				expr = irIfExpr(
+					irCall(irBuiltIn("isError"), v.assign(irCall(expr, args...))),
+					irReturnExpr(v.load()),
+					v.load(),
+				)
+				v.Free = true
 			default:
 				panic(fmt.Sprintf("unimplemented postfix op %T", op))
 			}
@@ -643,7 +656,7 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 					Statements: []ast.Statement{
 						ast.ExprStmt{
 							Expr: ast.ReturnExpr{
-								Expr: e.Expr,
+								Expr: &e.Expr,
 							},
 						},
 					},
@@ -728,20 +741,30 @@ func (c *Compiler) getUnaryOp(op ast.UnaryOp) UnaryOp {
 
 var errPipe = errors.New("right operand of pipe must be a call expression")
 
-func (c *Compiler) compilePipeExpr(exprs []Expr) (Expr, error) {
+func (c *Compiler) compilePipeExpr(exprs []ast.Expr) (Expr, error) {
 	left := exprs[0]
 
 	for _, right := range exprs[1:] {
-		right, ok := right.(CallExpr)
+		right, ok := right.(ast.PostFixExpr)
 		if !ok {
 			return nil, errPipe
 		}
-		right.Args = append([]Expr{left}, right.Args...)
+		rightLastOp, ok := right.Ops[len(right.Ops)-1].(ast.CallOp)
+		if !ok {
+			return nil, errPipe
+		}
+		rightLastOp.Args = append([]ast.Expr{left}, rightLastOp.Args...)
+		right.Ops[len(right.Ops)-1] = rightLastOp
 
 		left = right
 	}
 
-	return left, nil
+	expr, err := c.CompileExpr(left)
+	if err != nil {
+		return nil, err
+	}
+
+	return expr, nil
 }
 
 func stmtPointer(s Statement) *Statement {

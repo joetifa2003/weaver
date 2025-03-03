@@ -72,6 +72,18 @@ func irBuiltIn(name string) BuiltInExpr {
 	return BuiltInExpr{name}
 }
 
+func irIfExpr(cond Expr, trueExpr Expr, falseExpr Expr) IfExpr {
+	return IfExpr{
+		Condition: cond,
+		TrueExpr:  trueExpr,
+		FalseExpr: falseExpr,
+	}
+}
+
+func irReturnExpr(expr Expr) ReturnExpr {
+	return ReturnExpr{Expr: expr}
+}
+
 func irCall(callee Expr, args ...Expr) CallExpr {
 	return CallExpr{
 		Expr: callee,

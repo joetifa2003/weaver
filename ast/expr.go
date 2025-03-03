@@ -136,6 +136,7 @@ func (t DotOp) postFixOp() {}
 
 type CallOp struct {
 	Args []Expr
+	Bang bool
 }
 
 func (t CallOp) postFixOp() {}
@@ -172,7 +173,7 @@ type TernaryExpr struct {
 func (t TernaryExpr) expr() {}
 
 type ReturnExpr struct {
-	Expr Expr
+	Expr *Expr
 }
 
 func (t ReturnExpr) expr() {}

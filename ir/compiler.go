@@ -471,20 +471,10 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 				Value: expr,
 			}, nil
 
-		case PostFixExpr:
-			assignee := e.Ops[:len(e.Ops)-1]
-			if err != nil {
-				return nil, err
-			}
-
-			idx, ok := e.Ops[len(e.Ops)-1].(IndexOp)
-			if !ok {
-				return nil, errors.New("invalid lhs of assignment")
-			}
-
+		case IndexExpr:
 			return IdxAssignExpr{
-				Assignee: PostFixExpr{Ops: assignee, Expr: e.Expr},
-				Index:    idx.Index,
+				Assignee: e.Expr,
+				Index:    e.Index,
 				Value:    expr,
 			}, nil
 
@@ -563,14 +553,15 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 			return nil, err
 		}
 
-		var res []PostFixOp
-
 		for _, op := range e.Ops {
 			switch op := op.(type) {
 			case ast.DotOp:
-				res = append(res, IndexOp{
-					Index: StringExpr{Value: op.Index},
-				})
+				expr = IndexExpr{
+					Expr: expr,
+					Index: StringExpr{
+						Value: op.Index,
+					},
+				}
 
 			case ast.IndexOp:
 				idx, err := c.CompileExpr(op.Index)
@@ -578,9 +569,10 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 					return nil, err
 				}
 
-				res = append(res, IndexOp{
+				expr = IndexExpr{
+					Expr:  expr,
 					Index: idx,
-				})
+				}
 
 			case ast.CallOp:
 				var args []Expr
@@ -593,18 +585,16 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 					args = append(args, expr)
 				}
 
-				res = append(res, CallOp{
+				expr = CallExpr{
+					Expr: expr,
 					Args: args,
-				})
+				}
 			default:
 				panic(fmt.Sprintf("unimplemented postfix op %T", op))
 			}
 		}
 
-		return PostFixExpr{
-			Expr: expr,
-			Ops:  res,
-		}, nil
+		return expr, nil
 
 	case ast.VarIncrementExpr:
 		v, err := c.currentFrame().resolve(e.Name)
@@ -742,18 +732,11 @@ func (c *Compiler) compilePipeExpr(exprs []Expr) (Expr, error) {
 	left := exprs[0]
 
 	for _, right := range exprs[1:] {
-		right, ok := right.(PostFixExpr)
+		right, ok := right.(CallExpr)
 		if !ok {
 			return nil, errPipe
 		}
-
-		lastOp, ok := right.Ops[len(right.Ops)-1].(CallOp)
-		if !ok {
-			return nil, errPipe
-		}
-
-		lastOp.Args = append([]Expr{left}, lastOp.Args...)
-		right.Ops[len(right.Ops)-1] = lastOp
+		right.Args = append([]Expr{left}, right.Args...)
 
 		left = right
 	}

@@ -278,39 +278,45 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 
 		return instructions, nil
 
-	case ir.PostFixExpr:
+	case ir.IndexExpr:
 		var instructions []opcode.OpCode
 
-		lhs, err := c.compileExpr(e.Expr)
+		expr, err := c.compileExpr(e.Expr)
 		if err != nil {
 			return nil, err
 		}
 
-		instructions = append(instructions, lhs...)
+		instructions = append(instructions, expr...)
 
-		for _, op := range e.Ops {
-			switch op := op.(type) {
-			case ir.IndexOp:
-				expr, err := c.compileExpr(op.Index)
-				if err != nil {
-					return nil, err
-				}
-				instructions = append(instructions, expr...)
-				instructions = append(instructions, opcode.OP_INDEX)
-
-			case ir.CallOp:
-				for _, arg := range op.Args {
-					expr, err := c.compileExpr(arg)
-					if err != nil {
-						return nil, err
-					}
-					instructions = append(instructions, expr...)
-				}
-				instructions = append(instructions, opcode.OP_CALL, opcode.OpCode(len(op.Args)))
-			default:
-				panic(fmt.Sprintf("unimplemented %T", op))
-			}
+		idx, err := c.compileExpr(e.Index)
+		if err != nil {
+			return nil, err
 		}
+
+		instructions = append(instructions, idx...)
+		instructions = append(instructions, opcode.OP_INDEX)
+
+		return instructions, nil
+
+	case ir.CallExpr:
+		var instructions []opcode.OpCode
+
+		expr, err := c.compileExpr(e.Expr)
+		if err != nil {
+			return nil, err
+		}
+
+		instructions = append(instructions, expr...)
+
+		for _, arg := range e.Args {
+			arg, err := c.compileExpr(arg)
+			if err != nil {
+				return nil, err
+			}
+			instructions = append(instructions, arg...)
+		}
+
+		instructions = append(instructions, opcode.OP_CALL, opcode.OpCode(len(e.Args)))
 
 		return instructions, nil
 

@@ -283,50 +283,6 @@ func (t BinaryExpr) String(indent int) string {
 	return fmt.Sprintf("(%s)", strings.Join(res, " "))
 }
 
-type PostFixExpr struct {
-	Expr Expr
-	Ops  []PostFixOp
-}
-
-func (t PostFixExpr) expr() {}
-
-func (t PostFixExpr) String(indent int) string {
-	res := make([]string, 0, len(t.Ops))
-	for _, op := range t.Ops {
-		res = append(res, op.String(indent))
-	}
-	return fmt.Sprintf("%s%s", t.Expr.String(indent), strings.Join(res, ""))
-}
-
-type PostFixOp interface {
-	postFixOp()
-	String(indent int) string
-}
-
-type IndexOp struct {
-	Index Expr
-}
-
-func (t IndexOp) postFixOp() {}
-
-func (t IndexOp) String(indent int) string {
-	return fmt.Sprintf("[%s]", t.Index.String(indent))
-}
-
-type CallOp struct {
-	Args []Expr
-}
-
-func (t CallOp) postFixOp() {}
-
-func (t CallOp) String(indent int) string {
-	res := make([]string, 0, len(t.Args))
-	for _, arg := range t.Args {
-		res = append(res, arg.String(indent))
-	}
-	return fmt.Sprintf("(%s)", strings.Join(res, ", "))
-}
-
 type NilExpr struct{}
 
 func (t NilExpr) expr() {}
@@ -366,4 +322,30 @@ func (t ReturnExpr) expr() {}
 
 func (t ReturnExpr) String(i int) string {
 	return fmt.Sprintf("%sreturn %s", strings.Repeat("\t", i), t.Expr.String(i))
+}
+
+type IndexExpr struct {
+	Expr  Expr
+	Index Expr
+}
+
+func (t IndexExpr) expr() {}
+
+func (t IndexExpr) String(i int) string {
+	return fmt.Sprintf("%s[%s]", t.Expr.String(i), t.Index.String(i))
+}
+
+type CallExpr struct {
+	Expr Expr
+	Args []Expr
+}
+
+func (t CallExpr) expr() {}
+
+func (t CallExpr) String(i int) string {
+	res := make([]string, 0, len(t.Args))
+	for _, arg := range t.Args {
+		res = append(res, arg.String(i))
+	}
+	return fmt.Sprintf("%s(%s)", t.Expr.String(i), strings.Join(res, ", "))
 }

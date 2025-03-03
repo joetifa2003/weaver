@@ -72,14 +72,10 @@ func irBuiltIn(name string) BuiltInExpr {
 	return BuiltInExpr{name}
 }
 
-func irCall(callee Expr, args ...Expr) PostFixExpr {
-	return PostFixExpr{
+func irCall(callee Expr, args ...Expr) CallExpr {
+	return CallExpr{
 		Expr: callee,
-		Ops: []PostFixOp{
-			CallOp{
-				Args: args,
-			},
-		},
+		Args: args,
 	}
 }
 
@@ -100,13 +96,9 @@ func irOrTrue(value Expr) BinaryExpr {
 	}
 }
 
-func irIndex(expr Expr, index Expr) PostFixExpr {
-	return PostFixExpr{
-		Expr: expr,
-		Ops: []PostFixOp{
-			IndexOp{
-				Index: index,
-			},
-		},
+func irIndex(expr Expr, index Expr) IndexExpr {
+	return IndexExpr{
+		Expr:  expr,
+		Index: index,
 	}
 }

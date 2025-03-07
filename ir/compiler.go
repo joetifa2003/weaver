@@ -314,7 +314,7 @@ func (c *Compiler) compileMatchCase(m ast.MatchCase, expr Expr) (IfStmt, error) 
 func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr) (Expr, error) {
 	switch cond := cond.(type) {
 
-	case ast.MatchCaseError:
+	case ast.MatchCaseTypeError:
 		res := irAnd(
 			irHasType(expr, "error"),
 		)
@@ -323,6 +323,36 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 			v := c.currentFrame().define("")
 			res.Operands = append(res.Operands, v.assign(irIndex(expr, irString("data"))))
 			c, err := c.compileMatchCondition(*cond.Cond, v.load())
+			if err != nil {
+				return nil, err
+			}
+			res.Operands = append(res.Operands, c)
+		}
+
+		return res, nil
+
+	case ast.MatchCaseTypeString:
+		res := irAnd(
+			irHasType(expr, "string"),
+		)
+
+		if cond.Cond != nil {
+			c, err := c.compileMatchCondition(*cond.Cond, expr)
+			if err != nil {
+				return nil, err
+			}
+			res.Operands = append(res.Operands, c)
+		}
+
+		return res, nil
+
+	case ast.MatchCaseTypeNumber:
+		res := irAnd(
+			irHasType(expr, "number"),
+		)
+
+		if cond.Cond != nil {
+			c, err := c.compileMatchCondition(*cond.Cond, expr)
 			if err != nil {
 				return nil, err
 			}

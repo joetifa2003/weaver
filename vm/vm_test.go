@@ -434,6 +434,40 @@ func TestVM(t *testing.T) {
 		c.decrement()
 		c.value() == 1 |> assert()
 		`,
+		35: `
+		x := "foo"
+		match x {
+			string(s) => {
+				s == "foo" |> assert()
+				return
+			},
+			number() => {
+				false |> assert()
+			},
+			else => {
+				false |> assert()
+			}
+		}
+
+		false |> assert()
+		`,
+		36: `
+		x := 15
+		match x {
+			string() => {
+				false |> assert()
+			},
+			number(n) => {
+				n == 15|> assert()
+				return
+			},
+			else => {
+				false |> assert()
+			}
+		}
+
+		false |> assert()
+		`,
 	}
 
 	for i, tc := range tests {

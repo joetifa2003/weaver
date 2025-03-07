@@ -140,7 +140,9 @@ func matchCase() pargo.Parser[ast.MatchCase] {
 
 func matchCondition() pargo.Parser[ast.MatchCaseCondition] {
 	return pargo.OneOf(
-		matchCaseError(),
+		matchCaseTypeError(),
+		matchCaseTypeNumber(),
+		matchCaseTypeString(),
 		matchRangeCondition(),
 		matchCaseInt(),
 		matchCaseFloat(),
@@ -239,16 +241,34 @@ func matchCaseObject() pargo.Parser[ast.MatchCaseCondition] {
 	)
 }
 
-func matchCaseError() pargo.Parser[ast.MatchCaseCondition] {
+func matchCaseType(typ string, f func(childCond *ast.MatchCaseCondition) ast.MatchCaseCondition) pargo.Parser[ast.MatchCaseCondition] {
 	return pargo.Sequence4(
-		pargo.Exactly("error"),
+		pargo.Exactly(typ),
 		pargo.Exactly("("),
 		pargo.Optional(pargo.Lazy(matchCondition)),
 		pargo.Exactly(")"),
 		func(_ string, _ string, cond *ast.MatchCaseCondition, _ string) ast.MatchCaseCondition {
-			return ast.MatchCaseError{Cond: cond}
+			return f(cond)
 		},
 	)
+}
+
+func matchCaseTypeError() pargo.Parser[ast.MatchCaseCondition] {
+	return matchCaseType("error", func(cond *ast.MatchCaseCondition) ast.MatchCaseCondition {
+		return ast.MatchCaseTypeError{Cond: cond}
+	})
+}
+
+func matchCaseTypeNumber() pargo.Parser[ast.MatchCaseCondition] {
+	return matchCaseType("number", func(cond *ast.MatchCaseCondition) ast.MatchCaseCondition {
+		return ast.MatchCaseTypeNumber{Cond: cond}
+	})
+}
+
+func matchCaseTypeString() pargo.Parser[ast.MatchCaseCondition] {
+	return matchCaseType("string", func(cond *ast.MatchCaseCondition) ast.MatchCaseCondition {
+		return ast.MatchCaseTypeString{Cond: cond}
+	})
 }
 
 func matchCaseIdent() pargo.Parser[ast.MatchCaseCondition] {

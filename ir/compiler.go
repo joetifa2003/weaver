@@ -320,9 +320,7 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 		)
 
 		if cond.Cond != nil {
-			v := c.currentFrame().define("")
-			res.Operands = append(res.Operands, v.assign(irIndex(expr, irString("data"))))
-			c, err := c.compileMatchCondition(*cond.Cond, v.load())
+			c, err := c.compileMatchCondition(*cond.Cond, irIndex(expr, irString("data")))
 			if err != nil {
 				return nil, err
 			}
@@ -618,6 +616,13 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 					}
 
 					args = append(args, expr)
+				}
+
+				if ident, ok := expr.(BuiltInExpr); ok {
+					if ident.Name == "error" {
+						expr = irCall(expr, args...)
+						continue
+					}
 				}
 
 				if op.Bang {

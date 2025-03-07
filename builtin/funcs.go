@@ -9,12 +9,20 @@ import (
 
 func registerBuiltinFuncs(builder *RegistryBuilder) {
 	builder.RegisterFunc("error", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-		dataArg, err := args.Get(0)
+		msgArg, err := args.Get(0, vm.ValueTypeString)
+		if err != nil {
+			return vm.Value{}, err
+		}
+		if len(args) == 1 {
+			return vm.NewError(msgArg.GetString(), vm.Value{}), nil
+		}
+
+		dataArg, err := args.Get(1)
 		if err != nil {
 			return vm.Value{}, err
 		}
 
-		return vm.NewError(dataArg), nil
+		return vm.NewError(msgArg.GetString(), dataArg), nil
 	})
 
 	builder.RegisterFunc("isError", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {

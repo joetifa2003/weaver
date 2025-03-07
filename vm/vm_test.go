@@ -382,11 +382,12 @@ func TestVM(t *testing.T) {
 		false ? assert(false) | assert(true)
 		`,
 		32: `
-		e := error({name: "test"})
-		e.data.name = "hi"
+		e := error("test error", {name: "test"})
+		e.name = "hi"
 
 		match e {
 			error({name: n}) => {
+				n |> echo()
 				n == "hi" |> assert()
 			},
 			else => {

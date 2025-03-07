@@ -156,11 +156,12 @@ func (v *Value) SetNil() {
 }
 
 type Error struct {
-	Data Value
+	msg  string
+	data Value
 }
 
-func (v *Value) SetError(data Value) {
-	e := Error{Data: data}
+func (v *Value) SetError(msg string, data Value) {
+	e := Error{msg: msg, data: data}
 	v.VType = ValueTypeError
 	v.nonPrimitive = unsafe.Pointer(&e)
 }
@@ -270,9 +271,9 @@ func NewBool(b bool) Value {
 	return val
 }
 
-func NewError(data Value) Value {
+func NewError(msg string, data Value) Value {
 	val := Value{}
-	val.SetError(data)
+	val.SetError(msg, data)
 	return val
 }
 
@@ -315,8 +316,9 @@ func (v *Value) String() string {
 		return "native function"
 
 	case ValueTypeError:
-		data := v.GetError().Data
-		return fmt.Sprintf("error(%s)", data.String())
+		data := v.GetError()
+		msg := data.msg
+		return fmt.Sprintf("error(%s)", msg)
 
 	default:
 		panic(fmt.Sprintf("Value.String(): unimplemented %T", v.VType))
@@ -496,17 +498,22 @@ func (v *Value) Index(idx *Value, res *Value) {
 	case ValueTypeObject:
 		switch idx.VType {
 		case ValueTypeString:
-			res.Set(v.GetObject()[idx.GetString()])
+			idx := idx.GetString()
+			obj := v.GetObject()
+
+			res.Set(obj[idx])
 		default:
 			panic(ErrInvalidObjectIndexType)
 		}
 	case ValueTypeError:
 		switch idx.VType {
 		case ValueTypeString:
-			if idx.GetString() == "data" {
-				res.Set(v.GetError().Data)
-			} else {
-				res.Set(Value{})
+			err := v.GetError()
+			switch idx.GetString() {
+			case "msg":
+				res.SetString(err.msg)
+			case "data":
+				res.Set(err.data)
 			}
 		default:
 			panic(ErrInvalidErrorIndexType)
@@ -533,10 +540,13 @@ func (v *Value) SetIndex(idx *Value, val Value) {
 	case ValueTypeError:
 		switch idx.VType {
 		case ValueTypeString:
-			if idx.GetString() == "data" {
-				v.GetError().Data = val
+			err := v.GetError()
+			key := idx.GetString()
+
+			if key == "msg" {
+				err.msg = val.GetString()
 			} else {
-				panic(ErrInvalidErrorIndexType)
+				err.data.SetIndex(idx, val)
 			}
 		default:
 			panic(ErrInvalidErrorIndexType)

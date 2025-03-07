@@ -514,6 +514,8 @@ func (v *Value) Index(idx *Value, res *Value) {
 				res.SetString(err.msg)
 			case "data":
 				res.Set(err.data)
+			default:
+				res.SetNil()
 			}
 		default:
 			panic(ErrInvalidErrorIndexType)
@@ -543,10 +545,13 @@ func (v *Value) SetIndex(idx *Value, val Value) {
 			err := v.GetError()
 			key := idx.GetString()
 
-			if key == "msg" {
+			switch key {
+			case "msg":
 				err.msg = val.GetString()
-			} else {
-				err.data.SetIndex(idx, val)
+			case "data":
+				err.data = val
+			default:
+				panic(ErrInvalidObjectIndexType)
 			}
 		default:
 			panic(ErrInvalidErrorIndexType)

@@ -383,11 +383,10 @@ func TestVM(t *testing.T) {
 		`,
 		32: `
 		e := error("test error", {name: "test"})
-		e.name = "hi"
+		e.data.name = "hi"
 
 		match e {
 			error({name: n}) => {
-				n |> echo()
 				n == "hi" |> assert()
 			},
 			else => {

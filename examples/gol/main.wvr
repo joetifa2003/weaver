@@ -21,7 +21,7 @@ for y := 0; y < ROWS; y++ {
 }
 
 # Function to count living neighbors for a cell
-countNeighbors := |y, x, cells| {
+countNeighbors := |y, x| {
     count := 0
 
     for dy := -1; dy <= 1; dy++ {
@@ -43,7 +43,7 @@ countNeighbors := |y, x, cells| {
 }
 
 # Function to update the game state
-updateCells := |cells| {
+updateCells := || {
     # Create new array for next state
     newCells := makeArr(ROWS)
     for i := 0; i < ROWS; i++ {
@@ -52,7 +52,7 @@ updateCells := |cells| {
 
     for y := 0; y < ROWS; y++ {
         for x := 0; x < COLS; x++ {
-            neighbors := countNeighbors(y, x, cells)
+            neighbors := countNeighbors(y, x)
             if cells[y][x] {
                 # Cell is alive
                 newCells[y][x] = neighbors == 2 || neighbors == 3
@@ -63,21 +63,20 @@ updateCells := |cells| {
         }
     }
 
-    return newCells
+    cells = newCells
 }
 
 rl:initWindow(WORLD_WIDTH, WORLD_HEIGHT, "Game of Life")
 
 while !rl:windowShouldClose() {
     # Update
-    newCells := updateCells(cells)
-    cells = newCells
+    updateCells(cells)
 
     # Draw
     rl:beginDrawing()
     rl:clearBackground(rl:colorRayWhite)
     rl:drawFps(10, 10)
-    
+
     for y := 0; y < ROWS; y++ {
         for x := 0; x < COLS; x++ {
             if cells[y][x] {

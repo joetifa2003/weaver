@@ -121,6 +121,7 @@ func TestVM(t *testing.T) {
 				|> map(|x| x + a) 
 				|> filter(|x| x % b == 0) 
 				|> len() 
+
 			l == 2 |> assert()
 		`,
 		10: `
@@ -298,10 +299,10 @@ func TestVM(t *testing.T) {
 		c := [0, {name: "hello"}]
 		match c {
 			[0, {name: "hello"}] => {
-				"here" |> echo()
+				true |> assert()
 			},
 			[2, 3, 4] => {
-				"wrong" |> echo()
+				false |> assert()
 			},
 			else => {
 				false |> assert()
@@ -392,6 +393,46 @@ func TestVM(t *testing.T) {
 				false |> assert()
 			}
 		}
+		`,
+		33: `
+		counter := || {
+			x := 0
+
+			return {
+				increment: || x = x + 1,
+				decrement: || x = x - 1,
+				value: || x,
+			}
+		}
+
+		c := counter()
+
+		c.increment()
+		c.value() == 1 |> assert()
+		c.increment()
+		c.value() == 2 |> assert()
+		c.decrement()
+		c.value() == 1 |> assert()
+		`,
+		34: `
+		counter := || {
+			x := 0
+
+			return {
+				increment: || x++,
+				decrement: || x--,
+				value: || x,
+			}
+		}
+
+		c := counter()
+
+		c.increment()
+		c.value() == 1 |> assert()
+		c.increment()
+		c.value() == 2 |> assert()
+		c.decrement()
+		c.value() == 1 |> assert()
 		`,
 	}
 

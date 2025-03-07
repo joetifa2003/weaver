@@ -152,6 +152,7 @@ func (v *Value) SetBool(b bool) {
 
 func (v *Value) SetNil() {
 	v.VType = ValueTypeNil
+	v.nonPrimitive = nil
 }
 
 type Error struct {

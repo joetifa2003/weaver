@@ -73,6 +73,21 @@ func (v *VM) RunFunction(f Value, args ...Value) Value {
 	return retVal
 }
 
+var scopeGettersDeref = [4]func(v *VM, idx int) *Value{
+	opcode.ScopeTypeConst: func(v *VM, idx int) *Value {
+		return v.constants[idx].deref()
+	},
+	opcode.ScopeTypeGlobal: func(v *VM, idx int) *Value {
+		return v.stack[idx].deref()
+	},
+	opcode.ScopeTypeLocal: func(v *VM, idx int) *Value {
+		return v.stack[v.curFrame.stackOffset+idx].deref()
+	},
+	opcode.ScopeTypeFree: func(v *VM, idx int) *Value {
+		return v.curFrame.freeVars[idx].deref()
+	},
+}
+
 var scopeGetters = [4]func(v *VM, idx int) *Value{
 	opcode.ScopeTypeConst: func(v *VM, idx int) *Value {
 		return &v.constants[idx]
@@ -91,6 +106,19 @@ var scopeGetters = [4]func(v *VM, idx int) *Value{
 func (v *VM) Run() Value {
 	for {
 		switch v.curFrame.instructions[v.curFrame.ip] {
+		case opcode.OP_UPGRADE_REF:
+			scope := v.curFrame.instructions[v.curFrame.ip+1]
+			idx := int(v.curFrame.instructions[v.curFrame.ip+2])
+
+			val := scopeGetters[scope](v, idx)
+			if val.VType != ValueTypeRef {
+				val.SetRef(*val)
+			}
+
+			v.sp++
+			v.stack[v.sp] = *val
+			v.curFrame.ip += 3
+
 		case opcode.OP_ADD:
 			right := v.stack[v.sp]
 			left := v.stack[v.sp-1]
@@ -206,7 +234,7 @@ func (v *VM) Run() Value {
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 			f := v.stack[v.sp].GetFunction()
 
-			emptyFunc := scopeGetters[scope](v, index).GetFunction()
+			emptyFunc := scopeGettersDeref[scope](v, index).GetFunction()
 			emptyFunc.FreeVars = f.FreeVars
 			emptyFunc.Instructions = f.Instructions
 			emptyFunc.NumVars = f.NumVars
@@ -219,6 +247,7 @@ func (v *VM) Run() Value {
 
 			for range freeVarsCount {
 				freeVars = append(freeVars, v.stack[v.sp])
+				v.stack[v.sp].SetNil()
 				v.sp--
 			}
 
@@ -232,7 +261,7 @@ func (v *VM) Run() Value {
 		case opcode.OP_INC:
 			scope := v.curFrame.instructions[v.curFrame.ip+1]
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
-			v1 := scopeGetters[scope](v, index)
+			v1 := scopeGettersDeref[scope](v, index)
 			v1.SetNumber(v1.GetNumber() + 1)
 			v.sp++
 			v.stack[v.sp] = *v1
@@ -241,14 +270,14 @@ func (v *VM) Run() Value {
 		case opcode.OP_INC_POP:
 			scope := v.curFrame.instructions[v.curFrame.ip+1]
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
-			v1 := scopeGetters[scope](v, index)
+			v1 := scopeGettersDeref[scope](v, index)
 			v1.SetNumber(v1.GetNumber() + 1)
 			v.curFrame.ip += 3
 
 		case opcode.OP_DEC:
 			scope := v.curFrame.instructions[v.curFrame.ip+1]
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
-			v1 := scopeGetters[scope](v, index)
+			v1 := scopeGettersDeref[scope](v, index)
 			v1.SetNumber(v1.GetNumber() - 1)
 			v.sp++
 			v.stack[v.sp] = *v1
@@ -257,7 +286,7 @@ func (v *VM) Run() Value {
 		case opcode.OP_DEC_POP:
 			scope := v.curFrame.instructions[v.curFrame.ip+1]
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
-			v1 := scopeGetters[scope](v, index)
+			v1 := scopeGettersDeref[scope](v, index)
 			v1.SetNumber(v1.GetNumber() - 1)
 			v.curFrame.ip += 3
 
@@ -266,13 +295,13 @@ func (v *VM) Run() Value {
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 
 			v.sp++
-			v.stack[v.sp] = *scopeGetters[scope](v, index)
+			v.stack[v.sp] = *scopeGettersDeref[scope](v, index)
 			v.curFrame.ip += 3
 
 		case opcode.OP_STORE_FREE:
 			index := int(v.curFrame.instructions[v.curFrame.ip+1])
 			val := v.stack[v.sp]
-			v.curFrame.freeVars[index] = val
+			v.curFrame.freeVars[index].deref().Set(val)
 			v.sp--
 			v.curFrame.ip += 2
 
@@ -452,9 +481,9 @@ func (v *VM) Run() Value {
 
 			v.sp++
 
-			scopeGetters[scope1](v, index1).
+			scopeGettersDeref[scope1](v, index1).
 				Add(
-					scopeGetters[scope2](v, index2),
+					scopeGettersDeref[scope2](v, index2),
 					&v.stack[v.sp],
 				)
 
@@ -465,7 +494,7 @@ func (v *VM) Run() Value {
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 
 			v.stack[v.sp].Add(
-				scopeGetters[scope](v, index),
+				scopeGettersDeref[scope](v, index),
 				&v.stack[v.sp],
 			)
 
@@ -479,9 +508,9 @@ func (v *VM) Run() Value {
 
 			v.sp++
 
-			scopeGetters[scope1](v, index1).
+			scopeGettersDeref[scope1](v, index1).
 				Sub(
-					scopeGetters[scope2](v, index2),
+					scopeGettersDeref[scope2](v, index2),
 					&v.stack[v.sp],
 				)
 
@@ -492,7 +521,7 @@ func (v *VM) Run() Value {
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 
 			v.stack[v.sp].Sub(
-				scopeGetters[scope](v, index),
+				scopeGettersDeref[scope](v, index),
 				&v.stack[v.sp],
 			)
 
@@ -506,9 +535,9 @@ func (v *VM) Run() Value {
 
 			v.sp++
 
-			scopeGetters[scope1](v, index1).
+			scopeGettersDeref[scope1](v, index1).
 				Mul(
-					scopeGetters[scope2](v, index2),
+					scopeGettersDeref[scope2](v, index2),
 					&v.stack[v.sp],
 				)
 
@@ -519,7 +548,7 @@ func (v *VM) Run() Value {
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 
 			v.stack[v.sp].Mul(
-				scopeGetters[scope](v, index),
+				scopeGettersDeref[scope](v, index),
 				&v.stack[v.sp],
 			)
 
@@ -533,9 +562,9 @@ func (v *VM) Run() Value {
 
 			v.sp++
 
-			scopeGetters[scope1](v, index1).
+			scopeGettersDeref[scope1](v, index1).
 				Div(
-					scopeGetters[scope2](v, index2),
+					scopeGettersDeref[scope2](v, index2),
 					&v.stack[v.sp],
 				)
 
@@ -546,7 +575,7 @@ func (v *VM) Run() Value {
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 
 			v.stack[v.sp].Div(
-				scopeGetters[scope](v, index),
+				scopeGettersDeref[scope](v, index),
 				&v.stack[v.sp],
 			)
 
@@ -560,8 +589,8 @@ func (v *VM) Run() Value {
 
 			v.sp++
 
-			scopeGetters[scope1](v, index1).Mod(
-				scopeGetters[scope2](v, index2),
+			scopeGettersDeref[scope1](v, index1).Mod(
+				scopeGettersDeref[scope2](v, index2),
 				&v.stack[v.sp],
 			)
 
@@ -572,7 +601,7 @@ func (v *VM) Run() Value {
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 
 			v.stack[v.sp].Mod(
-				scopeGetters[scope](v, index),
+				scopeGettersDeref[scope](v, index),
 				&v.stack[v.sp],
 			)
 
@@ -586,9 +615,9 @@ func (v *VM) Run() Value {
 
 			v.sp++
 
-			scopeGetters[scope1](v, index1).
+			scopeGettersDeref[scope1](v, index1).
 				LessThan(
-					scopeGetters[scope2](v, index2),
+					scopeGettersDeref[scope2](v, index2),
 					&v.stack[v.sp],
 				)
 
@@ -599,7 +628,7 @@ func (v *VM) Run() Value {
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 
 			v.stack[v.sp].LessThan(
-				scopeGetters[scope](v, index),
+				scopeGettersDeref[scope](v, index),
 				&v.stack[v.sp],
 			)
 
@@ -613,9 +642,9 @@ func (v *VM) Run() Value {
 
 			v.sp++
 
-			scopeGetters[scope1](v, index1).
+			scopeGettersDeref[scope1](v, index1).
 				LessThanEqual(
-					scopeGetters[scope2](v, index2),
+					scopeGettersDeref[scope2](v, index2),
 					&v.stack[v.sp],
 				)
 
@@ -626,7 +655,7 @@ func (v *VM) Run() Value {
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 
 			v.stack[v.sp].LessThanEqual(
-				scopeGetters[scope](v, index),
+				scopeGettersDeref[scope](v, index),
 				&v.stack[v.sp],
 			)
 
@@ -640,9 +669,9 @@ func (v *VM) Run() Value {
 
 			v.sp++
 
-			scopeGetters[scope1](v, index1).
+			scopeGettersDeref[scope1](v, index1).
 				GreaterThan(
-					scopeGetters[scope2](v, index2),
+					scopeGettersDeref[scope2](v, index2),
 					&v.stack[v.sp],
 				)
 
@@ -653,7 +682,7 @@ func (v *VM) Run() Value {
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 
 			v.stack[v.sp].GreaterThan(
-				scopeGetters[scope](v, index),
+				scopeGettersDeref[scope](v, index),
 				&v.stack[v.sp],
 			)
 
@@ -667,9 +696,9 @@ func (v *VM) Run() Value {
 
 			v.sp++
 
-			scopeGetters[scope1](v, index1).
+			scopeGettersDeref[scope1](v, index1).
 				GreaterThanEqual(
-					scopeGetters[scope2](v, index2),
+					scopeGettersDeref[scope2](v, index2),
 					&v.stack[v.sp],
 				)
 
@@ -680,7 +709,7 @@ func (v *VM) Run() Value {
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 
 			v.stack[v.sp].GreaterThanEqual(
-				scopeGetters[scope](v, index),
+				scopeGettersDeref[scope](v, index),
 				&v.stack[v.sp],
 			)
 
@@ -694,9 +723,9 @@ func (v *VM) Run() Value {
 
 			v.sp++
 
-			scopeGetters[scope1](v, index1).
+			scopeGettersDeref[scope1](v, index1).
 				Equal(
-					scopeGetters[scope2](v, index2),
+					scopeGettersDeref[scope2](v, index2),
 					&v.stack[v.sp],
 				)
 
@@ -707,7 +736,7 @@ func (v *VM) Run() Value {
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 
 			v.stack[v.sp].Equal(
-				scopeGetters[scope](v, index),
+				scopeGettersDeref[scope](v, index),
 				&v.stack[v.sp],
 			)
 
@@ -721,9 +750,9 @@ func (v *VM) Run() Value {
 
 			v.sp++
 
-			scopeGetters[scope1](v, index1).
+			scopeGettersDeref[scope1](v, index1).
 				NotEqual(
-					scopeGetters[scope2](v, index2),
+					scopeGettersDeref[scope2](v, index2),
 					&v.stack[v.sp],
 				)
 
@@ -734,7 +763,7 @@ func (v *VM) Run() Value {
 			index := int(v.curFrame.instructions[v.curFrame.ip+2])
 
 			v.stack[v.sp].NotEqual(
-				scopeGetters[scope](v, index),
+				scopeGettersDeref[scope](v, index),
 				&v.stack[v.sp],
 			)
 

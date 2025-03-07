@@ -375,7 +375,7 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 		var instructions []opcode.OpCode
 
 		for _, freeVar := range helpers.ReverseIter(e.FreeVars) {
-			instructions = append(instructions, c.loadVar(freeVar)...)
+			instructions = append(instructions, c.loadVar(freeVar, opcode.OP_UPGRADE_REF)...)
 		}
 		instructions = append(instructions,
 			opcode.OP_FUNC,
@@ -386,7 +386,7 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 		return instructions, nil
 
 	case ir.LoadExpr:
-		return c.loadVar(e.Var), nil
+		return c.loadVar(e.Var, opcode.OP_LOAD), nil
 
 	case ir.BuiltInExpr:
 		val, ok := c.reg.ResolveFunc(e.Name)
@@ -707,17 +707,17 @@ func (c *Compiler) currentLoop() loopContext {
 	return c.loopContext.Peek()
 }
 
-func (c *Compiler) loadVar(v ir.Var) []opcode.OpCode {
+func (c *Compiler) loadVar(v ir.Var, op opcode.OpCode) []opcode.OpCode {
 	switch v.Scope {
 	case ir.VarScopeLocal:
 		return []opcode.OpCode{
-			opcode.OP_LOAD,
+			op,
 			opcode.ScopeTypeLocal,
 			opcode.OpCode(v.Idx),
 		}
 	case ir.VarScopeFree:
 		return []opcode.OpCode{
-			opcode.OP_LOAD,
+			op,
 			opcode.ScopeTypeFree,
 			opcode.OpCode(v.Idx),
 		}

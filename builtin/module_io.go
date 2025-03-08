@@ -9,38 +9,37 @@ import (
 
 func registerIOModule(builder *RegistryBuilder) {
 	builder.RegisterModule("io", map[string]vm.Value{
-		"println": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-			val, err := args.Get(0)
-			if err != nil {
-				return vm.Value{}, err
+		"println": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			val := args.Get(0)
+			if val.IsError() {
+				return val
 			}
 
 			fmt.Println(val.String())
-			return vm.Value{}, nil
+			return vm.Value{}
 		}),
-		"print": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-			val, err := args.Get(0)
-			if err != nil {
-				return vm.Value{}, err
+		"print": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			val := args.Get(0)
+			if val.IsError() {
+				return val
 			}
 
 			fmt.Print(val.String())
-			return vm.Value{}, nil
+			return vm.Value{}
 		}),
-		"readFile": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-			arg1, err := args.Get(0, vm.ValueTypeString)
-			if err != nil {
-				return vm.Value{}, err
+		"readFile": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			arg1 := args.Get(0, vm.ValueTypeString)
+			if arg1.IsError() {
+				return arg1
 			}
 
 			filename := arg1.String()
-
 			file, err := os.ReadFile(filename)
 			if err != nil {
-				panic(err)
+				return vm.NewError(err.Error(), vm.Value{})
 			}
 
-			return vm.NewString(string(file)), nil
+			return vm.NewString(string(file))
 		}),
 	})
 }

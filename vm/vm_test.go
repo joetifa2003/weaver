@@ -487,7 +487,10 @@ func TestVM(t *testing.T) {
 				instructions, vars, constants, err := c.Compile(ircr)
 				assert.NoError(err)
 				vm := vm.New(constants, instructions, vars)
-				vm.Run()
+				val := vm.Run()
+				if val.IsError() {
+					t.Error(val.GetError())
+				}
 			})
 		}
 	}

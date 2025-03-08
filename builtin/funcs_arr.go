@@ -3,49 +3,46 @@ package builtin
 import "github.com/joetifa2003/weaver/vm"
 
 func registerBuiltinFuncsArr(builder *RegistryBuilder) {
-	builder.RegisterFunc("makeArr", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-		res := vm.Value{}
-
-		val, err := args.Get(0)
-		if err != nil {
-			return res, err
+	builder.RegisterFunc("makeArr", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+		val := args.Get(0)
+		if val.IsError() {
+			return val
 		}
 
+		res := vm.Value{}
 		arr := make([]vm.Value, int(val.GetNumber()))
 		res.SetArray(arr)
-
-		return res, nil
+		return res
 	})
 
-	builder.RegisterFunc("push", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-		arrArg, err := args.Get(0, vm.ValueTypeArray)
-		if err != nil {
-			return vm.Value{}, err
+	builder.RegisterFunc("push", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+		arrArg := args.Get(0, vm.ValueTypeArray)
+		if arrArg.IsError() {
+			return arrArg
 		}
 
-		val, err := args.Get(1)
-		if err != nil {
-			return vm.Value{}, err
+		val := args.Get(1)
+		if val.IsError() {
+			return val
 		}
 
 		arr := arrArg.GetArray()
 		*arr = append(*arr, val)
-
-		return arrArg, nil
+		return arrArg
 	})
 
-	builder.RegisterFunc("map", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-		arrArg, err := args.Get(0, vm.ValueTypeArray)
-		if err != nil {
-			return vm.Value{}, err
+	builder.RegisterFunc("map", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+		arrArg := args.Get(0, vm.ValueTypeArray)
+		if arrArg.IsError() {
+			return arrArg
 		}
-		fnArg, err := args.Get(1, vm.ValueTypeFunction)
-		if err != nil {
-			return vm.Value{}, err
+
+		fnArg := args.Get(1, vm.ValueTypeFunction)
+		if fnArg.IsError() {
+			return fnArg
 		}
 
 		arr := *arrArg.GetArray()
-
 		newArr := make([]vm.Value, len(arr))
 		for i, val := range arr {
 			newArr[i] = v.RunFunction(fnArg, val)
@@ -53,22 +50,21 @@ func registerBuiltinFuncsArr(builder *RegistryBuilder) {
 
 		var result vm.Value
 		result.SetArray(newArr)
-
-		return result, nil
+		return result
 	})
 
-	builder.RegisterFunc("filter", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-		arrArg, err := args.Get(0, vm.ValueTypeArray)
-		if err != nil {
-			return vm.Value{}, err
+	builder.RegisterFunc("filter", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+		arrArg := args.Get(0, vm.ValueTypeArray)
+		if arrArg.IsError() {
+			return arrArg
 		}
-		fnArg, err := args.Get(1, vm.ValueTypeFunction)
-		if err != nil {
-			return vm.Value{}, err
+
+		fnArg := args.Get(1, vm.ValueTypeFunction)
+		if fnArg.IsError() {
+			return fnArg
 		}
 
 		arr := *arrArg.GetArray()
-
 		newArr := make([]vm.Value, 0)
 		for _, val := range arr {
 			r := v.RunFunction(fnArg, val)
@@ -79,27 +75,26 @@ func registerBuiltinFuncsArr(builder *RegistryBuilder) {
 
 		var result vm.Value
 		result.SetArray(newArr)
-
-		return result, nil
+		return result
 	})
 
-	builder.RegisterFunc("contains", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-		arrArg, err := args.Get(0, vm.ValueTypeArray)
-		if err != nil {
-			return vm.Value{}, err
+	builder.RegisterFunc("contains", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+		arrArg := args.Get(0, vm.ValueTypeArray)
+		if arrArg.IsError() {
+			return arrArg
 		}
-		f, err := args.Get(1)
-		if err != nil {
-			return vm.Value{}, err
+
+		f := args.Get(1)
+		if f.IsError() {
+			return f
 		}
 
 		arr := *arrArg.GetArray()
-
 		if f.VType == vm.ValueTypeFunction {
 			for _, val := range arr {
 				r := v.RunFunction(f, val)
 				if r.IsTruthy() {
-					return vm.NewBool(true), nil
+					return vm.NewBool(true)
 				}
 			}
 		} else {
@@ -107,11 +102,11 @@ func registerBuiltinFuncsArr(builder *RegistryBuilder) {
 			for _, val := range arr {
 				val.Equal(&f, &isEqual)
 				if isEqual.IsTruthy() {
-					return vm.NewBool(true), nil
+					return vm.NewBool(true)
 				}
 			}
 		}
 
-		return vm.NewBool(false), nil
+		return vm.NewBool(false)
 	})
 }

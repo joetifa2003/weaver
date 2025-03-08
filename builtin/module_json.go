@@ -43,21 +43,20 @@ func valufiyJSON(v interface{}) vm.Value {
 
 func registerJSONModule(builder *RegistryBuilder) {
 	builder.RegisterModule("json", map[string]vm.Value{
-		"parse": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-			dataArg, err := args.Get(0, vm.ValueTypeString)
-			if err != nil {
-				return vm.Value{}, err
+		"parse": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			dataArg := args.Get(0, vm.ValueTypeString)
+			if dataArg.IsError() {
+				return dataArg
 			}
 
 			data := dataArg.String()
-
 			var result interface{}
-			err = json.Unmarshal([]byte(data), &result)
+			err := json.Unmarshal([]byte(data), &result)
 			if err != nil {
-				panic(err)
+				return vm.NewError(err.Error(), vm.Value{})
 			}
 
-			return valufiyJSON(result), nil
+			return valufiyJSON(result)
 		}),
 	})
 }

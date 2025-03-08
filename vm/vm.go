@@ -448,10 +448,7 @@ func (v *VM) Run() Value {
 			case ValueTypeNativeFunction:
 				fn := callee.GetNativeFunction()
 				args := v.stack[argsBegin : argsBegin+numArgs]
-				r, err := fn(v, args)
-				if err != nil {
-					panic(err)
-				}
+				r := fn(v, args)
 				v.sp = calleeIdx
 				v.stack[v.sp] = r
 

@@ -9,24 +9,26 @@ import (
 
 func registerStringModule(builder *RegistryBuilder) {
 	builder.RegisterModule("strings", map[string]vm.Value{
-		"concat": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-
+		"concat": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
 			var res string
 			for _, arg := range args {
+				if arg.IsError() {
+					return arg
+				}
 				res += arg.String()
 			}
 
-			return vm.NewString(res), nil
+			return vm.NewString(res)
 		}),
-		"split": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-			strArg, err := args.Get(0, vm.ValueTypeString)
-			if err != nil {
-				return vm.Value{}, nil
+		"split": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			strArg := args.Get(0, vm.ValueTypeString)
+			if strArg.IsError() {
+				return strArg
 			}
 
-			sepArg, err := args.Get(1, vm.ValueTypeString)
-			if err != nil {
-				return vm.Value{}, nil
+			sepArg := args.Get(1, vm.ValueTypeString)
+			if sepArg.IsError() {
+				return sepArg
 			}
 
 			str := strArg.GetString()
@@ -36,7 +38,7 @@ func registerStringModule(builder *RegistryBuilder) {
 				return vm.NewString(s)
 			})
 
-			return vm.NewArray(parts), nil
+			return vm.NewArray(parts)
 		}),
 	})
 }

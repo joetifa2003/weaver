@@ -8,18 +8,18 @@ import (
 
 func registerModuleRL(builder *RegistryBuilder) {
 	m := map[string]vm.Value{
-		"initWindow": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-			widthArg, err := args.Get(0, vm.ValueTypeNumber)
-			if err != nil {
-				return vm.Value{}, err
+		"initWindow": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			widthArg := args.Get(0, vm.ValueTypeNumber)
+			if widthArg.IsError() {
+				return widthArg
 			}
-			heightArg, err := args.Get(1, vm.ValueTypeNumber)
-			if err != nil {
-				return vm.Value{}, err
+			heightArg := args.Get(1, vm.ValueTypeNumber)
+			if heightArg.IsError() {
+				return heightArg
 			}
-			titleArg, err := args.Get(2, vm.ValueTypeString)
-			if err != nil {
-				return vm.Value{}, err
+			titleArg := args.Get(2, vm.ValueTypeString)
+			if titleArg.IsError() {
+				return titleArg
 			}
 
 			width := widthArg.GetNumber()
@@ -27,60 +27,60 @@ func registerModuleRL(builder *RegistryBuilder) {
 			title := titleArg.GetString()
 
 			rl.InitWindow(int32(width), int32(height), title)
-			return vm.Value{}, nil
+			return vm.Value{}
 		}),
-		"windowShouldClose": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-			return vm.NewBool(rl.WindowShouldClose()), nil
+		"windowShouldClose": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			return vm.NewBool(rl.WindowShouldClose())
 		}),
-		"setTargetFPS": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-			fpsArg, err := args.Get(0, vm.ValueTypeNumber)
-			if err != nil {
-				return vm.Value{}, err
+		"setTargetFPS": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			fpsArg := args.Get(0, vm.ValueTypeNumber)
+			if fpsArg.IsError() {
+				return fpsArg
 			}
 			rl.SetTargetFPS(int32(fpsArg.GetNumber()))
-			return vm.Value{}, nil
+			return vm.Value{}
 		}),
-		"closeWindow": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
+		"closeWindow": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
 			rl.CloseWindow()
-			return vm.Value{}, nil
+			return vm.Value{}
 		}),
-		"beginDrawing": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
+		"beginDrawing": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
 			rl.BeginDrawing()
-			return vm.Value{}, nil
+			return vm.Value{}
 		}),
-		"endDrawing": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
+		"endDrawing": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
 			rl.EndDrawing()
-			return vm.Value{}, nil
+			return vm.Value{}
 		}),
-		"clearBackground": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-			colorArg, err := args.Get(0, vm.ValueTypeNativeObject)
-			if err != nil {
-				return vm.Value{}, err
+		"clearBackground": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			colorArg := args.Get(0, vm.ValueTypeNativeObject)
+			if colorArg.IsError() {
+				return colorArg
 			}
 			color := colorArg.GetNativeObject().(rl.Color)
 			rl.ClearBackground(color)
-			return vm.Value{}, nil
+			return vm.Value{}
 		}),
-		"drawRectangle": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-			posXArg, err := args.Get(0, vm.ValueTypeNumber)
-			if err != nil {
-				return vm.Value{}, err
+		"drawRectangle": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			posXArg := args.Get(0, vm.ValueTypeNumber)
+			if posXArg.IsError() {
+				return posXArg
 			}
-			posYArg, err := args.Get(1, vm.ValueTypeNumber)
-			if err != nil {
-				return vm.Value{}, err
+			posYArg := args.Get(1, vm.ValueTypeNumber)
+			if posYArg.IsError() {
+				return posYArg
 			}
-			widthArg, err := args.Get(2, vm.ValueTypeNumber)
-			if err != nil {
-				return vm.Value{}, err
+			widthArg := args.Get(2, vm.ValueTypeNumber)
+			if widthArg.IsError() {
+				return widthArg
 			}
-			heightArg, err := args.Get(3, vm.ValueTypeNumber)
-			if err != nil {
-				return vm.Value{}, err
+			heightArg := args.Get(3, vm.ValueTypeNumber)
+			if heightArg.IsError() {
+				return heightArg
 			}
-			colorArg, err := args.Get(4, vm.ValueTypeNativeObject)
-			if err != nil {
-				return vm.Value{}, err
+			colorArg := args.Get(4, vm.ValueTypeNativeObject)
+			if colorArg.IsError() {
+				return colorArg
 			}
 
 			posX := posXArg.GetNumber()
@@ -90,36 +90,36 @@ func registerModuleRL(builder *RegistryBuilder) {
 			color := colorArg.GetNativeObject().(rl.Color)
 
 			rl.DrawRectangle(int32(posX), int32(posY), int32(width), int32(height), color)
-			return vm.Value{}, nil
+			return vm.Value{}
 		}),
-		"drawFps": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-			posXArg, err := args.Get(0, vm.ValueTypeNumber)
-			if err != nil {
-				return vm.Value{}, err
+		"drawFps": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			posXArg := args.Get(0, vm.ValueTypeNumber)
+			if posXArg.IsError() {
+				return posXArg
 			}
-			posYArg, err := args.Get(1, vm.ValueTypeNumber)
-			if err != nil {
-				return vm.Value{}, err
+			posYArg := args.Get(1, vm.ValueTypeNumber)
+			if posYArg.IsError() {
+				return posYArg
 			}
 			rl.DrawFPS(int32(posXArg.GetNumber()), int32(posYArg.GetNumber()))
-			return vm.Value{}, nil
+			return vm.Value{}
 		}),
-		"isKeyPressed": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-			keyArg, err := args.Get(0, vm.ValueTypeNumber)
-			if err != nil {
-				return vm.Value{}, err
+		"isKeyPressed": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			keyArg := args.Get(0, vm.ValueTypeNumber)
+			if keyArg.IsError() {
+				return keyArg
 			}
-			return vm.NewBool(rl.IsKeyPressed(int32(keyArg.GetNumber()))), nil
+			return vm.NewBool(rl.IsKeyPressed(int32(keyArg.GetNumber())))
 		}),
-		"isKeyDown": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-			keyArg, err := args.Get(0, vm.ValueTypeNumber)
-			if err != nil {
-				return vm.Value{}, err
+		"isKeyDown": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			keyArg := args.Get(0, vm.ValueTypeNumber)
+			if keyArg.IsError() {
+				return keyArg
 			}
-			return vm.NewBool(rl.IsKeyDown(int32(keyArg.GetNumber()))), nil
+			return vm.NewBool(rl.IsKeyDown(int32(keyArg.GetNumber())))
 		}),
-		"getFrameTime": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, error) {
-			return vm.NewNumber(float64(rl.GetFrameTime())), nil
+		"getFrameTime": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			return vm.NewNumber(float64(rl.GetFrameTime()))
 		}),
 	}
 

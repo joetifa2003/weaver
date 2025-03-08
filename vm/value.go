@@ -160,6 +160,10 @@ type Error struct {
 	data Value
 }
 
+func (e *Error) Error() string {
+	return e.msg
+}
+
 func (v *Value) SetError(msg string, data Value) {
 	e := Error{msg: msg, data: data}
 	v.VType = ValueTypeError
@@ -205,20 +209,20 @@ func (v *Value) GetNativeObject() interface{} {
 
 type NativeFunctionArgs []Value
 
-func (a NativeFunctionArgs) Get(i int, types ...ValueType) (Value, error) {
+func (a NativeFunctionArgs) Get(i int, types ...ValueType) Value {
 	if i >= len(a) {
-		return Value{}, ErrInvalidNumberOfArguments
+		return NewError("invalid number of arguments", Value{})
 	}
 
 	v := a[i]
 	if !v.VType.Is(types...) {
-		return Value{}, ErrInvalidArgType
+		return NewError(fmt.Sprintf("invalid argument type, expected %v", types), Value{})
 	}
 
-	return a[i], nil
+	return a[i]
 }
 
-type NativeFunction func(v *VM, args NativeFunctionArgs) (Value, error)
+type NativeFunction func(v *VM, args NativeFunctionArgs) Value
 
 func (v *Value) GetNativeFunction() NativeFunction {
 	return *(*NativeFunction)(v.nonPrimitive)
@@ -557,4 +561,8 @@ func (v *Value) SetIndex(idx *Value, val Value) {
 			panic(ErrInvalidErrorIndexType)
 		}
 	}
+}
+
+func (v *Value) IsError() bool {
+	return v.VType.Is(ValueTypeError)
 }

@@ -319,12 +319,22 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 			irHasType(expr, "error"),
 		)
 
-		if cond.Cond != nil {
-			c, err := c.compileMatchCondition(*cond.Cond, irIndex(expr, irString("data")))
+		if cond.Message != nil {
+			msgExpr := irIndex(expr, irString("msg"))
+			msgCond, err := c.compileMatchCondition(cond.Message, msgExpr)
 			if err != nil {
 				return nil, err
 			}
-			res.Operands = append(res.Operands, c)
+			res.Operands = append(res.Operands, msgCond)
+		}
+
+		if cond.Data != nil {
+			detailsExpr := irIndex(expr, irString("data"))
+			detailsCond, err := c.compileMatchCondition(cond.Data, detailsExpr)
+			if err != nil {
+				return nil, err
+			}
+			res.Operands = append(res.Operands, detailsCond)
 		}
 
 		return res, nil

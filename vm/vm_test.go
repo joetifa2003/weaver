@@ -386,7 +386,7 @@ func TestVM(t *testing.T) {
 		e.data.name = "hi"
 
 		match e {
-			error({name: n}) => {
+			error(_, {name: n}) => {
 				n == "hi" |> assert()
 			},
 			else => {

@@ -254,9 +254,44 @@ func matchCaseType(typ string, f func(childCond *ast.MatchCaseCondition) ast.Mat
 }
 
 func matchCaseTypeError() pargo.Parser[ast.MatchCaseCondition] {
-	return matchCaseType("error", func(cond *ast.MatchCaseCondition) ast.MatchCaseCondition {
-		return ast.MatchCaseTypeError{Cond: cond}
-	})
+	return pargo.OneOf(
+		// error() with no arguments
+		pargo.Sequence3(
+			pargo.Exactly("error"),
+			pargo.Exactly("("),
+			pargo.Exactly(")"),
+			func(kw, lp, rp string) ast.MatchCaseCondition {
+				return ast.MatchCaseTypeError{}
+			},
+		),
+		// error(msg) with one argument
+		pargo.Sequence4(
+			pargo.Exactly("error"),
+			pargo.Exactly("("),
+			pargo.Lazy(matchCondition),
+			pargo.Exactly(")"),
+			func(kw, lp string, msgCond ast.MatchCaseCondition, rp string) ast.MatchCaseCondition {
+				return ast.MatchCaseTypeError{
+					Message: msgCond,
+				}
+			},
+		),
+		// error(msg, details) with two arguments
+		pargo.Sequence6(
+			pargo.Exactly("error"),
+			pargo.Exactly("("),
+			pargo.Lazy(matchCondition),
+			pargo.Exactly(","),
+			pargo.Lazy(matchCondition),
+			pargo.Exactly(")"),
+			func(kw, lp string, msgCond ast.MatchCaseCondition, comma string, detailsCond ast.MatchCaseCondition, rp string) ast.MatchCaseCondition {
+				return ast.MatchCaseTypeError{
+					Message: msgCond,
+					Data:    detailsCond,
+				}
+			},
+		),
+	)
 }
 
 func matchCaseTypeNumber() pargo.Parser[ast.MatchCaseCondition] {

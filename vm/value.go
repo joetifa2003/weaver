@@ -209,17 +209,17 @@ func (v *Value) GetNativeObject() interface{} {
 
 type NativeFunctionArgs []Value
 
-func (a NativeFunctionArgs) Get(i int, types ...ValueType) Value {
+func (a NativeFunctionArgs) Get(i int, types ...ValueType) (Value, bool) {
 	if i >= len(a) {
-		return NewError("invalid number of arguments", Value{})
+		return NewError("invalid number of arguments", Value{}), false
 	}
 
 	v := a[i]
 	if !v.VType.Is(types...) {
-		return NewError(fmt.Sprintf("invalid argument type, expected %v", types), Value{})
+		return NewError(fmt.Sprintf("invalid argument type, expected %v", types), Value{}), false
 	}
 
-	return a[i]
+	return a[i], true
 }
 
 type NativeFunction func(v *VM, args NativeFunctionArgs) Value

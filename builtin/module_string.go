@@ -21,13 +21,13 @@ func registerStringModule(builder *RegistryBuilder) {
 			return vm.NewString(res)
 		}),
 		"split": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-			strArg := args.Get(0, vm.ValueTypeString)
-			if strArg.IsError() {
+			strArg, ok := args.Get(0, vm.ValueTypeString)
+			if !ok {
 				return strArg
 			}
 
-			sepArg := args.Get(1, vm.ValueTypeString)
-			if sepArg.IsError() {
+			sepArg, ok := args.Get(1, vm.ValueTypeString)
+			if !ok {
 				return sepArg
 			}
 

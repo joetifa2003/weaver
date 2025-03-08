@@ -10,8 +10,8 @@ import (
 func registerIOModule(builder *RegistryBuilder) {
 	builder.RegisterModule("io", map[string]vm.Value{
 		"println": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-			val := args.Get(0)
-			if val.IsError() {
+			val, ok := args.Get(0)
+			if !ok {
 				return val
 			}
 
@@ -19,8 +19,8 @@ func registerIOModule(builder *RegistryBuilder) {
 			return vm.Value{}
 		}),
 		"print": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-			val := args.Get(0)
-			if val.IsError() {
+			val, ok := args.Get(0)
+			if !ok {
 				return val
 			}
 
@@ -28,8 +28,8 @@ func registerIOModule(builder *RegistryBuilder) {
 			return vm.Value{}
 		}),
 		"readFile": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-			arg1 := args.Get(0, vm.ValueTypeString)
-			if arg1.IsError() {
+			arg1, ok := args.Get(0, vm.ValueTypeString)
+			if !ok {
 				return arg1
 			}
 

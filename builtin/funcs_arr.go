@@ -4,8 +4,8 @@ import "github.com/joetifa2003/weaver/vm"
 
 func registerBuiltinFuncsArr(builder *RegistryBuilder) {
 	builder.RegisterFunc("makeArr", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-		val := args.Get(0)
-		if val.IsError() {
+		val, ok := args.Get(0)
+		if !ok {
 			return val
 		}
 
@@ -16,13 +16,13 @@ func registerBuiltinFuncsArr(builder *RegistryBuilder) {
 	})
 
 	builder.RegisterFunc("push", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-		arrArg := args.Get(0, vm.ValueTypeArray)
-		if arrArg.IsError() {
+		arrArg, ok := args.Get(0, vm.ValueTypeArray)
+		if !ok {
 			return arrArg
 		}
 
-		val := args.Get(1)
-		if val.IsError() {
+		val, ok := args.Get(1)
+		if !ok {
 			return val
 		}
 
@@ -32,13 +32,13 @@ func registerBuiltinFuncsArr(builder *RegistryBuilder) {
 	})
 
 	builder.RegisterFunc("map", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-		arrArg := args.Get(0, vm.ValueTypeArray)
-		if arrArg.IsError() {
+		arrArg, ok := args.Get(0, vm.ValueTypeArray)
+		if !ok {
 			return arrArg
 		}
 
-		fnArg := args.Get(1, vm.ValueTypeFunction)
-		if fnArg.IsError() {
+		fnArg, ok := args.Get(1, vm.ValueTypeFunction)
+		if !ok {
 			return fnArg
 		}
 
@@ -54,13 +54,13 @@ func registerBuiltinFuncsArr(builder *RegistryBuilder) {
 	})
 
 	builder.RegisterFunc("filter", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-		arrArg := args.Get(0, vm.ValueTypeArray)
-		if arrArg.IsError() {
+		arrArg, ok := args.Get(0, vm.ValueTypeArray)
+		if !ok {
 			return arrArg
 		}
 
-		fnArg := args.Get(1, vm.ValueTypeFunction)
-		if fnArg.IsError() {
+		fnArg, ok := args.Get(1, vm.ValueTypeFunction)
+		if !ok {
 			return fnArg
 		}
 
@@ -79,13 +79,13 @@ func registerBuiltinFuncsArr(builder *RegistryBuilder) {
 	})
 
 	builder.RegisterFunc("contains", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-		arrArg := args.Get(0, vm.ValueTypeArray)
-		if arrArg.IsError() {
+		arrArg, ok := args.Get(0, vm.ValueTypeArray)
+		if !ok {
 			return arrArg
 		}
 
-		f := args.Get(1)
-		if f.IsError() {
+		f, ok := args.Get(1)
+		if !ok {
 			return f
 		}
 

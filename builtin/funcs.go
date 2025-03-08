@@ -9,16 +9,16 @@ import (
 
 func registerBuiltinFuncs(builder *RegistryBuilder) {
 	builder.RegisterFunc("error", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-		msgArg := args.Get(0, vm.ValueTypeString)
-		if msgArg.IsError() {
+		msgArg, ok := args.Get(0, vm.ValueTypeString)
+		if !ok {
 			return msgArg
 		}
 		if len(args) == 1 {
 			return vm.NewError(msgArg.GetString(), vm.Value{})
 		}
 
-		dataArg := args.Get(1)
-		if dataArg.IsError() {
+		dataArg, ok := args.Get(1)
+		if !ok {
 			return dataArg
 		}
 
@@ -26,13 +26,16 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 	})
 
 	builder.RegisterFunc("isError", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-		val := args.Get(0)
+		val, ok := args.Get(0)
+		if !ok {
+			return val
+		}
 		return vm.NewBool(val.IsError())
 	})
 
 	builder.RegisterFunc("assert", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-		val := args.Get(0)
-		if val.IsError() {
+		val, ok := args.Get(0)
+		if !ok {
 			return val
 		}
 
@@ -44,8 +47,8 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 	})
 
 	builder.RegisterFunc("echo", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-		val := args.Get(0)
-		if val.IsError() {
+		val, ok := args.Get(0)
+		if !ok {
 			return val
 		}
 
@@ -58,8 +61,8 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 	})
 
 	builder.RegisterFunc("len", func(x *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-		val := args.Get(0, vm.ValueTypeArray, vm.ValueTypeString, vm.ValueTypeObject)
-		if val.IsError() {
+		val, ok := args.Get(0, vm.ValueTypeArray, vm.ValueTypeString, vm.ValueTypeObject)
+		if !ok {
 			return val
 		}
 
@@ -79,13 +82,16 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 	})
 
 	builder.RegisterFunc("type", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-		val := args.Get(0)
+		val, ok := args.Get(0)
+		if !ok {
+			return val
+		}
 		return vm.NewString(val.VType.String())
 	})
 
 	builder.RegisterFunc("string", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-		val := args.Get(0)
-		if val.IsError() {
+		val, ok := args.Get(0)
+		if !ok {
 			return val
 		}
 
@@ -93,8 +99,8 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 	})
 
 	builder.RegisterFunc("int", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-		val := args.Get(0, vm.ValueTypeNumber)
-		if val.IsError() {
+		val, ok := args.Get(0, vm.ValueTypeNumber)
+		if !ok {
 			return val
 		}
 

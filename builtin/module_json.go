@@ -44,8 +44,8 @@ func valufiyJSON(v interface{}) vm.Value {
 func registerJSONModule(builder *RegistryBuilder) {
 	builder.RegisterModule("json", map[string]vm.Value{
 		"parse": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-			dataArg := args.Get(0, vm.ValueTypeString)
-			if dataArg.IsError() {
+			dataArg, ok := args.Get(0, vm.ValueTypeString)
+			if !ok {
 				return dataArg
 			}
 

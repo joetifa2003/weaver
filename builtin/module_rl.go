@@ -9,16 +9,16 @@ import (
 func registerModuleRL(builder *RegistryBuilder) {
 	m := map[string]vm.Value{
 		"initWindow": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-			widthArg := args.Get(0, vm.ValueTypeNumber)
-			if widthArg.IsError() {
+			widthArg, ok := args.Get(0, vm.ValueTypeNumber)
+			if !ok {
 				return widthArg
 			}
-			heightArg := args.Get(1, vm.ValueTypeNumber)
-			if heightArg.IsError() {
+			heightArg, ok := args.Get(1, vm.ValueTypeNumber)
+			if !ok {
 				return heightArg
 			}
-			titleArg := args.Get(2, vm.ValueTypeString)
-			if titleArg.IsError() {
+			titleArg, ok := args.Get(2, vm.ValueTypeString)
+			if !ok {
 				return titleArg
 			}
 
@@ -33,8 +33,8 @@ func registerModuleRL(builder *RegistryBuilder) {
 			return vm.NewBool(rl.WindowShouldClose())
 		}),
 		"setTargetFPS": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-			fpsArg := args.Get(0, vm.ValueTypeNumber)
-			if fpsArg.IsError() {
+			fpsArg, ok := args.Get(0, vm.ValueTypeNumber)
+			if !ok {
 				return fpsArg
 			}
 			rl.SetTargetFPS(int32(fpsArg.GetNumber()))
@@ -53,8 +53,8 @@ func registerModuleRL(builder *RegistryBuilder) {
 			return vm.Value{}
 		}),
 		"clearBackground": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-			colorArg := args.Get(0, vm.ValueTypeNativeObject)
-			if colorArg.IsError() {
+			colorArg, ok := args.Get(0, vm.ValueTypeNativeObject)
+			if !ok {
 				return colorArg
 			}
 			color := colorArg.GetNativeObject().(rl.Color)
@@ -62,24 +62,24 @@ func registerModuleRL(builder *RegistryBuilder) {
 			return vm.Value{}
 		}),
 		"drawRectangle": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-			posXArg := args.Get(0, vm.ValueTypeNumber)
-			if posXArg.IsError() {
+			posXArg, ok := args.Get(0, vm.ValueTypeNumber)
+			if !ok {
 				return posXArg
 			}
-			posYArg := args.Get(1, vm.ValueTypeNumber)
-			if posYArg.IsError() {
+			posYArg, ok := args.Get(1, vm.ValueTypeNumber)
+			if !ok {
 				return posYArg
 			}
-			widthArg := args.Get(2, vm.ValueTypeNumber)
-			if widthArg.IsError() {
+			widthArg, ok := args.Get(2, vm.ValueTypeNumber)
+			if !ok {
 				return widthArg
 			}
-			heightArg := args.Get(3, vm.ValueTypeNumber)
-			if heightArg.IsError() {
+			heightArg, ok := args.Get(3, vm.ValueTypeNumber)
+			if !ok {
 				return heightArg
 			}
-			colorArg := args.Get(4, vm.ValueTypeNativeObject)
-			if colorArg.IsError() {
+			colorArg, ok := args.Get(4, vm.ValueTypeNativeObject)
+			if !ok {
 				return colorArg
 			}
 
@@ -93,27 +93,27 @@ func registerModuleRL(builder *RegistryBuilder) {
 			return vm.Value{}
 		}),
 		"drawFps": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-			posXArg := args.Get(0, vm.ValueTypeNumber)
-			if posXArg.IsError() {
+			posXArg, ok := args.Get(0, vm.ValueTypeNumber)
+			if !ok {
 				return posXArg
 			}
-			posYArg := args.Get(1, vm.ValueTypeNumber)
-			if posYArg.IsError() {
+			posYArg, ok := args.Get(1, vm.ValueTypeNumber)
+			if !ok {
 				return posYArg
 			}
 			rl.DrawFPS(int32(posXArg.GetNumber()), int32(posYArg.GetNumber()))
 			return vm.Value{}
 		}),
 		"isKeyPressed": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-			keyArg := args.Get(0, vm.ValueTypeNumber)
-			if keyArg.IsError() {
+			keyArg, ok := args.Get(0, vm.ValueTypeNumber)
+			if !ok {
 				return keyArg
 			}
 			return vm.NewBool(rl.IsKeyPressed(int32(keyArg.GetNumber())))
 		}),
 		"isKeyDown": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-			keyArg := args.Get(0, vm.ValueTypeNumber)
-			if keyArg.IsError() {
+			keyArg, ok := args.Get(0, vm.ValueTypeNumber)
+			if !ok {
 				return keyArg
 			}
 			return vm.NewBool(rl.IsKeyDown(int32(keyArg.GetNumber())))

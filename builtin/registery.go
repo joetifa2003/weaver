@@ -16,20 +16,26 @@ func NewRegBuilder() *RegistryBuilder {
 
 func NewRegBuilderFrom(other *Registry) *RegistryBuilder {
 	r := &RegistryBuilder{
-		funcs: make(map[string]vm.Value, len(other.funcs)),
+		funcs:   make(map[string]vm.Value, len(other.funcs)),
+		modules: make(map[string]vm.Value, len(other.modules)),
 	}
 
 	for k, f := range other.funcs {
 		r.RegisterFunc(k, f.GetNativeFunction())
 	}
 
+	for k, v := range other.modules {
+		r.RegisterModule(k, v.GetModule())
+	}
+
 	return r
 }
 
-func (r *RegistryBuilder) RegisterModule(name string, m map[string]vm.Value) {
+func (r *RegistryBuilder) RegisterModule(name string, m map[string]vm.Value) *RegistryBuilder {
 	val := vm.Value{}
 	val.SetModule(m)
 	r.modules[name] = val
+	return r
 }
 
 func (r *RegistryBuilder) ResolveModule(name string) (vm.Value, bool) {
@@ -43,10 +49,11 @@ func (r *RegistryBuilder) RemoveModule(name string) vm.Value {
 	return v
 }
 
-func (r *RegistryBuilder) RegisterFunc(name string, f vm.NativeFunction) {
+func (r *RegistryBuilder) RegisterFunc(name string, f vm.NativeFunction) *RegistryBuilder {
 	val := vm.Value{}
 	val.SetNativeFunction(f)
 	r.funcs[name] = val
+	return r
 }
 
 func (r *RegistryBuilder) ResolveFunc(name string) (vm.Value, bool) {

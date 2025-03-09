@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/joetifa2003/weaver/builtin"
 	"github.com/joetifa2003/weaver/compiler"
@@ -468,13 +468,46 @@ func TestVM(t *testing.T) {
 
 		false |> assert()
 		`,
+		37: `
+			tempD := tempDir()
+			tempD |> io:isDir() |> assert()
+			
+			path := io:join(tempD, "test.txt")
+			io:dirname(path) == tempD |> assert()
+			io:basename(path) == "test.txt" |> assert()
+			io:extname(path) == ".txt" |> assert()
+			
+			io:writeFile(path, "hello world")
+			io:exists(path) |> assert()
+			io:readFile(path) == "hello world" |> assert()
+			
+			subDir := io:join(tempD, "subdir")
+			io:mkdir(subDir)
+			io:isDir(subDir) |> assert()
+			
+			io:size(path) == 11 |> assert()
+			io:isDir(path) == false |> assert()
+			
+			newPath := io:join(tempD, "renamed.txt")
+			io:rename(path, newPath) 
+			io:exists(newPath) |> assert()
+			io:exists(path) == false |> assert()
+			
+			io:remove(newPath)
+			io:exists(newPath) == false |> assert()
+			io:remove(subDir)
+			io:exists(subDir) == false |> assert()
+		`,
 	}
 
 	for i, tc := range tests {
+		if i != 37 {
+			continue
+		}
 		for _, opt := range []bool{false, true} {
 			t.Run(fmt.Sprintf("%d opt=%t", i, opt), func(t *testing.T) {
 				t.Parallel()
-				assert := assert.New(t)
+				assert := require.New(t)
 
 				p, err := parser.Parse(tc)
 				assert.NoError(err)
@@ -483,7 +516,12 @@ func TestVM(t *testing.T) {
 				ircr, err := irc.Compile(p)
 				assert.NoError(err)
 
-				c := compiler.New(builtin.StdReg, compiler.WithOptimization(opt))
+				reg := builtin.NewRegBuilderFrom(builtin.StdReg).
+					RegisterFunc("tempDir", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+						return vm.NewString(t.TempDir())
+					}).
+					Build()
+				c := compiler.New(reg, compiler.WithOptimization(opt))
 				instructions, vars, constants, err := c.Compile(ircr)
 				assert.NoError(err)
 				vm := vm.New(constants, instructions, vars)

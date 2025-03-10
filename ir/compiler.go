@@ -382,8 +382,8 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 
 		return irAnd(
 			irHasType(expr, "number"),
-			irGt(expr, begin),
-			irLt(expr, end),
+			irGte(expr, begin),
+			irLte(expr, end),
 		), nil
 
 	case ast.MatchCaseInt:

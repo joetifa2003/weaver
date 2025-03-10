@@ -498,12 +498,25 @@ func TestVM(t *testing.T) {
 			io:remove(subDir)
 			io:exists(subDir) == false |> assert()
 		`,
+		38: `
+		match 19 {
+			0..19 => {
+				return
+			}
+		}
+		return error("19 should match 0..19")
+		`,
+		39: `
+		match len([0, 1, 2]) {
+			2..3 => {
+				return
+			}
+		}
+		return error("3 should match 2..3")
+		`,
 	}
 
 	for i, tc := range tests {
-		if i != 37 {
-			continue
-		}
 		for _, opt := range []bool{false, true} {
 			t.Run(fmt.Sprintf("%d opt=%t", i, opt), func(t *testing.T) {
 				t.Parallel()

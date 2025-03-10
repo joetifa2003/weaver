@@ -251,6 +251,122 @@ Iterating over an array is a common use case for for loops, as shown in @fig:for
   caption: [For loop over an array, printing numbers from 1 to 4.],
 ) <fig:for-array>
 
+== Pattern Matching
+
+Weaver provides powerful pattern matching capabilities that allow developers to write expressive and concise code. Pattern matching can be used to match values against specific patterns and execute corresponding code blocks. The syntax follows the form:
+
+```weaver
+match expression {
+  pattern1 => {
+    // code to execute if pattern1 matches
+  },
+  pattern2 => {
+    // code to execute if pattern2 matches
+  },
+  else => {
+    // default case if no patterns match
+  }
+}
+```
+
+=== Basic Patterns
+
+Weaver supports matching against literal values including integers, floats, strings, and booleans:
+
+```weaver
+x := 5
+match x {
+  0 => echo("zero"),
+  5 => echo("five"),
+  else => echo("other")
+}
+```
+
+=== Type Matching
+
+Patterns can match based on value types using type predicates:
+
+```weaver
+match value {
+  string(s) => echo("got string: " + s),
+  number(n) => echo("got number: " + string(n)),
+  else => echo("other type")
+}
+```
+
+=== Destructuring
+
+Weaver supports destructuring of arrays and objects in patterns:
+
+```weaver
+// Array destructuring
+match [1, 2, 3] {
+  [a, b, c] => echo(a + b + c),
+  else => echo("no match")
+}
+
+// Object destructuring  
+match {name: "Alice", age: 30} {
+  {name: n, age: a} => echo(n + " is " + string(a)),
+  else => echo("no match")
+}
+```
+
+=== Nested Patterns
+
+Patterns can be nested to match complex data structures:
+
+```weaver
+students := [
+  {name: "Alice", grades: [90, 85]},
+  {name: "Bob", grades: [80, 75]}
+]
+
+match students[0] {
+  {name: "Alice", grades: [math, _]} => echo("Alice's math grade: " + string(math)),
+  else => echo("no match")
+}
+```
+
+=== Range Matching
+
+Weaver supports range patterns for numeric values:
+
+```weaver
+match age {
+  0..17 => echo("child"),
+  18..64 => echo("adult"), 
+  65.. => echo("senior"),
+  else => echo("invalid age")
+}
+```
+
+=== Guards
+
+Additional conditions can be added to patterns using guards:
+
+```weaver
+match student {
+  {name: n, age: a} if a >= 18 => echo(n + " is an adult"),
+  {name: n, age: a} => echo(n + " is a minor")
+}
+```
+
+=== Error Matching
+
+Weaver provides special support for matching error values:
+
+```weaver
+e := error("file not found", {code: 404})
+
+match e {
+  error(msg, {code: c}) => echo("Error " + string(c) + ": " + msg),
+  else => echo("not an error")
+}
+```
+
+Pattern matching in Weaver provides a powerful way to handle complex conditional logic in a readable and maintainable way. The combination of literal matching, type matching, destructuring, and guards makes it suitable for a wide range of use cases.
+
 #pagebreak()
 
 #set page(columns: 1)

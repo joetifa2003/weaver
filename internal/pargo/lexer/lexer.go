@@ -25,16 +25,16 @@ func (l Location) IsAfter(other Location) bool {
 }
 
 type RegexToken struct {
-	location Location
-	ttype    int
-	lit      string
+	Loc   Location
+	Ttype int
+	Lit   string
 }
 
-func (t RegexToken) String() string { return t.lit }
+func (t RegexToken) String() string { return t.Lit }
 
-func (t RegexToken) Type() int { return t.ttype }
+func (t RegexToken) Type() int { return t.Ttype }
 
-func (t RegexToken) Location() Location { return t.location }
+func (t RegexToken) Location() Location { return t.Loc }
 
 type RegexLexer struct {
 	patterns   []Pattern
@@ -92,9 +92,9 @@ func (l *RegexLexer) Lex(input string) ([]Token, error) {
 						lit = transform(match)
 					}
 					tokens = append(tokens, RegexToken{
-						location: location,
-						ttype:    pattern.TokenType,
-						lit:      lit,
+						Loc:   location,
+						Ttype: pattern.TokenType,
+						Lit:   lit,
 					})
 				}
 

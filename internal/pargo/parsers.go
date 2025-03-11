@@ -19,7 +19,11 @@ func (s *State) done() bool {
 
 func (s *State) consume() (lexer.Token, error) {
 	if s.pos >= len(s.tokens) {
-		return nil, NewParseError(s.source, "EOF", s.tokens[0])
+		return lexer.RegexToken{
+			Loc:   s.tokens[len(s.tokens)-1].Location(),
+			Ttype: -1,
+			Lit:   "EOF",
+		}, nil
 	}
 
 	val := s.tokens[s.pos]

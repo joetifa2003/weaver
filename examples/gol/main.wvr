@@ -1,28 +1,28 @@
 # Game of Life
 
-CELL_SIZE := 10
-WORLD_WIDTH := 1024
-WORLD_HEIGHT := 1024
+CELL_SIZE := 10;
+WORLD_WIDTH := 1024;
+WORLD_HEIGHT := 1024;
 
-ROWS := int(WORLD_HEIGHT / CELL_SIZE)
-COLS := int(WORLD_WIDTH / CELL_SIZE)
+ROWS := int(WORLD_HEIGHT / CELL_SIZE);
+COLS := int(WORLD_WIDTH / CELL_SIZE);
 
-cells := makeArr(ROWS)
+cells := makeArr(ROWS);
 for i := 0; i < ROWS; i++ {
-    cells[i] = makeArr(COLS)
+    cells[i] = makeArr(COLS);
 }
 
 
 # Initialize random starting pattern
 for y := 0; y < ROWS; y++ {
     for x := 0; x < COLS; x++ {
-        cells[y][x] = rand() > 0.8
+        cells[y][x] = rand() > 0.8;
     }
 }
 
 # Function to count living neighbors for a cell
 countNeighbors := |y, x| {
-    count := 0
+    count := 0;
 
     for dy := -1; dy <= 1; dy++ {
         for dx := -1; dx <= 1; dx++ {
@@ -30,63 +30,63 @@ countNeighbors := |y, x| {
               continue
             }
 
-            ny := (y + dy + ROWS) % ROWS    # Wrap around edges
-            nx := (x + dx + COLS) % COLS
+            ny := (y + dy + ROWS) % ROWS;    # Wrap around edges
+            nx := (x + dx + COLS) % COLS;
 
             if cells[ny][nx] { 
-              count++
+              count++;
             }
         }
     }
 
-    return count
-}
+    return count;
+};
 
 # Function to update the game state
 updateCells := || {
     # Create new array for next state
-    newCells := makeArr(ROWS)
+    newCells := makeArr(ROWS);
     for i := 0; i < ROWS; i++ {
-        newCells[i] = makeArr(COLS)
+        newCells[i] = makeArr(COLS);
     }
 
     for y := 0; y < ROWS; y++ {
         for x := 0; x < COLS; x++ {
-            neighbors := countNeighbors(y, x)
+            neighbors := countNeighbors(y, x);
             if cells[y][x] {
                 # Cell is alive
-                newCells[y][x] = neighbors == 2 || neighbors == 3
+                newCells[y][x] = neighbors == 2 || neighbors == 3;
             } else {
                 # Cell is dead
-                newCells[y][x] = neighbors == 3
+                newCells[y][x] = neighbors == 3;
             }
         }
     }
 
-    cells = newCells
-}
+    cells = newCells;
+};
 
-rl:initWindow(WORLD_WIDTH, WORLD_HEIGHT, "Game of Life")
+rl:initWindow(WORLD_WIDTH, WORLD_HEIGHT, "Game of Life");
 
 while !rl:windowShouldClose() {
     # Update
-    updateCells(cells)
+    updateCells(cells);
 
     # Draw
-    rl:beginDrawing()
-    rl:clearBackground(rl:colorRayWhite)
-    rl:drawFps(10, 10)
+    rl:beginDrawing();
+    rl:clearBackground(rl:colorRayWhite);
+    rl:drawFps(10, 10);
 
     for y := 0; y < ROWS; y++ {
         for x := 0; x < COLS; x++ {
             if cells[y][x] {
-                rl:drawRectangle(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE, rl:colorBlack)
+                rl:drawRectangle(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE, rl:colorBlack);
             }
         }
     }
 
-    rl:endDrawing()
+    rl:endDrawing();
 }
 
-rl:closeWindow()
+rl:closeWindow();
 

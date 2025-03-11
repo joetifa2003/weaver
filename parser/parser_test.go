@@ -75,7 +75,7 @@ func TestVarDeclStmt(t *testing.T) {
 
 	p := varDeclStmt()
 
-	stmt, err := pargo.Parse(p, newLexer(), "foo := 123")
+	stmt, err := pargo.Parse(p, newLexer(), "foo := 123;")
 	require.NoError(t, err)
 
 	letStmt, ok := stmt.(ast.LetStmt)

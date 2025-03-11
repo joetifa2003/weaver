@@ -1,33 +1,33 @@
-rl:initWindow(800, 600, "Weaver")
+rl:initWindow(800, 600, "Weaver");
 
 p := {
   x: 10,
   y: 10,
-}
+};
 
-speed := 250
+speed := 250;
 
 while !rl:windowShouldClose() {
-    rl:beginDrawing()
-    rl:clearBackground(rl:colorRayWhite)
-    rl:drawFps(10, 10)
-    rl:drawRectangle(int(p.x), int(p.y), 40, 40, rl:colorBlack)
+    rl:beginDrawing();
+    rl:clearBackground(rl:colorRayWhite);
+    rl:drawFps(10, 10);
+    rl:drawRectangle(int(p.x), int(p.y), 40, 40, rl:colorBlack);
     if rl:isKeyDown(rl:keyLeft) {
-      p.x = p.x - speed * rl:getFrameTime()
+      p.x = p.x - speed * rl:getFrameTime();
     }
 
     if rl:isKeyDown(rl:keyRight) {
-      p.x = p.x + speed * rl:getFrameTime()
+      p.x = p.x + speed * rl:getFrameTime();
     }
 
     if rl:isKeyDown(rl:keyUp) {
-      p.y = p.y - speed * rl:getFrameTime()
+      p.y = p.y - speed * rl:getFrameTime();
     }
 
     if rl:isKeyDown(rl:keyDown) {
-      p.y = p.y + speed * rl:getFrameTime()
+      p.y = p.y + speed * rl:getFrameTime();
     }
-    rl:endDrawing()
+    rl:endDrawing();
 }
 
-rl:closeWindow()
+rl:closeWindow();

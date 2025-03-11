@@ -6,11 +6,12 @@ import (
 )
 
 func varDeclStmt() pargo.Parser[ast.Statement] {
-	return pargo.Sequence3(
+	return pargo.Sequence4(
 		pargo.TokenType(TT_IDENT),
 		pargo.Exactly(":="),
 		expr(),
-		func(name string, _ string, expr ast.Expr) ast.Statement {
+		pargo.Exactly(";"),
+		func(name string, _ string, expr ast.Expr, _ string) ast.Statement {
 			return ast.LetStmt{Name: name, Expr: expr}
 		},
 	)
@@ -39,15 +40,14 @@ func whileStmt() pargo.Parser[ast.Statement] {
 }
 
 func forStmt() pargo.Parser[ast.Statement] {
-	return pargo.Sequence7(
+	return pargo.Sequence6(
 		pargo.Exactly("for"),
 		pargo.Lazy(stmt),
-		pargo.Exactly(";"),
 		pargo.Lazy(expr),
 		pargo.Exactly(";"),
 		pargo.Lazy(expr),
 		blockStmt(),
-		func(_ string, initStmt ast.Statement, _ string, condition ast.Expr, _ string, increment ast.Expr, body ast.Statement) ast.Statement {
+		func(_ string, initStmt ast.Statement, condition ast.Expr, _ string, increment ast.Expr, body ast.Statement) ast.Statement {
 			return ast.ForStmt{
 				InitStmt:  initStmt,
 				Condition: condition,
@@ -79,10 +79,11 @@ func ifStmt() pargo.Parser[ast.Statement] {
 }
 
 func exprStmt() pargo.Parser[ast.Statement] {
-	return pargo.Map(
+	return pargo.Sequence2(
 		expr(),
-		func(expr ast.Expr) (ast.Statement, error) {
-			return ast.ExprStmt{Expr: expr}, nil
+		pargo.Exactly(";"),
+		func(expr ast.Expr, _ string) ast.Statement {
+			return ast.ExprStmt{Expr: expr}
 		},
 	)
 }

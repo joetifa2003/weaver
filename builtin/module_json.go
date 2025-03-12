@@ -6,6 +6,40 @@ import (
 	"github.com/joetifa2003/weaver/vm"
 )
 
+func registerJSONModule(builder *RegistryBuilder) {
+	builder.RegisterModule("json", map[string]vm.Value{
+		"parse": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			dataArg, ok := args.Get(0, vm.ValueTypeString)
+			if !ok {
+				return dataArg
+			}
+
+			data := dataArg.String()
+			var result interface{}
+			err := json.Unmarshal([]byte(data), &result)
+			if err != nil {
+				return vm.NewError(err.Error(), vm.Value{})
+			}
+
+			return valufiyJSON(result)
+		}),
+		"stringify": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			dataArg, ok := args.Get(0)
+			if !ok {
+				return dataArg
+			}
+
+			val := goifyValue(dataArg)
+			b, err := json.Marshal(val)
+			if err != nil {
+				return vm.NewError(err.Error(), vm.Value{})
+			}
+
+			return vm.NewString(string(b))
+		}),
+	})
+}
+
 func valufiyJSON(v interface{}) vm.Value {
 	switch v := v.(type) {
 	case string:
@@ -41,22 +75,33 @@ func valufiyJSON(v interface{}) vm.Value {
 	}
 }
 
-func registerJSONModule(builder *RegistryBuilder) {
-	builder.RegisterModule("json", map[string]vm.Value{
-		"parse": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-			dataArg, ok := args.Get(0, vm.ValueTypeString)
-			if !ok {
-				return dataArg
-			}
+func goifyValue(v vm.Value) interface{} {
+	switch v.VType {
+	case vm.ValueTypeString:
+		return v.GetString()
 
-			data := dataArg.String()
-			var result interface{}
-			err := json.Unmarshal([]byte(data), &result)
-			if err != nil {
-				return vm.NewError(err.Error(), vm.Value{})
-			}
+	case vm.ValueTypeBool:
+		return v.GetBool()
 
-			return valufiyJSON(result)
-		}),
-	})
+	case vm.ValueTypeNumber:
+		return v.GetNumber()
+
+	case vm.ValueTypeObject:
+		m := make(map[string]interface{})
+		for k, v := range v.GetObject() {
+			m[k] = goifyValue(v)
+		}
+		return m
+
+	case vm.ValueTypeArray:
+		a := make([]interface{}, len(*v.GetArray()))
+		for i, v := range *v.GetArray() {
+			a[i] = goifyValue(v)
+		}
+
+		return a
+
+	default:
+		return nil
+	}
 }

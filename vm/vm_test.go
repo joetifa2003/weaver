@@ -514,6 +514,15 @@ func TestVM(t *testing.T) {
 		}
 		return error("3 should match 2..3");
 		`,
+		40: `
+		match {a: {b: [1, 2, "3", 4.5]}} |> json:stringify() |> json:parse() {
+			{a: {b: [1, 2, "3", 4.5]}} => {
+				return;
+			}
+		}
+
+		false |> assert();
+		`,
 	}
 
 	for i, tc := range tests {

@@ -11,6 +11,7 @@ func init() {
 	registerIOModule(builder)
 	registerStringModule(builder)
 	registerJSONModule(builder)
+	registerHTTPModule(builder)
 	registerModuleRL(builder)
 
 	StdReg = builder.Build()

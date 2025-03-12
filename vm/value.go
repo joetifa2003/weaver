@@ -214,12 +214,15 @@ func (a NativeFunctionArgs) Get(i int, types ...ValueType) (Value, bool) {
 		return NewError("invalid number of arguments", Value{}), false
 	}
 
-	v := a[i]
-	if !v.VType.Is(types...) {
-		return NewError(fmt.Sprintf("invalid argument type, expected %v", types), Value{}), false
+	return CheckValueType(a[i], types...)
+}
+
+func CheckValueType(val Value, types ...ValueType) (Value, bool) {
+	if val.VType.Is(types...) {
+		return val, true
 	}
 
-	return a[i], true
+	return NewError(fmt.Sprintf("invalid argument type, expected %v", types), Value{}), false
 }
 
 type NativeFunction func(v *VM, args NativeFunctionArgs) Value
@@ -281,7 +284,13 @@ func NewError(msg string, data Value) Value {
 	return val
 }
 
-func (v *Value) String() string {
+func NewErrFromErr(err error) Value {
+	return NewError(err.Error(), Value{})
+}
+
+func (v *Value) String() string { return v.string(0) }
+
+func (v *Value) string(i int) string {
 	switch v.VType {
 	case ValueTypeModule:
 		return "module"
@@ -299,11 +308,11 @@ func (v *Value) String() string {
 
 	case ValueTypeObject:
 		builder := strings.Builder{}
-		builder.WriteString("{")
+		builder.WriteString("{\n")
 		for k, v := range v.GetObject() {
-			builder.WriteString(fmt.Sprintf("%s: %s, ", k, v.String()))
+			builder.WriteString(fmt.Sprintf("%s%s: %s \n", strings.Repeat("  ", i+1), k, v.string(i+1)))
 		}
-		builder.WriteString("}")
+		builder.WriteString(fmt.Sprintf("%s}", strings.Repeat("  ", i)))
 		return builder.String()
 
 	case ValueTypeBool:
@@ -313,8 +322,13 @@ func (v *Value) String() string {
 		return "function"
 
 	case ValueTypeArray:
-		arr := *v.GetArray()
-		return fmt.Sprint(arr)
+		builder := strings.Builder{}
+		builder.WriteString("[\n")
+		for _, v := range *v.GetArray() {
+			builder.WriteString(fmt.Sprintf("%s%s \n", strings.Repeat("  ", i+1), v.string(i+1)))
+		}
+		builder.WriteString(fmt.Sprintf("%s]", strings.Repeat("  ", i)))
+		return builder.String()
 
 	case ValueTypeNativeFunction:
 		return "native function"

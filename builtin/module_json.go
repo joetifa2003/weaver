@@ -29,15 +29,24 @@ func registerJSONModule(builder *RegistryBuilder) {
 				return dataArg
 			}
 
-			val := goifyValue(dataArg)
-			b, err := json.Marshal(val)
-			if err != nil {
-				return vm.NewError(err.Error(), vm.Value{})
+			res, ok := stringify(dataArg)
+			if !ok {
+				return res
 			}
 
-			return vm.NewString(string(b))
+			return res
 		}),
 	})
+}
+
+func stringify(v vm.Value) (vm.Value, bool) {
+	val := goifyValue(v)
+	b, err := json.Marshal(val)
+	if err != nil {
+		return vm.NewError(err.Error(), vm.Value{}), false
+	}
+
+	return vm.NewString(string(b)), true
 }
 
 func valufiyJSON(v interface{}) vm.Value {

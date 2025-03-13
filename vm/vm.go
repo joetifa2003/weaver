@@ -11,16 +11,18 @@ const MaxStack = 1024
 const MaxCallStack = 1024
 
 type Frame struct {
-	instructions []opcode.OpCode
-	freeVars     []Value
-	ip           int
-	numVars      int
-	stackOffset  int
-	returnAddr   int
-	haltAfter    bool
+	Instructions []opcode.OpCode
+	FreeVars     []Value
+	HaltAfter    bool
+	NumVars      int
+
+	ip          int
+	stackOffset int
+	returnAddr  int
 }
 
 type VM struct {
+	Executor  *Executor
 	stack     [MaxStack]Value
 	callStack [MaxCallStack]*Frame
 	constants []Value
@@ -30,47 +32,15 @@ type VM struct {
 	fp int
 }
 
-func New(constants []Value, instructions []opcode.OpCode, vars int) *VM {
+func New(constants []Value, executor *Executor) *VM {
 	vm := &VM{
+		Executor:  executor,
 		constants: constants,
 		sp:        -1,
 		fp:        -1,
 	}
 
-	vm.pushFrame(&Frame{
-		instructions: instructions,
-		numVars:      vars,
-		ip:           0,
-		haltAfter:    true,
-		returnAddr:   vars,
-	}, 0)
-
 	return vm
-}
-
-func (v *VM) RunFunction(f Value, args ...Value) Value {
-	fn := f.GetFunction()
-	v.sp++
-	retAddr := v.sp
-	for _, arg := range args {
-		v.sp++
-		v.stack[v.sp] = arg
-	}
-	v.pushFrame(&Frame{
-		instructions: fn.Instructions,
-		numVars:      fn.NumVars,
-		freeVars:     fn.FreeVars,
-		ip:           0,
-		haltAfter:    true,
-		stackOffset:  retAddr + 1,
-		returnAddr:   retAddr,
-	}, len(args))
-	v.Run()
-
-	retVal := v.stack[v.sp]
-	v.sp--
-
-	return retVal
 }
 
 var scopeGettersDeref = [4]func(v *VM, idx int) *Value{
@@ -84,7 +54,7 @@ var scopeGettersDeref = [4]func(v *VM, idx int) *Value{
 		return v.stack[v.curFrame.stackOffset+idx].deref()
 	},
 	opcode.ScopeTypeFree: func(v *VM, idx int) *Value {
-		return v.curFrame.freeVars[idx].deref()
+		return v.curFrame.FreeVars[idx].deref()
 	},
 }
 
@@ -99,16 +69,18 @@ var scopeGetters = [4]func(v *VM, idx int) *Value{
 		return &v.stack[v.curFrame.stackOffset+idx]
 	},
 	opcode.ScopeTypeFree: func(v *VM, idx int) *Value {
-		return &v.curFrame.freeVars[idx]
+		return &v.curFrame.FreeVars[idx]
 	},
 }
 
-func (v *VM) Run() Value {
+func (v *VM) Run(frame *Frame, args int) Value {
+	v.pushFrame(frame, args)
+
 	for {
-		switch v.curFrame.instructions[v.curFrame.ip] {
+		switch v.curFrame.Instructions[v.curFrame.ip] {
 		case opcode.OP_UPGRADE_REF:
-			scope := v.curFrame.instructions[v.curFrame.ip+1]
-			idx := int(v.curFrame.instructions[v.curFrame.ip+2])
+			scope := v.curFrame.Instructions[v.curFrame.ip+1]
+			idx := int(v.curFrame.Instructions[v.curFrame.ip+2])
 
 			val := scopeGetters[scope](v, idx)
 			if val.VType != ValueTypeRef {
@@ -230,8 +202,8 @@ func (v *VM) Run() Value {
 			v.curFrame.ip++
 
 		case opcode.OP_FUNC_LET:
-			scope := v.curFrame.instructions[v.curFrame.ip+1]
-			index := int(v.curFrame.instructions[v.curFrame.ip+2])
+			scope := v.curFrame.Instructions[v.curFrame.ip+1]
+			index := int(v.curFrame.Instructions[v.curFrame.ip+2])
 			f := v.stack[v.sp].GetFunction()
 
 			emptyFunc := scopeGettersDeref[scope](v, index).GetFunction()
@@ -241,8 +213,8 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 3
 
 		case opcode.OP_FUNC:
-			constantIndex := int(v.curFrame.instructions[v.curFrame.ip+1])
-			freeVarsCount := int(v.curFrame.instructions[v.curFrame.ip+2])
+			constantIndex := int(v.curFrame.Instructions[v.curFrame.ip+1])
+			freeVarsCount := int(v.curFrame.Instructions[v.curFrame.ip+2])
 			var freeVars []Value
 
 			for range freeVarsCount {
@@ -259,8 +231,8 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 3
 
 		case opcode.OP_INC:
-			scope := v.curFrame.instructions[v.curFrame.ip+1]
-			index := int(v.curFrame.instructions[v.curFrame.ip+2])
+			scope := v.curFrame.Instructions[v.curFrame.ip+1]
+			index := int(v.curFrame.Instructions[v.curFrame.ip+2])
 			v1 := scopeGettersDeref[scope](v, index)
 			v1.SetNumber(v1.GetNumber() + 1)
 			v.sp++
@@ -268,15 +240,15 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 3
 
 		case opcode.OP_INC_POP:
-			scope := v.curFrame.instructions[v.curFrame.ip+1]
-			index := int(v.curFrame.instructions[v.curFrame.ip+2])
+			scope := v.curFrame.Instructions[v.curFrame.ip+1]
+			index := int(v.curFrame.Instructions[v.curFrame.ip+2])
 			v1 := scopeGettersDeref[scope](v, index)
 			v1.SetNumber(v1.GetNumber() + 1)
 			v.curFrame.ip += 3
 
 		case opcode.OP_DEC:
-			scope := v.curFrame.instructions[v.curFrame.ip+1]
-			index := int(v.curFrame.instructions[v.curFrame.ip+2])
+			scope := v.curFrame.Instructions[v.curFrame.ip+1]
+			index := int(v.curFrame.Instructions[v.curFrame.ip+2])
 			v1 := scopeGettersDeref[scope](v, index)
 			v1.SetNumber(v1.GetNumber() - 1)
 			v.sp++
@@ -284,35 +256,34 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 3
 
 		case opcode.OP_DEC_POP:
-			scope := v.curFrame.instructions[v.curFrame.ip+1]
-			index := int(v.curFrame.instructions[v.curFrame.ip+2])
+			scope := v.curFrame.Instructions[v.curFrame.ip+1]
+			index := int(v.curFrame.Instructions[v.curFrame.ip+2])
 			v1 := scopeGettersDeref[scope](v, index)
 			v1.SetNumber(v1.GetNumber() - 1)
 			v.curFrame.ip += 3
 
 		case opcode.OP_LOAD:
-			scope := v.curFrame.instructions[v.curFrame.ip+1]
-			index := int(v.curFrame.instructions[v.curFrame.ip+2])
+			scope := v.curFrame.Instructions[v.curFrame.ip+1]
+			index := int(v.curFrame.Instructions[v.curFrame.ip+2])
 
 			v.sp++
 			v.stack[v.sp] = *scopeGettersDeref[scope](v, index)
 			v.curFrame.ip += 3
 
 		case opcode.OP_STORE_FREE:
-			index := int(v.curFrame.instructions[v.curFrame.ip+1])
+			index := int(v.curFrame.Instructions[v.curFrame.ip+1])
 			val := v.stack[v.sp]
-			v.curFrame.freeVars[index].deref().Set(val)
-			v.sp--
+			v.curFrame.FreeVars[index].deref().Set(val)
 			v.curFrame.ip += 2
 
 		case opcode.OP_LET:
-			index := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+1])
+			index := v.curFrame.stackOffset + int(v.curFrame.Instructions[v.curFrame.ip+1])
 			v.stack[index] = v.stack[v.sp]
 			v.sp--
 			v.curFrame.ip += 2
 
 		case opcode.OP_STORE:
-			index := v.curFrame.stackOffset + int(v.curFrame.instructions[v.curFrame.ip+1])
+			index := v.curFrame.stackOffset + int(v.curFrame.Instructions[v.curFrame.ip+1])
 
 			v.stack[index] = v.stack[v.sp]
 			v.curFrame.ip += 2
@@ -324,11 +295,11 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 1
 
 		case opcode.OP_JUMP:
-			newIp := int(v.curFrame.instructions[v.curFrame.ip+1])
+			newIp := int(v.curFrame.Instructions[v.curFrame.ip+1])
 			v.curFrame.ip = newIp
 
 		case opcode.OP_PJUMP_F:
-			newIp := int(v.curFrame.instructions[v.curFrame.ip+1])
+			newIp := int(v.curFrame.Instructions[v.curFrame.ip+1])
 
 			if v.stack[v.sp].IsTruthy() {
 				v.curFrame.ip += 2
@@ -339,7 +310,7 @@ func (v *VM) Run() Value {
 			v.sp--
 
 		case opcode.OP_PJUMP_T:
-			newIp := int(v.curFrame.instructions[v.curFrame.ip+1])
+			newIp := int(v.curFrame.Instructions[v.curFrame.ip+1])
 
 			if v.stack[v.sp].IsTruthy() {
 				v.curFrame.ip = newIp
@@ -350,7 +321,7 @@ func (v *VM) Run() Value {
 			v.sp--
 
 		case opcode.OP_JUMP_F:
-			newIp := int(v.curFrame.instructions[v.curFrame.ip+1])
+			newIp := int(v.curFrame.Instructions[v.curFrame.ip+1])
 
 			if v.stack[v.sp].IsTruthy() {
 				v.curFrame.ip += 2
@@ -359,7 +330,7 @@ func (v *VM) Run() Value {
 			}
 
 		case opcode.OP_JUMP_T:
-			newIp := int(v.curFrame.instructions[v.curFrame.ip+1])
+			newIp := int(v.curFrame.Instructions[v.curFrame.ip+1])
 
 			if v.stack[v.sp].IsTruthy() {
 				v.curFrame.ip = newIp
@@ -427,7 +398,7 @@ func (v *VM) Run() Value {
 			// args2
 			// ...
 			// argsN
-			numArgs := int(v.curFrame.instructions[v.curFrame.ip+1])
+			numArgs := int(v.curFrame.Instructions[v.curFrame.ip+1])
 			calleeIdx := v.sp - numArgs
 			argsBegin := calleeIdx + 1
 			callee := v.stack[calleeIdx]
@@ -436,9 +407,9 @@ func (v *VM) Run() Value {
 			case ValueTypeFunction:
 				fn := callee.GetFunction()
 				frame := &Frame{
-					instructions: fn.Instructions,
-					numVars:      fn.NumVars,
-					freeVars:     fn.FreeVars,
+					Instructions: fn.Instructions,
+					NumVars:      fn.NumVars,
+					FreeVars:     fn.FreeVars,
 					ip:           0,
 					stackOffset:  argsBegin,
 					returnAddr:   calleeIdx,
@@ -461,7 +432,7 @@ func (v *VM) Run() Value {
 			val := v.stack[v.sp]
 			v.sp = v.curFrame.returnAddr
 			v.stack[v.sp] = val
-			haltAfter := v.curFrame.haltAfter
+			haltAfter := v.curFrame.HaltAfter
 			v.popFrame()
 			if haltAfter {
 				return val
@@ -471,10 +442,10 @@ func (v *VM) Run() Value {
 			return Value{}
 
 		case opcode.OP_LOAD_LOAD_ADD:
-			scope1 := v.curFrame.instructions[v.curFrame.ip+1]
-			index1 := int(v.curFrame.instructions[v.curFrame.ip+2])
-			scope2 := v.curFrame.instructions[v.curFrame.ip+3]
-			index2 := int(v.curFrame.instructions[v.curFrame.ip+4])
+			scope1 := v.curFrame.Instructions[v.curFrame.ip+1]
+			index1 := int(v.curFrame.Instructions[v.curFrame.ip+2])
+			scope2 := v.curFrame.Instructions[v.curFrame.ip+3]
+			index2 := int(v.curFrame.Instructions[v.curFrame.ip+4])
 
 			v.sp++
 
@@ -487,8 +458,8 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 5
 
 		case opcode.OP_LOAD_ADD:
-			scope := v.curFrame.instructions[v.curFrame.ip+1]
-			index := int(v.curFrame.instructions[v.curFrame.ip+2])
+			scope := v.curFrame.Instructions[v.curFrame.ip+1]
+			index := int(v.curFrame.Instructions[v.curFrame.ip+2])
 
 			v.stack[v.sp].Add(
 				scopeGettersDeref[scope](v, index),
@@ -498,10 +469,10 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 3
 
 		case opcode.OP_LOAD_LOAD_SUB:
-			scope1 := v.curFrame.instructions[v.curFrame.ip+1]
-			index1 := int(v.curFrame.instructions[v.curFrame.ip+2])
-			scope2 := v.curFrame.instructions[v.curFrame.ip+3]
-			index2 := int(v.curFrame.instructions[v.curFrame.ip+4])
+			scope1 := v.curFrame.Instructions[v.curFrame.ip+1]
+			index1 := int(v.curFrame.Instructions[v.curFrame.ip+2])
+			scope2 := v.curFrame.Instructions[v.curFrame.ip+3]
+			index2 := int(v.curFrame.Instructions[v.curFrame.ip+4])
 
 			v.sp++
 
@@ -514,8 +485,8 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 5
 
 		case opcode.OP_LOAD_SUB:
-			scope := v.curFrame.instructions[v.curFrame.ip+1]
-			index := int(v.curFrame.instructions[v.curFrame.ip+2])
+			scope := v.curFrame.Instructions[v.curFrame.ip+1]
+			index := int(v.curFrame.Instructions[v.curFrame.ip+2])
 
 			v.stack[v.sp].Sub(
 				scopeGettersDeref[scope](v, index),
@@ -525,10 +496,10 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 3
 
 		case opcode.OP_LOAD_LOAD_MUL:
-			scope1 := v.curFrame.instructions[v.curFrame.ip+1]
-			index1 := int(v.curFrame.instructions[v.curFrame.ip+2])
-			scope2 := v.curFrame.instructions[v.curFrame.ip+3]
-			index2 := int(v.curFrame.instructions[v.curFrame.ip+4])
+			scope1 := v.curFrame.Instructions[v.curFrame.ip+1]
+			index1 := int(v.curFrame.Instructions[v.curFrame.ip+2])
+			scope2 := v.curFrame.Instructions[v.curFrame.ip+3]
+			index2 := int(v.curFrame.Instructions[v.curFrame.ip+4])
 
 			v.sp++
 
@@ -541,8 +512,8 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 5
 
 		case opcode.OP_LOAD_MUL:
-			scope := v.curFrame.instructions[v.curFrame.ip+1]
-			index := int(v.curFrame.instructions[v.curFrame.ip+2])
+			scope := v.curFrame.Instructions[v.curFrame.ip+1]
+			index := int(v.curFrame.Instructions[v.curFrame.ip+2])
 
 			v.stack[v.sp].Mul(
 				scopeGettersDeref[scope](v, index),
@@ -552,10 +523,10 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 3
 
 		case opcode.OP_LOAD_LOAD_DIV:
-			scope1 := v.curFrame.instructions[v.curFrame.ip+1]
-			index1 := int(v.curFrame.instructions[v.curFrame.ip+2])
-			scope2 := v.curFrame.instructions[v.curFrame.ip+3]
-			index2 := int(v.curFrame.instructions[v.curFrame.ip+4])
+			scope1 := v.curFrame.Instructions[v.curFrame.ip+1]
+			index1 := int(v.curFrame.Instructions[v.curFrame.ip+2])
+			scope2 := v.curFrame.Instructions[v.curFrame.ip+3]
+			index2 := int(v.curFrame.Instructions[v.curFrame.ip+4])
 
 			v.sp++
 
@@ -568,8 +539,8 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 5
 
 		case opcode.OP_LOAD_DIV:
-			scope := v.curFrame.instructions[v.curFrame.ip+1]
-			index := int(v.curFrame.instructions[v.curFrame.ip+2])
+			scope := v.curFrame.Instructions[v.curFrame.ip+1]
+			index := int(v.curFrame.Instructions[v.curFrame.ip+2])
 
 			v.stack[v.sp].Div(
 				scopeGettersDeref[scope](v, index),
@@ -579,10 +550,10 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 3
 
 		case opcode.OP_LOAD_LOAD_MOD:
-			scope1 := v.curFrame.instructions[v.curFrame.ip+1]
-			index1 := int(v.curFrame.instructions[v.curFrame.ip+2])
-			scope2 := v.curFrame.instructions[v.curFrame.ip+3]
-			index2 := int(v.curFrame.instructions[v.curFrame.ip+4])
+			scope1 := v.curFrame.Instructions[v.curFrame.ip+1]
+			index1 := int(v.curFrame.Instructions[v.curFrame.ip+2])
+			scope2 := v.curFrame.Instructions[v.curFrame.ip+3]
+			index2 := int(v.curFrame.Instructions[v.curFrame.ip+4])
 
 			v.sp++
 
@@ -594,8 +565,8 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 5
 
 		case opcode.OP_LOAD_MOD:
-			scope := v.curFrame.instructions[v.curFrame.ip+1]
-			index := int(v.curFrame.instructions[v.curFrame.ip+2])
+			scope := v.curFrame.Instructions[v.curFrame.ip+1]
+			index := int(v.curFrame.Instructions[v.curFrame.ip+2])
 
 			v.stack[v.sp].Mod(
 				scopeGettersDeref[scope](v, index),
@@ -605,10 +576,10 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 3
 
 		case opcode.OP_LOAD_LOAD_LT:
-			scope1 := v.curFrame.instructions[v.curFrame.ip+1]
-			index1 := int(v.curFrame.instructions[v.curFrame.ip+2])
-			scope2 := v.curFrame.instructions[v.curFrame.ip+3]
-			index2 := int(v.curFrame.instructions[v.curFrame.ip+4])
+			scope1 := v.curFrame.Instructions[v.curFrame.ip+1]
+			index1 := int(v.curFrame.Instructions[v.curFrame.ip+2])
+			scope2 := v.curFrame.Instructions[v.curFrame.ip+3]
+			index2 := int(v.curFrame.Instructions[v.curFrame.ip+4])
 
 			v.sp++
 
@@ -621,8 +592,8 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 5
 
 		case opcode.OP_LOAD_LT:
-			scope := v.curFrame.instructions[v.curFrame.ip+1]
-			index := int(v.curFrame.instructions[v.curFrame.ip+2])
+			scope := v.curFrame.Instructions[v.curFrame.ip+1]
+			index := int(v.curFrame.Instructions[v.curFrame.ip+2])
 
 			v.stack[v.sp].LessThan(
 				scopeGettersDeref[scope](v, index),
@@ -632,10 +603,10 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 3
 
 		case opcode.OP_LOAD_LOAD_LTE:
-			scope1 := v.curFrame.instructions[v.curFrame.ip+1]
-			index1 := int(v.curFrame.instructions[v.curFrame.ip+2])
-			scope2 := v.curFrame.instructions[v.curFrame.ip+3]
-			index2 := int(v.curFrame.instructions[v.curFrame.ip+4])
+			scope1 := v.curFrame.Instructions[v.curFrame.ip+1]
+			index1 := int(v.curFrame.Instructions[v.curFrame.ip+2])
+			scope2 := v.curFrame.Instructions[v.curFrame.ip+3]
+			index2 := int(v.curFrame.Instructions[v.curFrame.ip+4])
 
 			v.sp++
 
@@ -648,8 +619,8 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 5
 
 		case opcode.OP_LOAD_LTE:
-			scope := v.curFrame.instructions[v.curFrame.ip+1]
-			index := int(v.curFrame.instructions[v.curFrame.ip+2])
+			scope := v.curFrame.Instructions[v.curFrame.ip+1]
+			index := int(v.curFrame.Instructions[v.curFrame.ip+2])
 
 			v.stack[v.sp].LessThanEqual(
 				scopeGettersDeref[scope](v, index),
@@ -659,10 +630,10 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 3
 
 		case opcode.OP_LOAD_LOAD_GT:
-			scope1 := v.curFrame.instructions[v.curFrame.ip+1]
-			index1 := int(v.curFrame.instructions[v.curFrame.ip+2])
-			scope2 := v.curFrame.instructions[v.curFrame.ip+3]
-			index2 := int(v.curFrame.instructions[v.curFrame.ip+4])
+			scope1 := v.curFrame.Instructions[v.curFrame.ip+1]
+			index1 := int(v.curFrame.Instructions[v.curFrame.ip+2])
+			scope2 := v.curFrame.Instructions[v.curFrame.ip+3]
+			index2 := int(v.curFrame.Instructions[v.curFrame.ip+4])
 
 			v.sp++
 
@@ -675,8 +646,8 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 5
 
 		case opcode.OP_LOAD_GT:
-			scope := v.curFrame.instructions[v.curFrame.ip+1]
-			index := int(v.curFrame.instructions[v.curFrame.ip+2])
+			scope := v.curFrame.Instructions[v.curFrame.ip+1]
+			index := int(v.curFrame.Instructions[v.curFrame.ip+2])
 
 			v.stack[v.sp].GreaterThan(
 				scopeGettersDeref[scope](v, index),
@@ -686,10 +657,10 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 3
 
 		case opcode.OP_LOAD_LOAD_GTE:
-			scope1 := v.curFrame.instructions[v.curFrame.ip+1]
-			index1 := int(v.curFrame.instructions[v.curFrame.ip+2])
-			scope2 := v.curFrame.instructions[v.curFrame.ip+3]
-			index2 := int(v.curFrame.instructions[v.curFrame.ip+4])
+			scope1 := v.curFrame.Instructions[v.curFrame.ip+1]
+			index1 := int(v.curFrame.Instructions[v.curFrame.ip+2])
+			scope2 := v.curFrame.Instructions[v.curFrame.ip+3]
+			index2 := int(v.curFrame.Instructions[v.curFrame.ip+4])
 
 			v.sp++
 
@@ -702,8 +673,8 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 5
 
 		case opcode.OP_LOAD_GTE:
-			scope := v.curFrame.instructions[v.curFrame.ip+1]
-			index := int(v.curFrame.instructions[v.curFrame.ip+2])
+			scope := v.curFrame.Instructions[v.curFrame.ip+1]
+			index := int(v.curFrame.Instructions[v.curFrame.ip+2])
 
 			v.stack[v.sp].GreaterThanEqual(
 				scopeGettersDeref[scope](v, index),
@@ -713,10 +684,10 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 3
 
 		case opcode.OP_LOAD_LOAD_EQ:
-			scope1 := v.curFrame.instructions[v.curFrame.ip+1]
-			index1 := int(v.curFrame.instructions[v.curFrame.ip+2])
-			scope2 := v.curFrame.instructions[v.curFrame.ip+3]
-			index2 := int(v.curFrame.instructions[v.curFrame.ip+4])
+			scope1 := v.curFrame.Instructions[v.curFrame.ip+1]
+			index1 := int(v.curFrame.Instructions[v.curFrame.ip+2])
+			scope2 := v.curFrame.Instructions[v.curFrame.ip+3]
+			index2 := int(v.curFrame.Instructions[v.curFrame.ip+4])
 
 			v.sp++
 
@@ -729,8 +700,8 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 5
 
 		case opcode.OP_LOAD_EQ:
-			scope := v.curFrame.instructions[v.curFrame.ip+1]
-			index := int(v.curFrame.instructions[v.curFrame.ip+2])
+			scope := v.curFrame.Instructions[v.curFrame.ip+1]
+			index := int(v.curFrame.Instructions[v.curFrame.ip+2])
 
 			v.stack[v.sp].Equal(
 				scopeGettersDeref[scope](v, index),
@@ -740,10 +711,10 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 3
 
 		case opcode.OP_LOAD_LOAD_NEQ:
-			scope1 := v.curFrame.instructions[v.curFrame.ip+1]
-			index1 := int(v.curFrame.instructions[v.curFrame.ip+2])
-			scope2 := v.curFrame.instructions[v.curFrame.ip+3]
-			index2 := int(v.curFrame.instructions[v.curFrame.ip+4])
+			scope1 := v.curFrame.Instructions[v.curFrame.ip+1]
+			index1 := int(v.curFrame.Instructions[v.curFrame.ip+2])
+			scope2 := v.curFrame.Instructions[v.curFrame.ip+3]
+			index2 := int(v.curFrame.Instructions[v.curFrame.ip+4])
 
 			v.sp++
 
@@ -756,8 +727,8 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 5
 
 		case opcode.OP_LOAD_NEQ:
-			scope := v.curFrame.instructions[v.curFrame.ip+1]
-			index := int(v.curFrame.instructions[v.curFrame.ip+2])
+			scope := v.curFrame.Instructions[v.curFrame.ip+1]
+			index := int(v.curFrame.Instructions[v.curFrame.ip+2])
 
 			v.stack[v.sp].NotEqual(
 				scopeGettersDeref[scope](v, index),
@@ -767,7 +738,7 @@ func (v *VM) Run() Value {
 			v.curFrame.ip += 3
 
 		default:
-			panic(fmt.Sprintf("unimplemented %d", v.curFrame.instructions[v.curFrame.ip]))
+			panic(fmt.Sprintf("unimplemented %d", v.curFrame.Instructions[v.curFrame.ip]))
 		}
 	}
 }
@@ -775,7 +746,7 @@ func (v *VM) Run() Value {
 func (v *VM) pushFrame(f *Frame, args int) {
 	v.fp++
 
-	for range f.numVars - args {
+	for range f.NumVars - args {
 		v.sp++
 		val := Value{}
 		val.SetNil()
@@ -793,4 +764,28 @@ func (v *VM) popFrame() {
 	} else {
 		v.curFrame = nil
 	}
+}
+
+func (v *VM) RunFunction(f Value, args ...Value) Value {
+	fn := f.GetFunction()
+	v.sp++
+	retAddr := v.sp
+	for _, arg := range args {
+		v.sp++
+		v.stack[v.sp] = arg
+	}
+	v.Run(&Frame{
+		Instructions: fn.Instructions,
+		NumVars:      fn.NumVars,
+		FreeVars:     fn.FreeVars,
+		HaltAfter:    true,
+		ip:           0,
+		stackOffset:  retAddr + 1,
+		returnAddr:   retAddr,
+	}, len(args))
+
+	retVal := v.stack[retAddr]
+	v.sp--
+
+	return retVal
 }

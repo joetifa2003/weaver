@@ -3,6 +3,7 @@ package builtin
 import (
 	"fmt"
 	"math/rand/v2"
+	"time"
 
 	"github.com/joetifa2003/weaver/vm"
 )
@@ -31,6 +32,53 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 			return val
 		}
 		return vm.NewBool(val.IsError())
+	})
+
+	builder.RegisterFunc("run", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+		fnArg, ok := args.Get(0, vm.ValueTypeFunction)
+		if !ok {
+			return fnArg
+		}
+
+		fn := fnArg.GetFunction()
+
+		res := make(chan vm.Value)
+		go func() {
+			v := v.Executor.Run(&vm.Frame{
+				Instructions: fn.Instructions,
+				NumVars:      fn.NumVars,
+				FreeVars:     fn.FreeVars,
+				HaltAfter:    true,
+			}, 0)
+			res <- v
+			close(res)
+		}()
+
+		resVal := vm.Value{}
+		resVal.SetTask(res)
+
+		return resVal
+	})
+
+	builder.RegisterFunc("wait", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+		taskArg, ok := args.Get(0, vm.ValueTypeTask)
+		if !ok {
+			return taskArg
+		}
+
+		val := <-taskArg.GetTask().C
+
+		return val
+	})
+
+	builder.RegisterFunc("sleep", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+		timeArg, ok := args.Get(0, vm.ValueTypeNumber)
+		if !ok {
+			return timeArg
+		}
+
+		time.Sleep(time.Duration(timeArg.GetNumber()) * time.Millisecond)
+		return vm.Value{}
 	})
 
 	builder.RegisterFunc("assert", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {

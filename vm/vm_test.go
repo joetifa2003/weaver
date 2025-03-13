@@ -546,8 +546,16 @@ func TestVM(t *testing.T) {
 				c := compiler.New(reg, compiler.WithOptimization(opt))
 				instructions, vars, constants, err := c.Compile(ircr)
 				assert.NoError(err)
-				vm := vm.New(constants, instructions, vars)
-				val := vm.Run()
+
+				executor := vm.NewExecutor(constants)
+				val := executor.Run(
+					&vm.Frame{
+						Instructions: instructions,
+						NumVars:      vars,
+						HaltAfter:    true,
+					},
+					0,
+				)
 				if val.IsError() {
 					t.Error(val.GetError())
 				}

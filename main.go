@@ -71,8 +71,15 @@ func main() {
 						}
 					}
 
-					v := vm.New(constants, instructions, vars)
-					val := v.Run()
+					executor := vm.NewExecutor(constants)
+					val := executor.Run(
+						&vm.Frame{
+							Instructions: instructions,
+							NumVars:      vars,
+							HaltAfter:    true,
+						},
+						0,
+					)
 					if val.VType == vm.ValueTypeError {
 						fmt.Println(val.String())
 					}

@@ -25,6 +25,7 @@ const (
 	ValueTypeNativeObject
 	ValueTypeRef
 	ValueTypeError
+	ValueTypeTask
 )
 
 func (t ValueType) Is(other ...ValueType) bool {
@@ -98,6 +99,22 @@ func (v *Value) Set(other Value) {
 	v.VType = other.VType
 	v.nonPrimitive = other.nonPrimitive
 	v.primitive = other.primitive
+}
+
+type Task struct {
+	C chan Value
+}
+
+func (v *Value) SetTask(c chan Value) {
+	v.VType = ValueTypeTask
+	task := &Task{
+		C: c,
+	}
+	v.nonPrimitive = unsafe.Pointer(task)
+}
+
+func (v *Value) GetTask() *Task {
+	return (*Task)(v.nonPrimitive)
 }
 
 func (v *Value) SetNumber(f float64) {

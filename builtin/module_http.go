@@ -9,7 +9,46 @@ import (
 )
 
 func registerHTTPModule(builder *RegistryBuilder) {
-	m := map[string]vm.Value{}
+	m := map[string]vm.Value{
+		"request": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			// Get the options object
+			optionsArg, ok := args.Get(0, vm.ValueTypeObject)
+			if !ok {
+				return optionsArg
+			}
+
+			options := optionsArg.GetObject()
+
+			// Get required URL
+			urlVal, ok := options["url"]
+			if !ok {
+				return vm.NewError("missing required field 'url'", vm.Value{})
+			}
+			url, ok := vm.CheckValueType(urlVal, vm.ValueTypeString)
+			if !ok {
+				return url
+			}
+
+			// Get required method
+			methodVal, ok := options["method"]
+			if !ok {
+				return vm.NewError("missing required field 'method'", vm.Value{})
+			}
+			method, ok := vm.CheckValueType(methodVal, vm.ValueTypeString)
+			if !ok {
+				return method
+			}
+
+			// Create and make the request
+			req, err, ok := createRequest(strings.ToUpper(method.GetString()), url.GetString(), vm.NativeFunctionArgs{optionsArg})
+			if !ok {
+				return err
+			}
+
+			return makeRequest(req)
+		}),
+	}
+	
 	for _, method := range []string{"get", "post", "put", "delete"} {
 		m[method] = vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
 			urlArg, ok := args.Get(0, vm.ValueTypeString)

@@ -102,7 +102,9 @@ func (v *Value) Set(other Value) {
 }
 
 type Task struct {
-	C chan Value
+	C     chan Value
+	Done  bool
+	Value Value
 }
 
 func (v *Value) SetTask(c chan Value) {

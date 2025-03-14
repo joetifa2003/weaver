@@ -66,8 +66,15 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 			return taskArg
 		}
 
-		val := <-taskArg.GetTask().C
+		task := taskArg.GetTask()
 
+		if task.Done {
+			return task.Value
+		}
+
+		val := <-task.C
+		task.Done = true
+		task.Value = val
 		return val
 	})
 

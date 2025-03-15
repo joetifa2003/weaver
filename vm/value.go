@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 	"unsafe"
 
 	"github.com/joetifa2003/weaver/opcode"
@@ -26,6 +27,8 @@ const (
 	ValueTypeRef
 	ValueTypeError
 	ValueTypeTask
+	ValueTypeLock
+	ValueTypeChannel
 )
 
 func (t ValueType) Is(other ...ValueType) bool {
@@ -65,6 +68,12 @@ func (t ValueType) String() string {
 		return "native object"
 	case ValueTypeError:
 		return "error"
+	case ValueTypeLock:
+		return "lock"
+	case ValueTypeTask:
+		return "task"
+	case ValueTypeChannel:
+		return "channel"
 	default:
 		panic(fmt.Sprintf("unimplemented %d", t))
 	}
@@ -105,6 +114,7 @@ type Task struct {
 	C     chan Value
 	Done  bool
 	Value Value
+	L     sync.Mutex
 }
 
 func (v *Value) SetTask(c chan Value) {
@@ -119,9 +129,56 @@ func (v *Value) GetTask() *Task {
 	return (*Task)(v.nonPrimitive)
 }
 
+type Lock struct {
+	*sync.Mutex
+	lock   NativeFunction
+	unlock NativeFunction
+}
+
+func (v *Value) SetLock(l *sync.Mutex) {
+	v.VType = ValueTypeLock
+	v.nonPrimitive = unsafe.Pointer(&Lock{
+		Mutex: l,
+		lock: func(v *VM, args NativeFunctionArgs) Value {
+			if len(args) > 0 {
+				fnArg, ok := args.Get(0, ValueTypeFunction)
+				if !ok {
+					return fnArg
+				}
+
+				l.Lock()
+				defer l.Unlock()
+				v.RunFunction(fnArg)
+
+				return Value{}
+			}
+
+			l.Lock()
+			return Value{}
+		},
+		unlock: func(v *VM, args NativeFunctionArgs) Value {
+			l.Unlock()
+			return Value{}
+		},
+	})
+}
+
+func (v *Value) GetLock() *Lock {
+	return (*Lock)(v.nonPrimitive)
+}
+
 func (v *Value) SetNumber(f float64) {
 	v.VType = ValueTypeNumber
 	*interpret[float64](&v.primitive) = f
+}
+
+func (v *Value) SetChannel(c chan Value) {
+	v.VType = ValueTypeChannel
+	v.nonPrimitive = unsafe.Pointer(&c)
+}
+
+func (v *Value) GetChannel() chan Value {
+	return *(*chan Value)(v.nonPrimitive)
 }
 
 func (v *Value) GetNumber() float64 {
@@ -357,6 +414,12 @@ func (v *Value) string(i int) string {
 		msg := data.msg
 		return fmt.Sprintf("error(%s)", msg)
 
+	case ValueTypeChannel:
+		return "channel"
+
+	case ValueTypeTask:
+		return "task"
+
 	default:
 		panic(fmt.Sprintf("Value.String(): unimplemented %T", v.VType))
 	}
@@ -529,19 +592,17 @@ func (v *Value) Index(idx *Value, res *Value) {
 		switch idx.VType {
 		case ValueTypeNumber:
 			res.Set((*v.GetArray())[int(idx.GetNumber())])
-		default:
-			panic(ErrInvalidArrayIndexType)
+			return
 		}
 	case ValueTypeObject:
 		switch idx.VType {
 		case ValueTypeString:
 			idx := idx.GetString()
 			obj := v.GetObject()
-
 			res.Set(obj[idx])
-		default:
-			panic(ErrInvalidObjectIndexType)
+			return
 		}
+
 	case ValueTypeError:
 		switch idx.VType {
 		case ValueTypeString:
@@ -549,15 +610,30 @@ func (v *Value) Index(idx *Value, res *Value) {
 			switch idx.GetString() {
 			case "msg":
 				res.SetString(err.msg)
+				return
 			case "data":
 				res.Set(err.data)
-			default:
-				res.SetNil()
+				return
 			}
-		default:
-			panic(ErrInvalidErrorIndexType)
+		}
+
+	case ValueTypeLock:
+		lock := v.GetLock()
+
+		switch idx.VType {
+		case ValueTypeString:
+			switch idx.GetString() {
+			case "lock":
+				res.SetNativeFunction(lock.lock)
+				return
+			case "unlock":
+				res.SetNativeFunction(lock.unlock)
+				return
+			}
 		}
 	}
+
+	res.SetNil()
 }
 
 func (v *Value) SetIndex(idx *Value, val Value) {

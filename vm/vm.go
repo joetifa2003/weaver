@@ -284,9 +284,14 @@ func (v *VM) Run(frame *Frame, args int) Value {
 
 		case opcode.OP_STORE:
 			index := v.curFrame.stackOffset + int(v.curFrame.Instructions[v.curFrame.ip+1])
+			isRef := int(v.curFrame.Instructions[v.curFrame.ip+2])
 
-			v.stack[index] = v.stack[v.sp]
-			v.curFrame.ip += 2
+			if isRef == 1 {
+				v.stack[index].deref().Set(v.stack[v.sp])
+			} else {
+				v.stack[index] = v.stack[v.sp]
+			}
+			v.curFrame.ip += 3
 
 		case opcode.OP_ECHO:
 			value := v.stack[v.sp]

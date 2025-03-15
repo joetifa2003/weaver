@@ -14,6 +14,7 @@ type Expr interface {
 type Var struct {
 	Idx   int
 	Scope VarScope
+	Ref   bool
 }
 
 func (v Var) String() string {
@@ -110,6 +111,9 @@ type VarAssignExpr struct {
 func (t VarAssignExpr) expr() {}
 
 func (t VarAssignExpr) String(indent int) string {
+	if t.Var.Ref {
+		return fmt.Sprintf("%s_ref = %s", t.Var, t.Value.String(indent))
+	}
 	return fmt.Sprintf("%s = %s", t.Var, t.Value.String(indent))
 }
 

@@ -45,6 +45,7 @@ func (c *frame) define(name string) *basicVar {
 }
 
 func (c *frame) defineFreeVar(name string, parent *basicVar) *basicVar {
+	parent.Ref = true
 	v := &basicVar{Name: name, Scope: VarScopeFree, Index: len(c.FreeVars), Parent: parent}
 	c.FreeVars = append(c.FreeVars, v)
 	return v
@@ -129,11 +130,13 @@ func (s VarScope) String() string {
 }
 
 type basicVar struct {
-	Scope  VarScope
-	Name   string
-	Index  int
+	Scope VarScope
+	Name  string
+	Index int
+	Free  bool
+	Ref   bool
+
 	Parent *basicVar
-	Free   bool
 }
 
 func (b *basicVar) assign(expr Expr) VarAssignExpr {
@@ -157,6 +160,7 @@ func (b *basicVar) load() LoadExpr {
 		Var: Var{
 			Idx:   b.Index,
 			Scope: b.Scope,
+			Ref:   b.Ref,
 		},
 	}
 }

@@ -10,8 +10,8 @@ func varDeclStmt() pargo.Parser[ast.Statement] {
 		pargo.TokenType(TT_IDENT),
 		pargo.Exactly(":="),
 		expr(),
-		pargo.Exactly(";"),
-		func(name string, _ string, expr ast.Expr, _ string) ast.Statement {
+		pargo.Optional(pargo.Exactly(";")),
+		func(name string, _ string, expr ast.Expr, _ *string) ast.Statement {
 			return ast.LetStmt{Name: name, Expr: expr}
 		},
 	)
@@ -81,8 +81,8 @@ func ifStmt() pargo.Parser[ast.Statement] {
 func exprStmt() pargo.Parser[ast.Statement] {
 	return pargo.Sequence2(
 		expr(),
-		pargo.Exactly(";"),
-		func(expr ast.Expr, _ string) ast.Statement {
+		pargo.Optional(pargo.Exactly(";")),
+		func(expr ast.Expr, _ *string) ast.Statement {
 			return ast.ExprStmt{Expr: expr}
 		},
 	)

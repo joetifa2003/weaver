@@ -45,15 +45,15 @@ type Optimizer struct {
 }
 
 var optimizers = []Optimizer{
-	{
-		Seq: seq(eq(opcode.OP_STORE), eq(opcode.OP_POP)),
-		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
-			return []opcode.OpCode{
-				opcode.OP_LET,
-				doc[0].Args[0],
-			}
-		},
-	},
+	// {
+	// 	Seq: seq(eq(opcode.OP_STORE), eq(opcode.OP_POP)),
+	// 	Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {
+	// 		return []opcode.OpCode{
+	// 			opcode.OP_LET,
+	// 			doc[0].Args[0],
+	// 		}
+	// 	},
+	// },
 	{
 		Seq: seq(eq(opcode.OP_INC), eq(opcode.OP_POP)),
 		Fn: func(doc []opcode.DecodedOpCode) []opcode.OpCode {

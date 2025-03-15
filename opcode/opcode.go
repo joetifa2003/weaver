@@ -22,7 +22,7 @@ const (
 	OP_DEC_POP // arg1: scope; arg2: variable index
 
 	OP_LET          // arg1: variable index
-	OP_STORE        // arg1: variable index
+	OP_STORE        // arg1: variable index; arg2: isRef
 	OP_STORE_FREE   // arg1: variable index
 	OP_STORE_GLOBAL // arg1: variable index
 	OP_LOAD         // arg1: scope; arg2: variable index
@@ -106,7 +106,7 @@ var opCodeDefs = map[OpCode]OpCodeDef{
 	OP_CALL:         {OP_CALL, "call", 1},
 	OP_RET:          {OP_RET, "ret", 0},
 	OP_HALT:         {OP_HALT, "halt", 0},
-	OP_STORE:        {OP_STORE, "store", 1},
+	OP_STORE:        {OP_STORE, "store", 2},
 	OP_STORE_FREE:   {OP_STORE_FREE, "storef", 1},
 	OP_STORE_GLOBAL: {OP_STORE_GLOBAL, "storeg", 1},
 	OP_LET:          {OP_LET, "let", 1},

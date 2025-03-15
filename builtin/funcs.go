@@ -34,50 +34,6 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 		return vm.NewBool(val.IsError())
 	})
 
-	builder.RegisterFunc("run", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-		fnArg, ok := args.Get(0, vm.ValueTypeFunction)
-		if !ok {
-			return fnArg
-		}
-
-		fn := fnArg.GetFunction()
-
-		res := make(chan vm.Value)
-		go func() {
-			v := v.Executor.Run(&vm.Frame{
-				Instructions: fn.Instructions,
-				NumVars:      fn.NumVars,
-				FreeVars:     fn.FreeVars,
-				HaltAfter:    true,
-			}, 0)
-			res <- v
-			close(res)
-		}()
-
-		resVal := vm.Value{}
-		resVal.SetTask(res)
-
-		return resVal
-	})
-
-	builder.RegisterFunc("wait", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-		taskArg, ok := args.Get(0, vm.ValueTypeTask)
-		if !ok {
-			return taskArg
-		}
-
-		task := taskArg.GetTask()
-
-		if task.Done {
-			return task.Value
-		}
-
-		val := <-task.C
-		task.Done = true
-		task.Value = val
-		return val
-	})
-
 	builder.RegisterFunc("sleep", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
 		timeArg, ok := args.Get(0, vm.ValueTypeNumber)
 		if !ok {

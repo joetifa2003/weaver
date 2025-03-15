@@ -44,38 +44,39 @@ countNeighbors := |y, x| {
 
 # Function to update the game state
 updateCells := || {
-    # Create new array for next state
-    newCells := makeArr(ROWS);
-    for i := 0; i < ROWS; i++ {
-        newCells[i] = makeArr(COLS);
-    }
-
-    for y := 0; y < ROWS; y++ {
-        for x := 0; x < COLS; x++ {
-            neighbors := countNeighbors(y, x);
-            if cells[y][x] {
-                # Cell is alive
-                newCells[y][x] = neighbors == 2 || neighbors == 3;
-            } else {
-                # Cell is dead
-                newCells[y][x] = neighbors == 3;
-            }
+    fiber:run(|| {
+      while true {
+        newCells := makeArr(ROWS);
+        for i := 0; i < ROWS; i++ {
+          newCells[i] = makeArr(COLS);
         }
-    }
 
-    cells = newCells;
+        for y := 0; y < ROWS; y++ {
+          for x := 0; x < COLS; x++ {
+              neighbors := countNeighbors(y, x);
+              if cells[y][x] {
+                  # Cell is alive
+                  newCells[y][x] = neighbors == 2 || neighbors == 3;
+              } else {
+                  # Cell is dead
+                  newCells[y][x] = neighbors == 3;
+              }
+          }
+        }
+
+        cells = newCells;
+      } 
+    });
 };
 
 rl:initWindow(WORLD_WIDTH, WORLD_HEIGHT, "Game of Life");
 
-while !rl:windowShouldClose() {
-    # Update
-    updateCells(cells);
+updateCells();
 
+while !rl:windowShouldClose() {
     # Draw
     rl:beginDrawing();
     rl:clearBackground(rl:colorRayWhite);
-    rl:drawFps(10, 10);
 
     for y := 0; y < ROWS; y++ {
         for x := 0; x < COLS; x++ {
@@ -85,6 +86,7 @@ while !rl:windowShouldClose() {
         }
     }
 
+    rl:drawFps(10, 10);
     rl:endDrawing();
 }
 

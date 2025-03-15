@@ -729,9 +729,14 @@ func (c *Compiler) loadVar(v ir.Var, op opcode.OpCode) []opcode.OpCode {
 func (c *Compiler) storeVar(v ir.Var) []opcode.OpCode {
 	switch v.Scope {
 	case ir.VarScopeLocal:
+		isRef := 0
+		if v.Ref {
+			isRef = 1
+		}
 		return []opcode.OpCode{
 			opcode.OP_STORE,
 			opcode.OpCode(v.Idx),
+			opcode.OpCode(isRef),
 		}
 	case ir.VarScopeFree:
 		return []opcode.OpCode{

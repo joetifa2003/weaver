@@ -48,7 +48,7 @@ func registerHTTPModule(builder *RegistryBuilder) {
 			return makeRequest(req)
 		}),
 	}
-	
+
 	for _, method := range []string{"get", "post", "put", "delete"} {
 		m[method] = vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
 			urlArg, ok := args.Get(0, vm.ValueTypeString)

@@ -36,23 +36,24 @@ func registerFiberModule(builder *RegistryBuilder) {
 		}),
 
 		"wait": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-			taskArg, ok := args.Get(0, vm.ValueTypeTask)
+			taskArg, ok := args.Get(0, vm.ValueTypeTask, vm.ValueTypeArray)
 			if !ok {
 				return taskArg
 			}
 
-			task := taskArg.GetTask()
-			task.L.Lock()
-			defer task.L.Unlock()
+			if taskArg.VType == vm.ValueTypeTask {
+				return waitForTask(taskArg)
+			} else {
+				vals := make([]vm.Value, 0, len(*taskArg.GetArray()))
+				for _, task := range *taskArg.GetArray() {
+					if err, ok := vm.CheckValueType(task, vm.ValueTypeTask); !ok {
+						return err
+					}
+					vals = append(vals, waitForTask(task))
+				}
 
-			if task.Done {
-				return task.Value
+				return vm.NewArray(vals)
 			}
-
-			val := <-task.C
-			task.Done = true
-			task.Value = val
-			return val
 		}),
 
 		"newLock": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
@@ -134,4 +135,16 @@ func registerFiberModule(builder *RegistryBuilder) {
 			return vm.Value{}
 		}),
 	})
+}
+
+func waitForTask(taskArg vm.Value) vm.Value {
+	task := taskArg.GetTask()
+
+	val, ok := <-task.C
+	if !ok {
+		return task.Value
+	}
+
+	task.Value = val
+	return val
 }

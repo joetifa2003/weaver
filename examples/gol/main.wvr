@@ -1,17 +1,19 @@
 # Game of Life
 
-CELL_SIZE := 10;
+CELL_SIZE := 5;
 WORLD_WIDTH := 1024;
 WORLD_HEIGHT := 1024;
 
 ROWS := int(WORLD_HEIGHT / CELL_SIZE);
 COLS := int(WORLD_WIDTH / CELL_SIZE);
 
+# Number of chunks to divide the grid for parallel processing
+NUM_CHUNKS := 10;  # You can adjust this based on your CPU
+
 cells := makeArr(ROWS);
 for i := 0; i < ROWS; i++ {
     cells[i] = makeArr(COLS);
 }
-
 
 # Initialize random starting pattern
 for y := 0; y < ROWS; y++ {
@@ -42,38 +44,58 @@ countNeighbors := |y, x| {
     return count;
 };
 
-# Function to update the game state
-updateCells := || {
-    fiber:run(|| {
-      while true {
-        newCells := makeArr(ROWS);
-        for i := 0; i < ROWS; i++ {
-          newCells[i] = makeArr(COLS);
+# Function to process a chunk of the grid
+processChunk := |startRow, endRow, newCells| {
+    return fiber:run(|| {
+        for y := startRow; y < endRow; y++ {
+            for x := 0; x < COLS; x++ {
+                neighbors := countNeighbors(y, x);
+                if cells[y][x] {
+                    # Cell is alive
+                    newCells[y][x] = neighbors == 2 || neighbors == 3;
+                } else {
+                    # Cell is dead
+                    newCells[y][x] = neighbors == 3;
+                }
+            }
         }
-
-        for y := 0; y < ROWS; y++ {
-          for x := 0; x < COLS; x++ {
-              neighbors := countNeighbors(y, x);
-              if cells[y][x] {
-                  # Cell is alive
-                  newCells[y][x] = neighbors == 2 || neighbors == 3;
-              } else {
-                  # Cell is dead
-                  newCells[y][x] = neighbors == 3;
-              }
-          }
-        }
-
-        cells = newCells;
-      } 
     });
+};
+
+# Function to update the game state in parallel
+updateCells := || {
+    # Create a new grid for the next state
+    newCells := makeArr(ROWS);
+    for i := 0; i < ROWS; i++ {
+        newCells[i] = makeArr(COLS);
+    }
+
+    # Calculate chunk size
+    chunkSize := int(ROWS / NUM_CHUNKS);
+    if chunkSize < 1 {
+        chunkSize = 1;
+    }
+
+    # Create fibers for each chunk
+    fibers := [];
+    for i := 0; i < ROWS; i = i + chunkSize {
+        endRow := i + chunkSize;
+        if endRow > ROWS {
+            endRow = ROWS;
+        }
+        fibers |> push(processChunk(i, endRow, newCells));
+    }
+
+    # Wait for all fibers to complete
+    fiber:wait(fibers);
+
+    return newCells;
 };
 
 rl:initWindow(WORLD_WIDTH, WORLD_HEIGHT, "Game of Life");
 
-updateCells();
-
 while !rl:windowShouldClose() {
+    cells = updateCells();
     # Draw
     rl:beginDrawing();
     rl:clearBackground(rl:colorRayWhite);
@@ -91,4 +113,3 @@ while !rl:windowShouldClose() {
 }
 
 rl:closeWindow();
-

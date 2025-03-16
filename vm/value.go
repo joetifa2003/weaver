@@ -112,9 +112,7 @@ func (v *Value) Set(other Value) {
 
 type Task struct {
 	C     chan Value
-	Done  bool
 	Value Value
-	L     sync.Mutex
 }
 
 func (v *Value) SetTask(c chan Value) {

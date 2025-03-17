@@ -1,8 +1,6 @@
-#import "@preview/charged-ieee:0.1.3": ieee
 #import "@preview/zebraw:0.4.3": *
+#import "lib.typ": ieee
 
-
-#set heading(numbering: "1.1.1")
 
 #show: ieee.with(
   title: [Weaver - Scripting language],
@@ -19,7 +17,6 @@
   figure-supplement: [Fig.],
 )
 
-
 #show: zebraw
 #show raw: set text(
   font: "0xProto Nerd Font Mono", 
@@ -28,6 +25,8 @@
   ligatures: true,
 )
 #set raw(syntaxes: ("./weaver.syntax.yml"))
+#show heading: set text(10pt, weight: 600)
+#set heading(numbering: "1.")
 
 = Introduction
 
@@ -62,47 +61,21 @@ nil                     // nil
 
 Generally speaking, Weaver has many of the same operators as other C-like languages.
 
-Integers and floats are two distinct types in Weaver, unlike many other scripting languages that treats both of them as `number` type.
-
-And the result type of a binary operation is determined by the type of the operands, as shown in @fig:binary-operators-table
-
 #figure(
 table(
   columns: (auto, auto, auto, auto),
   table.header(
     "operand", "operator", "operand", "result"
   ),
-  "int",    `+`, "int",        "int",
-  "int",    `+`, "float",      "float",
-  "float",  `+`, "float",      "float",
-  "int",    `-`, "int",        "int",
-  "int",    `-`, "float",      "float",
-  "float",  `-`, "float",      "float",
-
-  "int",    `*`, "int",        "int",
-  "int",    `*`, "float",      "float",
-  "float",  `*`, "float",      "float",
-  "int",    `/`, "int",        "int",
-  "int",    `/`, "float",      "float",
-  "float",  `/`, "float",      "float",
-  "int",    `%`, "int",        "int",
-
-  "int",    `>`, "int",        "bool",
-  "int",    `>`, "float",      "bool",
-  "int",    `>=`, "int",       "bool",
-  "int",    `>=`, "float",     "bool",
-
-  "int",    `<`, "int",        "bool",
-  "int",    `<`, "float",      "bool",
-  "int",    `<=`, "int",       "bool",
-  "int",    `<=`, "float",     "bool",
-
-  "string", `+`, "string",     "string",
-  "any A",  `|>`,"function B", "B(A)",
+  "number",    `+`,  "number",        "number",
+  "number",    `-`,  "number",        "number",
+  "number",    `*`,  "number",        "number",
+  "number",    `/`,  "number",        "number",
+  "string",    `+`,  "string",        "string",
+  "any A",     `|>`, "any B()",       "B(A)",
 ),
   caption: [
-  Binary operators in Weaver. \
-  Note: int + float is the same as float + int.
+  Binary operators in Weaver.
   ],
 ) <fig:binary-operators-table>
 
@@ -118,16 +91,6 @@ table(
 ),
   caption: [Equality operators in Weaver.],
 ) <fig:equality-operators>
-
-The only exception to the equality rule is the equality operator on ints and floats which has the same value, as shown in @fig:equality-int-float
-
-#figure(
-```weaver
-1 == 1.0 // true
-1 == 1.1 // false
-```,
-  caption: [Weaver equality operator on ints and floats.],
-) <fig:equality-int-float>
 
 == Type Coercion
 
@@ -151,8 +114,8 @@ Instead, Weaver has a stricter type system, which means there are no implicit ty
 
 #figure(
 ```weaver
-int(true) + int(false)  == 1 
-12 / int("6")           == 12
+number(true) + number(false)  == 1 
+12 / number("6")           == 12
 "foo" + string(15 + 3)  == "foo18" 
 ```,
   caption: [Weaver type conversion.],
@@ -160,7 +123,7 @@ int(true) + int(false)  == 1
 
 This makes reading the code much easier, Since what you see is what you get.
 
-If operators are used with incorrect types, Weaver will throw an error, and if equality operators (==|!=) are used with diffenrent types, it always returns false, as shown in @fig:weaver-equality-different-types.
+If operators are used with incorrect types, Weaver will error at runtime, and if equality operators (==|!=) are used with diffenrent types, it always returns false, as shown in @fig:weaver-equality-different-types.
 
 #figure(
 ```weaver
@@ -251,7 +214,9 @@ Iterating over an array is a common use case for for loops, as shown in @fig:for
   caption: [For loop over an array, printing numbers from 1 to 4.],
 ) <fig:for-array>
 
-== Pattern Matching
+#set page(columns: 1)
+
+== Pattern Matching <sec:pattern-matching>
 
 Weaver provides powerful pattern matching capabilities that allow developers to write expressive and concise code. Pattern matching can be used to match values against specific patterns and execute corresponding code blocks. The syntax follows the form:
 
@@ -263,7 +228,7 @@ match expression {
   pattern2 => {
     // code to execute if pattern2 matches
   },
-  else => {
+  _ => {
     // default case if no patterns match
   }
 }
@@ -278,7 +243,7 @@ x := 5
 match x {
   0 => echo("zero"),
   5 => echo("five"),
-  else => echo("other")
+  _ => echo("other")
 }
 ```
 
@@ -290,7 +255,7 @@ Patterns can match based on value types using type predicates:
 match value {
   string(s) => echo("got string: " + s),
   number(n) => echo("got number: " + string(n)),
-  else => echo("other type")
+  _ => echo("other type")
 }
 ```
 
@@ -302,13 +267,13 @@ Weaver supports destructuring of arrays and objects in patterns:
 // Array destructuring
 match [1, 2, 3] {
   [a, b, c] => echo(a + b + c),
-  else => echo("no match")
+  _ => echo("no match")
 }
 
 // Object destructuring  
 match {name: "Alice", age: 30} {
   {name: n, age: a} => echo(n + " is " + string(a)),
-  else => echo("no match")
+  _ => echo("no match")
 }
 ```
 
@@ -324,7 +289,7 @@ students := [
 
 match students[0] {
   {name: "Alice", grades: [math, _]} => echo("Alice's math grade: " + string(math)),
-  else => echo("no match")
+  _ => echo("no match")
 }
 ```
 
@@ -352,175 +317,8 @@ match student {
 }
 ```
 
-=== Error Matching
-
-Weaver provides special support for matching error values:
-
-```weaver
-e := error("file not found", {code: 404})
-
-match e {
-  error(msg, {code: c}) => echo("Error " + string(c) + ": " + msg),
-  else => echo("not an error")
-}
-```
-
 Pattern matching in Weaver provides a powerful way to handle complex conditional logic in a readable and maintainable way. The combination of literal matching, type matching, destructuring, and guards makes it suitable for a wide range of use cases.
 
-#pagebreak()
-#set page(columns: 1)
-
-== Pattern Matching
-
-Pattern matching is a powerful feature in Weaver that allows for concise and expressive code when working with complex data structures. It provides a way to destructure and match against values based on their shape and content.
-
-=== Basic Pattern Matching
-
-The `match` statement in Weaver allows for matching a value against multiple patterns, executing the corresponding code block for the first pattern that matches. If no patterns match, an optional `else` case can be provided as a fallback.
-
-#figure(
-```weaver
-match x {
-  0 => {
-    // Code to execute when x is 0
-  },
-  1 => {
-    // Code to execute when x is 1
-  },
-  else => {
-    // Code to execute when no patterns match
-  }
-}
-```,
-  caption: [Basic pattern matching in Weaver.],
-) <fig:basic-pattern-matching>
-
-=== Matching Different Types
-
-Weaver's pattern matching can match against various types of values, including numbers, strings, arrays, and objects.
-
-#figure(
-```weaver
-match value {
-  // Match against a number
-  42 => {
-    echo("The answer is 42")
-  },
-  
-  // Match against a string
-  "hello" => {
-    echo("Greeting received")
-  },
-  
-  // Match against an array
-  [1, 2, 3] => {
-    echo("Found the sequence")
-  },
-  
-  // Match against an object
-  {name: "John", age: 30} => {
-    echo("Found John")
-  },
-  
-  else => {
-    echo("No match found")
-  }
-}
-```,
-  caption: [Matching different types in Weaver.],
-) <fig:matching-different-types>
-
-=== Type Destructuring
-
-Weaver allows for type-based pattern matching with destructuring, which can extract values from the matched expression.
-
-#figure(
-```weaver
-match x {
-  // Match any string and bind it to variable s
-  string(s) => {
-    echo("Got string: " + s)
-  },
-  
-  // Match any number and bind it to variable n
-  number(n) => {
-    echo("Got number: " + string(n))
-  },
-  
-  else => {
-    echo("Not a string or number")
-  }
-}
-```,
-  caption: [Type destructuring in Weaver.],
-) <fig:type-destructuring>
-
-=== Nested Pattern Matching
-
-Patterns can be nested to match complex data structures.
-
-#figure(
-```weaver
-match data {
-  [0, {name: "hello"}] => {
-    echo("Found the specific structure")
-  },
-  else => {
-    echo("Structure not found")
-  }
-}
-```,
-  caption: [Nested pattern matching in Weaver.],
-) <fig:nested-pattern-matching>
-
-=== Guard Clauses
-
-Weaver's pattern matching supports guard clauses with the `if` keyword, allowing for additional conditions to be specified.
-
-#figure(
-```weaver
-students := [
-  {name: "joe", age: 30},
-  {name: "foo", age: 20},
-  {name: "bar", age: 10},
-]
-
-for i := 0; i < len(students); i = i + 1 {
-  match students[i] {
-    {name: n, age: a} if a >= 10 && a <= 20 => {
-      echo("Student " + n + " is between 10 and 20 years old")
-    },
-    else => {
-      echo("Student " + students[i].name + " is outside the age range")
-    }
-  }
-}
-```,
-  caption: [Pattern matching with guard clauses in Weaver.],
-) <fig:guard-clauses>
-
-=== Comparison with Other Languages
-
-Pattern matching in Weaver draws inspiration from several languages but has its own unique characteristics.
-
-==== Rust
-
-Rust's pattern matching is similar to Weaver's but with some key differences:
-
-#figure(
-```rust
-// Rust pattern matching
-match value {
-    0 => println!("Zero"),
-    1..=5 => println!("One to five"),
-    n if n > 5 => println!("Greater than five"),
-    _ => println!("Something else"),
-}
-```,
-  caption: [Pattern matching in Rust.],
-) <fig:rust-pattern-matching>
-
-Rust supports range patterns (`1..=5`) which Weaver doesn't have, but Weaver's guard clauses provide similar functionality. Rust uses `_` for the default case, while Weaver uses `else`.
 
 == Error Handling
 
@@ -558,23 +356,62 @@ result := riskyFunction()! // Error won't propagate, must be handled manually
 
 === Pattern Matching on Errors
 
-Errors can be matched and destructured using pattern matching, allowing for sophisticated error handling.
+Errors can be matched and destructured using pattern matching.
 
 #figure(
 ```weaver
-e := error("test error", {name: "test"})
+e := riskyFunction()! // notice the bang operator, error won't auto propagate
 
 match e {
   error(msg, {name: n}) => {
     echo("Error message: " + msg + ", name: " + n)
   },
   else => {
-    echo("Not an error or different structure")
+    echo("Not an error")
   }
 }
 ```,
   caption: [Pattern matching on errors in Weaver.],
 ) <fig:error-pattern-matching>
+
+The `error(msg, data)` pattern is used to match on errors message and optional data, and can be used with other patterns shown in @sec:pattern-matching.
+
+```weaver
+r := http:get("https://foo.com") 
+
+match r {
+  error(_, {status: 400..499}) => {
+    echo("Error with status in range 400-499")
+  },
+  else => {
+    echo("Not an error")
+  }
+}
+```
+
+And it can be also used without any extra matching
+
+#zebraw(
+  highlight-lines: range(10, 13),
+```weaver
+r := http:get("https://foo.com")!
+
+match r {
+  error(_, {status: 400..499}) => {
+    echo("Error with status in range 400-499")
+  },
+  error(msg, {status: 500..599}) => {
+    echo("Error with status in range 500-599 with message " + msg)
+  },
+  error() => { // here we are just matching the type 
+    echo("Some other error")
+  },
+  _ => {
+    echo("Not an error")
+  }
+}
+```
+)
 
 === Comparison with Other Languages
 
@@ -641,10 +478,3 @@ try {
 ) <fig:javascript-error-handling>
 
 JavaScript's exception-based approach is more implicit than Weaver's, making it harder to track error flows. Weaver's approach provides better visibility into error paths while still being concise.
-
-= Conclusion
-
-As a scripting language, Weaver fills a gap in the ecosystem by providing a clean, consistent syntax with powerful features typically found in more complex languages. Its balance of simplicity and capability makes it an excellent choice for scripting tasks, prototyping, and building maintainable applications.
-
-#pagebreak()
-

@@ -27,8 +27,8 @@ func (e *Executor) Run(frame *Frame, args int) Value {
 	e.l.RLock()
 	for _, vm := range e.Vms {
 		if vm.busy.CompareAndSwap(false, true) {
+			defer vm.busy.Store(false)
 			val := vm.Run(frame, args)
-			vm.busy.Store(false)
 			return val
 		}
 	}

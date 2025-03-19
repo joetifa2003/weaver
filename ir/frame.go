@@ -30,10 +30,10 @@ func (c *frame) define(name string) *basicVar {
 	block := c.currentBlock()
 
 	for _, v := range c.Vars {
-		if v.Free {
+		if v.free && !v.Ref {
 			v.Name = name
 			block.vars = append(block.vars, v)
-			v.Free = false
+			v.free = false
 			return v
 		}
 	}
@@ -53,7 +53,7 @@ func (c *frame) defineFreeVar(name string, parent *basicVar) *basicVar {
 
 func (c *frame) resolve(name string) (*basicVar, error) {
 	for _, v := range c.Vars {
-		if v.Name == name {
+		if v.Name == name && !v.free {
 			return v, nil
 		}
 	}
@@ -89,7 +89,7 @@ func (c *frame) pushBlock() *basicBlock {
 func (c *frame) popBlock() *basicBlock {
 	b := c.Blocks.Pop()
 	for _, v := range b.vars {
-		v.Free = true
+		v.Free()
 	}
 	return b
 }
@@ -133,10 +133,14 @@ type basicVar struct {
 	Scope VarScope
 	Name  string
 	Index int
-	Free  bool
+	free  bool
 	Ref   bool
 
 	Parent *basicVar
+}
+
+func (b *basicVar) Free() {
+	b.free = true
 }
 
 func (b *basicVar) assign(expr Expr) VarAssignExpr {
@@ -189,6 +193,6 @@ func (b *basicBlock) export() BlockStmt {
 
 func (b *basicBlock) freeAll() {
 	for _, v := range b.vars {
-		v.Free = true
+		v.Free()
 	}
 }

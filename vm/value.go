@@ -451,7 +451,7 @@ func (v *Value) Add(other *Value, res *Value) {
 		return
 	}
 
-	panic(fmt.Sprintf("illegal operation %s - %s", v.VType, other.VType))
+	panic(fmt.Sprintf("illegal operation %s + %s", v.VType, other.VType))
 }
 
 func (v *Value) Sub(other *Value, res *Value) {

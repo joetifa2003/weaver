@@ -178,6 +178,8 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 			return nil, err
 		}
 
+		outer.pushStmt(init)
+
 		cond, err := c.CompileExpr(s.Condition)
 		if err != nil {
 			return nil, err
@@ -201,8 +203,6 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 		}
 
 		c.loopContext.Pop()
-
-		outer.pushStmt(init)
 
 		inner := c.currentFrame().pushBlock()
 		inner.pushStmt(IfStmt{
@@ -655,7 +655,7 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 					irReturnExpr(v.load()),
 					v.load(),
 				)
-				v.Free = true
+				v.Free()
 			default:
 				panic(fmt.Sprintf("unimplemented postfix op %T", op))
 			}

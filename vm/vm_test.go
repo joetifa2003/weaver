@@ -532,6 +532,15 @@ func TestVM(t *testing.T) {
 			}
 			false |> assert();
 		`,
+		42: `
+			i := 0;
+
+			f := || echo(i);
+
+			i = i + 1;
+
+			f() == 1 |> assert();
+		`,
 	}
 
 	for i, tc := range tests {

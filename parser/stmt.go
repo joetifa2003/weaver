@@ -214,26 +214,31 @@ func matchCaseArray() pargo.Parser[ast.MatchCaseCondition] {
 
 type keyValue[K comparable, V any] struct {
 	key   K
-	value V
+	value *V
 }
 
 func matchCaseObject() pargo.Parser[ast.MatchCaseCondition] {
 	return pargo.Sequence3(
 		pargo.Exactly("{"),
 		pargo.ManySep(
-			pargo.Sequence3(
-				pargo.TokenType(TT_IDENT),
-				pargo.Exactly(":"),
-				pargo.Lazy(matchCondition),
-				func(key string, _ string, value ast.MatchCaseCondition) keyValue[string, ast.MatchCaseCondition] {
-					return keyValue[string, ast.MatchCaseCondition]{key, value}
-				},
+			pargo.OneOf(
+				pargo.Sequence3(
+					pargo.TokenType(TT_IDENT),
+					pargo.Exactly(":"),
+					pargo.Lazy(matchCondition),
+					func(key string, _ string, value ast.MatchCaseCondition) keyValue[string, ast.MatchCaseCondition] {
+						return keyValue[string, ast.MatchCaseCondition]{key, &value}
+					},
+				),
+				pargo.Map(pargo.TokenType(TT_IDENT), func(ident string) (keyValue[string, ast.MatchCaseCondition], error) {
+					return keyValue[string, ast.MatchCaseCondition]{ident, nil}, nil
+				}),
 			),
 			pargo.Exactly(","),
 		),
 		pargo.Exactly("}"),
 		func(_ string, kvs []keyValue[string, ast.MatchCaseCondition], _ string) ast.MatchCaseCondition {
-			m := map[string]ast.MatchCaseCondition{}
+			m := map[string]*ast.MatchCaseCondition{}
 			for _, kv := range kvs {
 				m[kv.key] = kv.value
 			}

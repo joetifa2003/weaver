@@ -428,12 +428,21 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 					v.assign(irIndex(expr, irString(key))),
 				),
 			)
-			child, err := c.compileMatchCondition(cond, v.load())
-			if err != nil {
-				return nil, err
-			}
+			if cond != nil {
+				child, err := c.compileMatchCondition(*cond, v.load())
+				if err != nil {
+					return nil, err
+				}
 
-			res.Operands = append(res.Operands, child)
+				res.Operands = append(res.Operands, child)
+			} else {
+				child, err := c.compileMatchCondition(ast.MatchCaseIdent{Name: key}, v.load())
+				if err != nil {
+					return nil, err
+				}
+
+				res.Operands = append(res.Operands, child)
+			}
 		}
 
 		return res, nil

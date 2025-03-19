@@ -523,6 +523,15 @@ func TestVM(t *testing.T) {
 
 		false |> assert();
 		`,
+		41: `
+			match { status: 200 } {
+				{ status } => {
+					status == 200 |> assert();
+					return;
+				}
+			}
+			false |> assert();
+		`,
 	}
 
 	for i, tc := range tests {

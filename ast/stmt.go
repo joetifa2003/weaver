@@ -95,7 +95,7 @@ type MatchCaseArray struct {
 func (t MatchCaseArray) matchCaseCondition() {}
 
 type MatchCaseObject struct {
-	KVs map[string]MatchCaseCondition
+	KVs map[string]*MatchCaseCondition
 }
 
 func (t MatchCaseObject) matchCaseCondition() {}

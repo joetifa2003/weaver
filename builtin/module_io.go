@@ -3,6 +3,7 @@ package builtin
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/joetifa2003/weaver/vm"
@@ -190,6 +191,25 @@ func registerIOModule(builder *RegistryBuilder) {
 				return vm.NewError(err.Error(), vm.Value{})
 			}
 			return vm.NewNumber(float64(info.ModTime().Unix()))
+		}),
+		"exec": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			cmdArg, ok := args.Get(0, vm.ValueTypeString)
+			if !ok {
+				return cmdArg
+			}
+
+			cmdArgs := make([]string, 0, len(args)-1)
+			for _, a := range args[1:] {
+				cmdArgs = append(cmdArgs, a.String())
+			}
+
+			cmd := exec.Command(cmdArg.GetString(), cmdArgs...)
+			output, err := cmd.CombinedOutput()
+			if err != nil {
+				return vm.NewError(err.Error(), vm.NewString(string(output)))
+			}
+
+			return vm.NewString(string(output))
 		}),
 	})
 }

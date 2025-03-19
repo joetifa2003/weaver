@@ -408,9 +408,13 @@ func (v *Value) string(i int) string {
 		return "native function"
 
 	case ValueTypeError:
-		data := v.GetError()
-		msg := data.msg
-		return fmt.Sprintf("error(%s)", msg)
+		err := v.GetError()
+		msg := err.msg
+		if err.data.VType == ValueTypeNil {
+			return fmt.Sprintf("error(%s)", msg)
+		}
+
+		return fmt.Sprintf("error(%s, %s)", msg, err.data.String())
 
 	case ValueTypeChannel:
 		return "channel"

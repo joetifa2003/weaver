@@ -22,7 +22,7 @@ func registerHTTPModule(builder *RegistryBuilder) {
 			// Get required URL
 			urlVal, ok := options["url"]
 			if !ok {
-				return vm.NewError("missing required field 'url'", vm.Value{})
+				return vm.NewError("[http.request]: missing required field 'url'", vm.Value{})
 			}
 			url, ok := vm.CheckValueType(urlVal, vm.ValueTypeString)
 			if !ok {
@@ -32,7 +32,7 @@ func registerHTTPModule(builder *RegistryBuilder) {
 			// Get required method
 			methodVal, ok := options["method"]
 			if !ok {
-				return vm.NewError("missing required field 'method'", vm.Value{})
+				return vm.NewError("[http.request]: missing required field 'method'", vm.Value{})
 			}
 			method, ok := vm.CheckValueType(methodVal, vm.ValueTypeString)
 			if !ok {
@@ -132,9 +132,15 @@ func createResponseObject(resp *http.Response, body []byte) vm.Value {
 		headers[key] = vm.NewString(strings.Join(values, ", "))
 	}
 
-	return vm.NewObject(map[string]vm.Value{
-		"status":  vm.NewNumber(float64(resp.StatusCode)),
-		"headers": vm.NewObject(headers),
-		"body":    vm.NewString(string(body)),
+	obj := vm.NewObject(map[string]vm.Value{
+		"statusCode": vm.NewNumber(float64(resp.StatusCode)),
+		"status":     vm.NewString(resp.Status),
+		"headers":    vm.NewObject(headers),
+		"body":       vm.NewString(string(body)),
 	})
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		return obj
+	}
+
+	return vm.NewError("[http]: non 2xx response", obj)
 }

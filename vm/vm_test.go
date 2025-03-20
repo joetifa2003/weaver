@@ -535,7 +535,7 @@ func TestVM(t *testing.T) {
 		42: `
 			i := 0;
 
-			f := || echo(i);
+			f := || i;
 
 			i = i + 1;
 

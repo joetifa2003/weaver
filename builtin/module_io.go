@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/joetifa2003/weaver/internal/pkg/helpers"
 	"github.com/joetifa2003/weaver/vm"
 )
 
@@ -198,10 +199,14 @@ func registerIOModule(builder *RegistryBuilder) {
 				return cmdArg
 			}
 
-			cmdArgs := make([]string, 0, len(args)-1)
-			for _, a := range args[1:] {
-				cmdArgs = append(cmdArgs, a.String())
+			argsArg, ok := args.Get(1, vm.ValueTypeArray)
+			if !ok {
+				return argsArg
 			}
+
+			cmdArgs := helpers.SliceMap(*argsArg.GetArray(), func(v vm.Value) string {
+				return v.String()
+			})
 
 			cmd := exec.Command(cmdArg.GetString(), cmdArgs...)
 			output, err := cmd.CombinedOutput()

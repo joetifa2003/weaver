@@ -113,7 +113,7 @@
         },
         {
           "name": "keyword.operator.logical.weaver",
-          "match": "&&|\\|\\||\\|"
+          "match": "&&|\\|\\|"
         },
         {
           "name": "keyword.operator.pipe.weaver",

@@ -28,7 +28,7 @@ addons:
 
 Simple scripting language for the joy of coding.
 
-```rust
+```weaver
 "Hello World!"
     |> echo()
 ```
@@ -79,12 +79,12 @@ layout: cover
 ```weaver
 "Hello World!"          // string
 123                     // number
-1.23                    // float
+1.23                    // number
 true                    // boolean
 false                   // boolean
 [1, "2", [3]]           // array
-{"a": 1, "b": 2}        // dictionary
-{a: 1, b: 2}            // dictionary
+{"a": 1, "b": 2}        // object
+{a: 1, b: 2}            // object
 |a, b| a + b            // lambda
 |a, b| { return a + b } // lambda
 nil                     // nil (null)
@@ -92,31 +92,127 @@ nil                     // nil (null)
 
 There is only one type in Weaver that indicates the absence of a value, it is `nil`.
 
-Why nil and not null? 
-
-<v-click>
-
-Because the gopher said so. 
-
-<div class="i-logos-gopher text-7xl"></div>
-
-(He is holding me hostage, please send help)
-
-</v-click>
+---
+layout: cover
 ---
 
-## Binary
+## Binary Operations
 
 ```weaver
-1 + 2             // 3 (int)
-1.0 + 2           // 3.0 (float)
-2.3 + 3.4         // 5.7 (float)
-"hello" + "world" // "helloworld" (string)
+1 + 2             // 3     (number)
+1.0 + 2           // 3.0   (number)
+2.3 + 3.4         // 5.7   (number)
+1 - 2             // -1    (number)
+1 * 2             // 2     (number)
+1 / 2             // 0.5   (number)
+8 % 2             // 0     (number)
+
+true && false     // false (boolean)
+true || false     // true  (boolean)
+
+nil || 1          // 1     (number)
+error() || "foo"  // "foo" (string)
+
+"hello " + "world" // "hello world" (string)
+
+add := |a, b| a + b
+add(1, 2)         // 3     (number)
+1 |> add(2)       // 3     (number)
 ```
 
-There is a distinction between integers and floats in Weaver, unlike many other scripting languages that treats both of them as `number` type.
+Binary operations are very familiar to other languages, with highlight be operators like pipe operator (`|>`), and lazy evaluation of binray and `&&` and `||` operators that works for booleans and other values also based on if they are "truthy" or not.
+
+---
+
+## Truthy Values
+
+Weaver boolean operators work with boolean expressions `true` and `false` as well as any other value in the language.
 
 <v-click>
+
+````md magic-move {lines: true}
+```weaver
+if (true)  { echo("true is truthy!") }
+if (false) { echo("this will not run") }
+if (nil)   { echo("this will not run") }
+if (0)     { echo("zero is truthy!") }
+if ("")    { echo("any string is truthy!") }
+
+// Or operator stops at the first truthy value
+nil || true  // true (boolean)
+nil || "foo" // "foo" (boolean)
+
+// And operator stops at the first falsy value
+false && "foo" // false (boolean)
+nil   && true  // nil   (boolean)
+true  && nil   // nil   (boolean)
+```
+
+```weaver
+greet := |name| echo("Hello " + name);
+```
+
+```weaver
+greet := |name| echo("Hello " + name);
+greet("John") // Hello John
+```
+
+```weaver
+greet := |name| echo("Hello " + name);
+greet() // Hello nil
+```
+
+```weaver
+// What if we want to display default name?
+// no one is named "nil" :)
+greet := |name| echo("Hello " + name);
+greet() // Hello nil
+```
+
+```weaver
+greet := |name| echo("Hello " + (name || "unknown"));
+greet() // Hello unknown
+```
+
+```weaver
+// What if we want to return error if name is not provided?
+greet := |name| echo("Hello " + (name || "unknown"));
+greet() // Hello unknown
+```
+
+```weaver
+greet := |name| {
+    if (!name) { return error("name is required"); }
+    echo("Hello " + name);
+};
+greet("John") // Hello John
+greet()       // error: name is required
+```
+
+```weaver
+// Can we do better?
+greet := |name| {
+    if (!name) { return error("name is required"); }
+    echo("Hello " + name);
+};
+greet("John") // Hello John
+greet()       // error: name is required
+```
+
+```weaver
+greet := |name| {
+    name || return error("name is required");
+    echo("Hello " + name);
+};
+greet("John") // Hello John
+greet()       // error: name is required
+```
+
+````
+
+</v-click>
+
+---
 
 ## Type Coercion
 
@@ -155,8 +251,6 @@ int(true) + int(false)  == 1
 ```
 
 ````
-
-</v-click>
 
 <v-click>
 

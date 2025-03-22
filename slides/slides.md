@@ -322,39 +322,298 @@ for i := 0; i < len(arr); i++ {
     }
 }
 
-echo(evenNumbers) // [3, 5]
+echo(evenNumbers) // [2, 4]
 ```
 
 ```weaver
 arr := [1, 2, 3, 4]
 evenNumbers := filter(arr, |n| n % 2 == 0)
-echo(evenNumbers) // [3, 5]
+echo(evenNumbers) // [2, 4]
 ```
 
 ```weaver
 arr := [1, 2, 3, 4]
-echo(filter(arr, |n| n % 2 == 0)) // [3, 5]
+echo(filter(arr, |n| n % 2 == 0)) // [2, 4]
 ```
 
 ```weaver
-echo(filter([1, 2, 3, 4], |n| n % 2 == 0)) // [3, 5]
+echo(filter([1, 2, 3, 4], |n| n % 2 == 0)) // [2, 4]
 ```
 
 ```weaver
-filter([1, 2, 3, 4], |n| n % 2 == 0) |> echo() // [3, 5]
+filter([1, 2, 3, 4], |n| n % 2 == 0) |> echo() // [2, 4]
 ```
 
 ```weaver
-[1, 2, 3, 4] |> filter(|n| n % 2 == 0) |> echo() // [3, 5]
+[1, 2, 3, 4] |> filter(|n| n % 2 == 0) |> echo() // [2, 4]
 ```
 
 ```weaver
 [1, 2, 3, 4] 
     |> filter(|n| n % 2 == 0) 
-    |> echo() // [3, 5]
+    |> echo() // [2, 4]
 ```
-
 
 ````
 
 </v-click>
+
+---
+
+## Control Flow
+
+### If Statement
+
+```weaver
+if (true) {
+    echo("true is truthy!")
+}
+
+if (false) {
+    echo("this will not run")
+}
+
+arr := [1, 2, 3, 4]
+if (len(arr) >= 4) {
+    arr[0] + arr[3] |> echo() // 5
+}
+```
+
+### Ternary Operator
+
+```weaver
+n := 1
+what := n % 2 == 0 ? "even" : "odd"
+echo(what) // "even"
+```
+
+---
+
+### Loops
+
+```weaver 
+// prints 0 to 9
+for i := 0; i < 10; i++ {
+    echo(i);
+}
+
+// prints 0 to 9
+for i in 0..9 {
+    echo(i);
+}
+
+// prints 0 to 9
+i := 0;
+while (i < 10) {
+    echo(i);
+    i++;
+}
+```
+
+---
+
+### Match Statement
+
+Pattern matching is a very powerful feature of Weaver, it allows you to write conditional logic based on the "shape" of the value.
+
+Match cases are evaluated in order, from top to bottom, until a match is found.
+
+```weaver
+x := "foo" 
+match x {
+    "bar" => echo("bar is matched"),
+    "nor" => echo("nor is matched"),
+    "foo" => echo("finally foo is matched"),
+    _ => echo("if nothing else matches"),
+}
+```
+
+```weaver 
+arr := [1, 2, 3, 4]
+match arr {
+    [1, 2] => {
+        echo("arr starts with [1, 2]");
+    },
+    [2, 3] => {
+        echo("arr starts with [2, 3]");
+    },
+    _ => {
+        echo("otherwise"); 
+    }
+}
+```
+
+---
+
+```weaver
+match [1, 2, 3, 4] {
+    // matches an array which has at least 4 elements, and binds the first and last elements to a and b
+    [a, _, __, b] => echo(a + b) // a=1; b=4; 5,
+}
+```
+
+<v-click>
+
+```weaver
+n := 15
+match n {
+    0..10 => echo("n is between 0 and 10"),
+    11..20 => echo("n is between 11 and 20"),
+    _ => echo("n is greater than 20"),
+}
+```
+
+</v-click>
+
+<v-click>
+
+```weaver
+p := { 
+    name: "Youssef", 
+    bank: { debt: 100, cash: 10} 
+};
+
+match p {
+    { bank: { debt: d, cash: c} } 
+    if d >= 1 && d - c >= 0 => {
+        echo("You have enough money to pay your debt");
+    },
+
+    _ => echo("You are still in debt"),
+}
+```
+
+</v-click>
+
+---
+
+```weaver
+match x {
+    // matches string "foo"
+    "foo" => {},
+    // matches number 123
+    123 => {},
+    // matches number 1.4
+    1.4 => {},
+    // matches any number between 0 and 10
+    0..10 => {},
+    // matches any number less or equal to 10
+    ..10 => {},
+    // matches any number greater or equal to 5
+    5.. => {},
+    // matches array with two elements, where each element matches the pattern
+    [<pattern>, <pattern>] => {}, 
+    // matches object with "key" matching the pattern and "other" matching the pattern
+    { key: <pattern>, other: <pattern> } => {}, 
+    // matches any string and puts it in the variable s
+    string(s) => {}, 
+    // matches any number and puts it in the variable n
+    number(n) => {}, 
+    // matches error with the first pattern for the error message and the second pattern for the error details
+    error(<pattern>, <pattern>) => {}, 
+    // matches any value and puts it in the variable foo
+    foo => {}, 
+}
+```
+
+---
+
+### Match Patterns
+
+Patterns can be as nested as you want.
+
+```weaver
+match x {
+    [1, { someArray: [a, b, c] }] if a > b && b > c => echo("MATCH!"),
+    _ => echo("NO MATCH!"),
+}
+```
+
+### Match Guards
+
+Match guards are a way to add additional conditions to a match case.
+
+```weaver
+match x {
+    [..10, ..10] => {},
+    // same as above
+    [a, b] if a <= 10 && b <= 10 => {},
+}
+```
+
+---
+
+````md magic-move {lines: true}
+
+```weaver
+goodPartner := |p| {
+    match p {
+        { name: n, age: 18..30, isMarried: false } => return true,
+        _ => return false,
+    }
+}
+```
+
+```weaver
+goodPartner := |p| {
+    match p {
+        { name: n, age: 18..30, isMarried: false } => return true,
+        _ => return false,
+    }
+}
+
+goodPartner({ 
+    name: "John",
+    age: 25,
+    isMarried: true,
+}) // false
+
+```
+
+```weaver
+goodPartner := |p| {
+    match p {
+        { name: n, age: 18..30, isMarried: false } => return true,
+        _ => return false,
+    }
+}
+
+goodPartner({ 
+    name: "Youssef",
+    age: 21,
+    isMarried: false,
+}) // true
+
+```
+
+```weaver
+goodPartner := |p| {
+    match p {
+        { name: n, age: 18..30, isMarried: false } => return true,
+        _ => return false,
+    }
+}
+
+goodPartner({ 
+    name: "Mahmoud",
+    age: 45,
+    isMarried: true,
+}) // false
+```
+
+```weaver
+goodPartner := |p| {
+    if (!p.name) { return false }
+    if (!p.age || p.age < 18 || p.age > 30) { return false }
+    if (!p.isMarried) { return false }
+    return false
+}
+
+goodPartner({ 
+    name: "Mahmoud",
+    age: 45,
+    isMarried: true,
+}) // false
+```
+
+````

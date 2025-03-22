@@ -128,6 +128,8 @@ Binary operations are very familiar to other languages, with highlight be operat
 
 Weaver boolean operators work with boolean expressions `true` and `false` as well as any other value in the language.
 
+Values that are considered "falsey" are `nil`, `error`, `false`.
+
 <v-click>
 
 ````md magic-move {lines: true}
@@ -159,6 +161,7 @@ greet("John") // Hello John
 
 ```weaver
 greet := |name| echo("Hello " + name);
+greet("John") // Hello John
 greet() // Hello nil
 ```
 
@@ -166,17 +169,20 @@ greet() // Hello nil
 // What if we want to display default name?
 // no one is named "nil" :)
 greet := |name| echo("Hello " + name);
+greet("John") // Hello John
 greet() // Hello nil
 ```
 
 ```weaver
 greet := |name| echo("Hello " + (name || "unknown"));
+greet("John") // Hello John
 greet() // Hello unknown
 ```
 
 ```weaver
 // What if we want to return error if name is not provided?
 greet := |name| echo("Hello " + (name || "unknown"));
+greet("John") // Hello John
 greet() // Hello unknown
 ```
 
@@ -201,6 +207,16 @@ greet()       // error: name is required
 
 ```weaver
 greet := |name| {
+    name || return error("name is required");
+    echo("Hello " + name);
+};
+greet("John") // Hello John
+greet()       // error: name is required
+```
+
+```weaver
+greet := |name| {
+    // Yes, return can be used as an expression
     name || return error("name is required");
     echo("Hello " + name);
 };
@@ -255,5 +271,90 @@ int(true) + int(false)  == 1
 <v-click>
 
 In other words: What you see is what you get.
+
+</v-click>
+
+--- 
+
+## Functions
+
+Functions are the core of the language, they are "first class", that is they can be passed around and used as values.
+
+There are no special syntax for functions, you just assign a function value to a variable and call it.
+
+````md magic-move {lines: true}
+
+```weaver
+add := |a, b| {
+    return a + b;
+}
+```
+
+```weaver
+add := |a, b| a + b
+```
+
+```weaver
+add := |a, b| a + b
+add(1, 2)  // 3
+```
+
+```weaver
+add := |a, b| a + b
+add(1)  // error: illegal operands number + nil
+```
+
+````
+
+<v-click>
+
+This allows for expressive and concise code, which will be otherwise very verbose.
+
+````md magic-move {lines: true}
+
+```weaver
+arr := [1, 2, 3, 4]
+
+evenNumbers := []
+for i := 0; i < len(arr); i++ {
+    if (arr[i] % 2 == 0) {
+        evenNumbers |> push(arr[i])
+    }
+}
+
+echo(evenNumbers) // [3, 5]
+```
+
+```weaver
+arr := [1, 2, 3, 4]
+evenNumbers := filter(arr, |n| n % 2 == 0)
+echo(evenNumbers) // [3, 5]
+```
+
+```weaver
+arr := [1, 2, 3, 4]
+echo(filter(arr, |n| n % 2 == 0)) // [3, 5]
+```
+
+```weaver
+echo(filter([1, 2, 3, 4], |n| n % 2 == 0)) // [3, 5]
+```
+
+```weaver
+filter([1, 2, 3, 4], |n| n % 2 == 0) |> echo() // [3, 5]
+```
+
+```weaver
+[1, 2, 3, 4] |> filter(|n| n % 2 == 0) |> echo() // [3, 5]
+```
+
+```weaver
+[1, 2, 3, 4] 
+    |> filter(|n| n % 2 == 0) 
+    |> echo() // [3, 5]
+```
+
+
+````
 
 </v-click>

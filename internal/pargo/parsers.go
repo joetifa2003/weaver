@@ -19,8 +19,12 @@ func (s *State) done() bool {
 
 func (s *State) consume() (lexer.Token, error) {
 	if s.pos >= len(s.tokens) {
+		loc := lexer.Location{}
+		if len(s.tokens) > 0 {
+			loc = s.tokens[len(s.tokens)-1].Location()
+		}
 		return lexer.RegexToken{
-			Loc:   s.tokens[len(s.tokens)-1].Location(),
+			Loc:   loc,
 			Ttype: -1,
 			Lit:   "EOF",
 		}, nil

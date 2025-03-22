@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -32,6 +33,9 @@ func main() {
 					}
 
 					src := string(srcData)
+					if len(src) == 0 {
+						return errors.New("empty file")
+					}
 
 					p, err := parser.Parse(src)
 					if err != nil {

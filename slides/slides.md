@@ -11,7 +11,7 @@ author: Joe Tifa
 drawings:
   persist: false
 # slide transition: https://sli.dev/guide/animations.html#slide-transitions
-transition: fade 
+transition: fade
 # enable MDC Syntax: https://sli.dev/features/mdc
 mdc: true
 fonts:
@@ -47,7 +47,7 @@ Everything is plain objects and functions, most of the code is just concatenatin
 ```weaver
 arr := [1, 2, 3, 4]
 
-echo(len(filter(arr, |n| n % 2 == 0))) // 2
+echo(len(filter(arr, |n| n % 2 == 0))) // [2, 4]
 ```
 
 ```weaver
@@ -56,7 +56,7 @@ arr := [1, 2, 3, 4]
 arr
     |> filter(|n| n % 2 == 0)
     |> len()
-    |> echo() // 2
+    |> echo() // [2, 4]
 ```
 ````
 
@@ -84,13 +84,15 @@ true                    // boolean
 false                   // boolean
 [1, "2", [3]]           // array
 {"a": 1, "b": 2}        // object
-{a: 1, b: 2}            // object
+{a: 1, b: 2}            // object (shorthand)
 |a, b| a + b            // lambda
 |a, b| { return a + b } // lambda
 nil                     // nil (null)
 ```
 
 There is only one type in Weaver that indicates the absence of a value, it is `nil`.
+
+*Note: `{a: 1, b: 2}` is shorthand for `{"a": 1, "b": 2}`.*
 
 ---
 layout: cover
@@ -122,6 +124,8 @@ add(1, 2)         // 3     (number)
 
 Binary operations are very familiar to other languages, with highlight be operators like pipe operator (`|>`), and lazy evaluation of binray and `&&` and `||` operators that works for booleans and other values also based on if they are "truthy" or not.
 
+*Note: `||` returns the first "truthy" value, and `&&` returns the first "falsy" value.*
+
 ---
 
 ## Truthy Values
@@ -134,20 +138,22 @@ Values that are considered "falsey" are `nil`, `error`, `false`.
 
 ````md magic-move {lines: true}
 ```weaver
-if (true)  { echo("true is truthy!") }
-if (false) { echo("this will not run") }
-if (nil)   { echo("this will not run") }
-if (0)     { echo("zero is truthy!") }
-if ("")    { echo("any string is truthy!") }
+// Examples of truthy and falsy values
+if (true)  { echo("true is truthy!") }  // Prints
+if (0)     { echo("0 is truthy!") }     // Prints
+if ("")    { echo("'' is truthy!") }    // Prints
+if (nil)   { echo("nil is truthy!") }   // Does not print
+if (false) { echo("false is truthy!") } // Does not print
 
-// Or operator stops at the first truthy value
-nil || true  // true (boolean)
-nil || "foo" // "foo" (boolean)
+// Or operator (||) returns the first truthy value
+nil || "foo"  // "foo" (string)
+true || "foo" // true (boolean)
 
-// And operator stops at the first falsy value
+// And operator (&&) returns the first falsy value
 false && "foo" // false (boolean)
-nil   && true  // nil   (boolean)
-true  && nil   // nil   (boolean)
+nil && true    // nil
+true && nil    // nil
+true && "foo"  // "foo" (string)
 ```
 
 ```weaver
@@ -234,7 +240,7 @@ greet()       // error: name is required
 
 Also there is no type coercion, so you must be explicit about the conversion of types, This is a deliberate design decision to avoid mistakes of other languages, like the enfamous javascript examples below.
 
-````md magic-move 
+````md magic-move
 ```js
 // Javascript
 true + false   == 1
@@ -261,9 +267,9 @@ true + false   // ERROR! illegal operands bool + bool
 
 ```weaver
 // Weaver
-int(true) + int(false)  == 1 
+int(true) + int(false)  == 1
 12 / int("6")           == 12
-"foo" + string(15 + 3)  == "foo18" 
+"foo" + string(15 + 3)  == "foo18"
 ```
 
 ````
@@ -274,7 +280,7 @@ In other words: What you see is what you get.
 
 </v-click>
 
---- 
+---
 
 ## Functions
 
@@ -283,7 +289,6 @@ Functions are the core of the language, they are "first class", that is they can
 There are no special syntax for functions, you just assign a function value to a variable and call it.
 
 ````md magic-move {lines: true}
-
 ```weaver
 add := |a, b| {
     return a + b;
@@ -301,7 +306,7 @@ add(1, 2)  // 3
 
 ```weaver
 add := |a, b| a + b
-add(1)  // error: illegal operands number + nil
+add(1)  // error: illegal operands number + nil (missing argument)
 ```
 
 ````
@@ -311,7 +316,6 @@ add(1)  // error: illegal operands number + nil
 This allows for expressive and concise code, which will be otherwise very verbose.
 
 ````md magic-move {lines: true}
-
 ```weaver
 arr := [1, 2, 3, 4]
 
@@ -349,8 +353,8 @@ filter([1, 2, 3, 4], |n| n % 2 == 0) |> echo() // [2, 4]
 ```
 
 ```weaver
-[1, 2, 3, 4] 
-    |> filter(|n| n % 2 == 0) 
+[1, 2, 3, 4]
+    |> filter(|n| n % 2 == 0)
     |> echo() // [2, 4]
 ```
 
@@ -391,7 +395,7 @@ echo(what) // "even"
 
 ### Loops
 
-```weaver 
+```weaver
 // prints 0 to 9
 for i := 0; i < 10; i++ {
     echo(i);
@@ -419,7 +423,7 @@ Pattern matching is a very powerful feature of Weaver, it allows you to write co
 Match cases are evaluated in order, from top to bottom, until a match is found.
 
 ```weaver
-x := "foo" 
+x := "foo"
 match x {
     "bar" => echo("bar is matched"),
     "nor" => echo("nor is matched"),
@@ -428,7 +432,7 @@ match x {
 }
 ```
 
-```weaver 
+```weaver
 arr := [1, 2, 3, 4]
 match arr {
     [1, 2] => {
@@ -438,7 +442,7 @@ match arr {
         echo("arr starts with [2, 3]");
     },
     _ => {
-        echo("otherwise"); 
+        echo("otherwise");
     }
 }
 ```
@@ -468,13 +472,13 @@ match n {
 <v-click>
 
 ```weaver
-p := { 
-    name: "Youssef", 
-    bank: { debt: 100, cash: 10} 
+p := {
+    name: "Youssef",
+    bank: { debt: 100, cash: 10}
 };
 
 match p {
-    { bank: { debt: d, cash: c} } 
+    { bank: { debt: d, cash: c} }
     if d >= 1 && d - c >= 0 => {
         echo("You have enough money to pay your debt");
     },
@@ -502,17 +506,17 @@ match x {
     // matches any number greater or equal to 5
     5.. => {},
     // matches array with two elements, where each element matches the pattern
-    [<pattern>, <pattern>] => {}, 
+    [<pattern>, <pattern>] => {},
     // matches object with "key" matching the pattern and "other" matching the pattern
-    { key: <pattern>, other: <pattern> } => {}, 
+    { key: <pattern>, other: <pattern> } => {},
     // matches any string and puts it in the variable s
-    string(s) => {}, 
+    string(s) => {},
     // matches any number and puts it in the variable n
-    number(n) => {}, 
+    number(n) => {},
     // matches error with the first pattern for the error message and the second pattern for the error details
-    error(<pattern>, <pattern>) => {}, 
+    error(<pattern>, <pattern>) => {},
     // matches any value and puts it in the variable foo
-    foo => {}, 
+    foo => {},
 }
 ```
 
@@ -562,7 +566,7 @@ goodPartner := |p| {
     }
 }
 
-goodPartner({ 
+goodPartner({
     name: "John",
     age: 25,
     isMarried: true,
@@ -578,7 +582,7 @@ goodPartner := |p| {
     }
 }
 
-goodPartner({ 
+goodPartner({
     name: "Youssef",
     age: 21,
     isMarried: false,
@@ -594,7 +598,7 @@ goodPartner := |p| {
     }
 }
 
-goodPartner({ 
+goodPartner({
     name: "Mahmoud",
     age: 45,
     isMarried: true,
@@ -605,11 +609,11 @@ goodPartner({
 goodPartner := |p| {
     if (!p.name) { return false }
     if (!p.age || p.age < 18 || p.age > 30) { return false }
-    if (!p.isMarried) { return false }
+    if (p.isMarried) { return false }
     return false
 }
 
-goodPartner({ 
+goodPartner({
     name: "Mahmoud",
     age: 45,
     isMarried: true,
@@ -617,3 +621,82 @@ goodPartner({
 ```
 
 ````
+
+---
+
+## Error Handling
+
+Weaver has a unique approach to error handling. Errors are values, just like numbers or strings. When a function returns an error, it's *automatically propagated* up the call stack unless explicitly handled. This is different from languages like JavaScript that use exceptions and `try/catch` blocks.
+
+```weaver
+// Example: Automatic error propagation
+divide := |a, b| {
+    b == 0 ? error("Division by zero", {divisor: b}) | return a / b;
+};
+
+result := divide(10, 0)
+echo(result) // This line will NOT execute
+```
+
+In the example above, `divide(10, 0)` returns an error. Because we didn't handle it explicitly, the error is automatically returned, and the `echo(result)` line is never reached.
+
+You can opt-out of automatic propagation using the `!` operator:
+
+```weaver
+// Example: Opting out of automatic propagation
+result := divide(10, 0)!
+echo("This line WILL execute")
+echo(result) // Prints the error value
+```
+
+By adding `!` after the function call, we tell Weaver that we want to handle the potential error ourselves.  `result` will now contain the error value.
+
+---
+
+We can then use pattern matching to handle the error:
+
+```weaver
+// Example: Handling errors with pattern matching
+result := divide(10, 0)!
+match result {
+    error(msg, data) => {
+        echo("Error: " + msg);          // Prints "Error: Division by zero"
+        echo("Divisor: " + string(data.divisor)); // Prints "Divisor: 0"
+    },
+    n => echo("Result: " + string(n)), // This won't execute in this case
+}
+```
+
+Here's a more realistic example, fetching data from a URL:
+
+```weaver
+// Example: Real-world HTTP request
+response := http:get("https://example.com/api/data")!
+match response {
+    error(msg, data) => {
+        echo("HTTP request failed: " + msg);
+        echo("Status code: " + string(data.statusCode));
+    },
+    res => {
+        echo("Response body:")
+        echo(res.body)
+    }
+}
+```
+
+This approach makes error handling explicit and integrates seamlessly with Weaver's pattern matching.
+
+---
+
+**Comparison with `try/catch` (JavaScript):**
+
+```javascript
+// JavaScript try/catch example
+try {
+  let response = await fetch("https://example.com/api/data");
+  let data = await response.json();
+  console.log(data);
+} catch (error) {
+  console.error("An error occurred:", error);
+}
+```

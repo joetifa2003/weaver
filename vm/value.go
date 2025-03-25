@@ -346,6 +346,12 @@ func NewObject(m map[string]Value) Value {
 	return val
 }
 
+func NewBoolean(b bool) Value {
+	val := Value{}
+	val.SetBool(b)
+	return val
+}
+
 func NewBool(b bool) Value {
 	val := Value{}
 	val.SetBool(b)

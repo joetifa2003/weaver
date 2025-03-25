@@ -541,6 +541,31 @@ func TestVM(t *testing.T) {
 
 			f() == 1 |> assert();
 		`,
+		43: ` 
+			strings:concat("a", "b", "c") == "abc" |> assert();
+			(strings:split("a,b,c", ",") |> len()) == 3 |> assert();
+			strings:split("a,b,c", ",")[0] == "a" |> assert();
+			strings:lower("HELLO") == "hello" |> assert();
+			strings:upper("hello") == "HELLO" |> assert();
+			strings:trim("  hello  ") == "hello" |> assert();
+			strings:contains("hello world", "world") |> assert();
+			!strings:contains("hello world", "foo") |> assert();
+			strings:startsWith("hello world", "hello") |> assert();
+			!strings:startsWith("hello world", "world") |> assert();
+			strings:endsWith("hello world", "world") |> assert();
+			!strings:endsWith("hello world", "hello") |> assert();
+			strings:replace("hello world world", "world", "weaver", 1) == "hello weaver world" |> assert();
+			strings:replace("hello world world", "world", "weaver") == "hello weaver weaver" |> assert();
+			strings:substring("hello world", 6) == "world" |> assert();
+			strings:substring("hello world", 0, 5) == "hello" |> assert();
+			strings:substring("hello", 5) == "" |> assert(); 
+			strings:substring("hello", 6) == "" |> assert();
+			strings:substring("hello", 2, 1) == "" |> assert();
+			strings:indexOf("hello world", "world") == 6 |> assert();
+			strings:indexOf("hello world", "foo") == -1 |> assert();
+			strings:lastIndexOf("hello world world", "world") == 12 |> assert();
+			strings:lastIndexOf("hello world world", "foo") == -1 |> assert();
+		`,
 	}
 
 	for i, tc := range tests {

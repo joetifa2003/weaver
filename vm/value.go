@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 	"unsafe"
 
 	"github.com/joetifa2003/weaver/opcode"
@@ -29,6 +30,7 @@ const (
 	ValueTypeTask
 	ValueTypeLock
 	ValueTypeChannel
+	ValueTypeTime
 )
 
 func (t ValueType) Is(other ...ValueType) bool {
@@ -74,6 +76,8 @@ func (t ValueType) String() string {
 		return "task"
 	case ValueTypeChannel:
 		return "channel"
+	case ValueTypeTime:
+		return "time"
 	default:
 		panic(fmt.Sprintf("unimplemented %d", t))
 	}
@@ -108,6 +112,15 @@ func (v *Value) Set(other Value) {
 	v.VType = other.VType
 	v.nonPrimitive = other.nonPrimitive
 	v.primitive = other.primitive
+}
+
+func (v *Value) SetTime(t time.Time) {
+	v.VType = ValueTypeTime
+	v.nonPrimitive = unsafe.Pointer(&t)
+}
+
+func (v *Value) GetTime() time.Time {
+	return *(*time.Time)(v.nonPrimitive)
 }
 
 type Task struct {
@@ -364,6 +377,12 @@ func NewError(msg string, data Value) Value {
 	return val
 }
 
+func NewTime(t time.Time) Value {
+	val := Value{}
+	val.SetTime(t)
+	return val
+}
+
 func NewErrFromErr(err error) Value {
 	return NewError(err.Error(), Value{})
 }
@@ -542,6 +561,8 @@ func (v *Value) Equal(other *Value, res *Value) {
 		res.SetBool(v.GetBool() == other.GetBool())
 	case ValueTypeFunction:
 		res.SetBool(v.GetFunction() == other.GetFunction())
+	case ValueTypeTime:
+		res.SetBool(v.GetTime().Equal(other.GetTime()))
 	default:
 		res.SetBool(false)
 	}
@@ -566,6 +587,8 @@ func (v *Value) NotEqual(other *Value, res *Value) {
 		res.SetBool(v.GetBool() != other.GetBool())
 	case ValueTypeFunction:
 		res.SetBool(v.GetFunction() != other.GetFunction())
+	case ValueTypeTime:
+		res.SetBool(!v.GetTime().Equal(other.GetTime()))
 	default:
 		res.SetBool(true)
 	}

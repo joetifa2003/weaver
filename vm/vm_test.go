@@ -572,7 +572,34 @@ func TestVM(t *testing.T) {
 			strings:padEnd("hi", 5) == "hi   " |> assert();
 			strings:padEnd("hi", 5, " ") == "hi   " |> assert();
 			strings:padEnd("hi", 5, "xo") == "hixox" |> assert();
-			strings:padEnd("hi", 2) == "hi" |> assert(); 
+			strings:padEnd("hi", 2) == "hi" |> assert();
+		`,
+		44: `
+			t1 := time:now();
+			type(t1) == "time" |> assert();
+
+			time:nanosecond == 1 |> assert();
+			time:microsecond == 1000 |> assert();
+			time:millisecond == 1000000 |> assert();
+			time:second == 1000000000 |> assert();
+			time:minute == 60000000000 |> assert();
+			time:hour == 3600000000000 |> assert();
+
+			dur := time:parseDuration("2h30m");
+			dur == (time:hour * 2 + time:minute * 30) |> assert();
+			time:getHours(dur) == 2.5 |> assert();
+			time:getMinutes(dur) == 150 |> assert();
+			time:getSeconds(dur) == 9000 |> assert();
+			time:getMilliseconds(dur) == 9000000 |> assert();
+			time:getMicroseconds(dur) == 9000000000 |> assert();
+			time:getNanoseconds(dur) == 9000000000000 |> assert();
+			time:getDurationString(dur) == "2h30m0s" |> assert();
+
+			s := time:since(t1);
+			u := time:until(time:add(time:now(), time:second));
+			s > 0 |> assert();
+			u > 0 |> assert();
+			u <= time:second |> assert();
 		`,
 	}
 

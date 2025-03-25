@@ -13,6 +13,7 @@ func init() {
 	registerJSONModule(builder)
 	registerHTTPModule(builder)
 	registerFiberModule(builder)
+	registerTimeModule(builder)
 
 	registerModuleRL(builder)
 

@@ -180,5 +180,73 @@ func registerStringModule(builder *RegistryBuilder) {
 
 			return vm.NewNumber(float64(strings.LastIndex(strArg.GetString(), substrArg.GetString())))
 		}),
+		"padStart": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			strArg, ok := args.Get(0, vm.ValueTypeString)
+			if !ok {
+				return strArg
+			}
+			lengthArg, ok := args.Get(1, vm.ValueTypeNumber)
+			if !ok {
+				return lengthArg
+			}
+			padStrArg := vm.NewString(" ") // Default pad string
+			if len(args) > 2 {
+				padStrArg, ok = args.Get(2, vm.ValueTypeString)
+				if !ok {
+					return padStrArg
+				}
+			}
+
+			str := strArg.GetString()
+			targetLength := int(lengthArg.GetNumber())
+			padStr := padStrArg.GetString()
+
+			return vm.NewString(padString(str, targetLength, padStr, true))
+		}),
+		"padEnd": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			strArg, ok := args.Get(0, vm.ValueTypeString)
+			if !ok {
+				return strArg
+			}
+			lengthArg, ok := args.Get(1, vm.ValueTypeNumber)
+			if !ok {
+				return lengthArg
+			}
+			padStrArg := vm.NewString(" ") // Default pad string
+			if len(args) > 2 {
+				padStrArg, ok = args.Get(2, vm.ValueTypeString)
+				if !ok {
+					return padStrArg
+				}
+			}
+
+			str := strArg.GetString()
+			targetLength := int(lengthArg.GetNumber())
+			padStr := padStrArg.GetString()
+
+			return vm.NewString(padString(str, targetLength, padStr, false))
+		}),
 	})
+}
+
+// Helper function for padding
+func padString(str string, targetLength int, padString string, padStart bool) string {
+	if len(str) >= targetLength {
+		return str
+	}
+
+	if padString == "" {
+		padString = " " // Default pad string is space
+	}
+
+	padLen := targetLength - len(str)
+	repeatCount := padLen / len(padString)
+	remainingPad := padLen % len(padString)
+
+	padding := strings.Repeat(padString, repeatCount) + padString[:remainingPad]
+
+	if padStart {
+		return padding + str
+	}
+	return str + padding
 }

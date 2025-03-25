@@ -565,6 +565,14 @@ func TestVM(t *testing.T) {
 			strings:indexOf("hello world", "foo") == -1 |> assert();
 			strings:lastIndexOf("hello world world", "world") == 12 |> assert();
 			strings:lastIndexOf("hello world world", "foo") == -1 |> assert();
+			strings:padStart("hi", 5) == "   hi" |> assert();
+			strings:padStart("hi", 5, " ") == "   hi" |> assert();
+			strings:padStart("hi", 5, "xo") == "xoxhi" |> assert();
+			strings:padStart("hi", 2) == "hi" |> assert();
+			strings:padEnd("hi", 5) == "hi   " |> assert();
+			strings:padEnd("hi", 5, " ") == "hi   " |> assert();
+			strings:padEnd("hi", 5, "xo") == "hixox" |> assert();
+			strings:padEnd("hi", 2) == "hi" |> assert(); 
 		`,
 	}
 

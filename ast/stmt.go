@@ -131,3 +131,9 @@ type MatchCaseTypeNumber struct {
 }
 
 func (t MatchCaseTypeNumber) matchCaseCondition() {}
+
+type MatchCaseOr struct {
+	Conditions []MatchCaseCondition
+}
+
+func (t MatchCaseOr) matchCaseCondition() {}

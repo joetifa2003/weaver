@@ -601,7 +601,71 @@ func TestVM(t *testing.T) {
 			u > 0 |> assert();
 			u <= time:second |> assert();
 		`,
-		45: ` # timezone tests
+		45: `
+			match 1 {
+				2 | 1 => { true |> assert(); return; },
+				else => false |> assert()
+			}
+			false |> assert(); # Should not reach here
+		`,
+		46: `
+			match 3 {
+				2 | 1 => false |> assert(),
+				4 | 5 | 3 => { true |> assert(); return; },
+				else => false |> assert()
+			}
+			false |> assert(); # Should not reach here
+		`,
+		47: `
+			match "b" {
+				"a" | "c" => false |> assert(),
+				"d" | "b" | "e" => { true |> assert(); return; },
+				else => false |> assert()
+			}
+			false |> assert(); # Should not reach here
+		`,
+		48: `
+			match [1, 3] {
+				[1, 2] => false |> assert(),
+				[1 | 0, 2 | 3 | 5] => { true |> assert(); return; },
+				else => false |> assert()
+			}
+			false |> assert(); # Should not reach here
+		`,
+		49: `
+			match [2, 5] {
+				[1, 2] => false |> assert(),
+				[1 | 2, 2 | 3 | 5] => { true |> assert(); return; },
+				else => false |> assert()
+			}
+			false |> assert(); # Should not reach here
+		`,
+		50: `
+			match { name: "joe", age: 30 } {
+				{ name: "jane" | "jill", age: _ } => false |> assert(),
+				{ name: "jack" | "joe", age: 20 | 30 | 40 } => { true |> assert(); return; },
+				else => false |> assert()
+			}
+			false |> assert(); # Should not reach here
+		`,
+		51: `
+			match 10 {
+				1 | 2 | 3 => false |> assert(),
+				4 | 5 | 6 => false |> assert(),
+				else => { true |> assert(); return; } # Should match else
+			}
+			false |> assert(); # Should not reach here
+		`,
+		52: `
+			match [1, 10] {
+				[1 | 2, 3 | 4] => false |> assert(),
+				[5 | 6, 7 | 8] => false |> assert(),
+				else => { true |> assert(); return; } # Should match else
+			}
+			false |> assert(); # Should not reach here
+		`,
+		53: `
+			# timezone tests
 			# Note: These tests assume the presence of common timezone databases (e.g., tzdata) on the system.
 			# Test parseInLocation and inLocation
 			layout := "2006-01-02 15:04:05";
@@ -624,7 +688,7 @@ func TestVM(t *testing.T) {
 			# Convert UTC time to New York time
 			nyTimeConverted := time:inLocation(nyTime, "America/New_York");
 			time:getUnixNanoTime(nyTime) == time:getUnixNanoTime(nyTimeConverted) |> assert(); # Compare instants (nanoseconds)
-		`,
+			`,
 	}
 
 	for i, tc := range tests {

@@ -139,7 +139,8 @@ func matchCase() pargo.Parser[ast.MatchCase] {
 	)
 }
 
-func matchCondition() pargo.Parser[ast.MatchCaseCondition] {
+// matchConditionBase parses a single, non-OR condition.
+func matchConditionBase() pargo.Parser[ast.MatchCaseCondition] {
 	return pargo.OneOf(
 		matchCaseTypeError(),
 		matchCaseTypeNumber(),
@@ -150,7 +151,20 @@ func matchCondition() pargo.Parser[ast.MatchCaseCondition] {
 		matchCaseString(),
 		matchCaseArray(),
 		matchCaseObject(),
-		matchCaseIdent(),
+		matchCaseIdent(), // Keep ident last as it's the most general
+	)
+}
+
+// matchCondition parses one or more base conditions separated by '|'
+func matchCondition() pargo.Parser[ast.MatchCaseCondition] {
+	return pargo.Map(
+		pargo.SomeSep(matchConditionBase(), pargo.Exactly("|")),
+		func(conditions []ast.MatchCaseCondition) (ast.MatchCaseCondition, error) {
+			if len(conditions) == 1 {
+				return conditions[0], nil
+			}
+			return ast.MatchCaseOr{Conditions: conditions}, nil
+		},
 	)
 }
 

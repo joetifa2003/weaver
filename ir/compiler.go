@@ -313,6 +313,32 @@ func (c *Compiler) compileMatchCase(m ast.MatchCase, expr Expr) (IfStmt, error) 
 
 func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr) (Expr, error) {
 	switch cond := cond.(type) {
+	case ast.MatchCaseOr:
+		// Compile the first condition
+		firstCompiled, err := c.compileMatchCondition(cond.Conditions[0], expr)
+		if err != nil {
+			return nil, err
+		}
+
+		// If there's only one condition, return its compiled form directly
+		if len(cond.Conditions) == 1 {
+			return firstCompiled, nil
+		}
+
+		// Compile remaining conditions and combine with OR
+		orOperands := []Expr{firstCompiled}
+		for _, subCond := range cond.Conditions[1:] {
+			compiledSubCond, err := c.compileMatchCondition(subCond, expr)
+			if err != nil {
+				return nil, err
+			}
+			orOperands = append(orOperands, compiledSubCond)
+		}
+
+		return BinaryExpr{
+			Operator: BinaryOpOr,
+			Operands: orOperands,
+		}, nil
 
 	case ast.MatchCaseTypeError:
 		res := irAnd(

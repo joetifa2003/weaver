@@ -447,6 +447,9 @@ func (v *Value) string(i int) string {
 	case ValueTypeTask:
 		return "task"
 
+	case ValueTypeTime:
+		return v.GetTime().String()
+
 	default:
 		panic(fmt.Sprintf("Value.String(): unimplemented %T", v.VType))
 	}

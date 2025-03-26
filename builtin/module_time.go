@@ -434,6 +434,65 @@ func registerTimeModule(builder *RegistryBuilder) {
 			d := time.Duration(durationArg.GetNumber())
 			return vm.NewString(d.String())
 		}),
+
+		// --- Timezone Functions ---
+		"parseInLocation": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			layoutArg, ok := args.Get(0, vm.ValueTypeString)
+			if !ok {
+				return layoutArg
+			}
+			valueArg, ok := args.Get(1, vm.ValueTypeString)
+			if !ok {
+				return valueArg
+			}
+			locNameArg, ok := args.Get(2, vm.ValueTypeString)
+			if !ok {
+				return locNameArg
+			}
+
+			loc, err := time.LoadLocation(locNameArg.GetString())
+			if err != nil {
+				return vm.NewErrFromErr(err)
+			}
+
+			t, err := time.ParseInLocation(layoutArg.GetString(), valueArg.GetString(), loc)
+			if err != nil {
+				return vm.NewErrFromErr(err)
+			}
+			return vm.NewTime(t)
+		}),
+
+		"inLocation": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			timeArg, ok := args.Get(0, vm.ValueTypeTime)
+			if !ok {
+				return timeArg
+			}
+			locNameArg, ok := args.Get(1, vm.ValueTypeString)
+			if !ok {
+				return locNameArg
+			}
+
+			loc, err := time.LoadLocation(locNameArg.GetString())
+			if err != nil {
+				return vm.NewErrFromErr(err)
+			}
+
+			t := timeArg.GetTime()
+			return vm.NewTime(t.In(loc))
+		}),
+
+		"getZone": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			timeArg, ok := args.Get(0, vm.ValueTypeTime)
+			if !ok {
+				return timeArg
+			}
+			t := timeArg.GetTime()
+			name, offset := t.Zone()
+			return vm.NewObject(map[string]vm.Value{
+				"name":   vm.NewString(name),
+				"offset": vm.NewNumber(float64(offset)), // Offset in seconds
+			})
+		}),
 	}
 
 	builder.RegisterModule("time", m)

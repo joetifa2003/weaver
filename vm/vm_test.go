@@ -601,6 +601,30 @@ func TestVM(t *testing.T) {
 			u > 0 |> assert();
 			u <= time:second |> assert();
 		`,
+		45: ` # timezone tests
+			# Note: These tests assume the presence of common timezone databases (e.g., tzdata) on the system.
+			# Test parseInLocation and inLocation
+			layout := "2006-01-02 15:04:05";
+			timeStr := "2024-03-26 10:00:00";
+			
+			# Parse in UTC
+			utcTime := time:parseInLocation(layout, timeStr, "UTC");
+			time:getHour(utcTime) == 10 |> assert();
+			zoneUTC := time:getZone(utcTime);
+			zoneUTC.name == "UTC" |> assert();
+			zoneUTC.offset == 0 |> assert();
+
+			# Parse in New York (assuming EST/EDT)
+			nyTime := time:parseInLocation(layout, timeStr, "America/New_York");
+			# Hour might be different due to timezone offset
+			zoneNY := time:getZone(nyTime);
+			(zoneNY.name == "EST" || zoneNY.name == "EDT") |> assert(); # Account for DST
+			(zoneNY.offset == -5*3600 || zoneNY.offset == -4*3600) |> assert(); # EST or EDT offset
+
+			# Convert UTC time to New York time
+			nyTimeConverted := time:inLocation(nyTime, "America/New_York");
+			time:getUnixNanoTime(nyTime) == time:getUnixNanoTime(nyTimeConverted) |> assert(); # Compare instants (nanoseconds)
+		`,
 	}
 
 	for i, tc := range tests {

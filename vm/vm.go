@@ -24,7 +24,7 @@ type Frame struct {
 type VM struct {
 	Executor  *Executor
 	stack     [MaxStack]Value
-	callStack [MaxCallStack]*Frame
+	callStack [MaxCallStack]Frame
 	constants []Value
 	curFrame  *Frame
 
@@ -73,7 +73,7 @@ var scopeGetters = [4]func(v *VM, idx int) *Value{
 	},
 }
 
-func (v *VM) Run(frame *Frame, args int) Value {
+func (v *VM) Run(frame Frame, args int) Value {
 	v.pushFrame(frame, args)
 
 	for {
@@ -411,7 +411,7 @@ func (v *VM) Run(frame *Frame, args int) Value {
 			switch callee.VType {
 			case ValueTypeFunction:
 				fn := callee.GetFunction()
-				frame := &Frame{
+				frame := Frame{
 					Instructions: fn.Instructions,
 					NumVars:      fn.NumVars,
 					FreeVars:     fn.FreeVars,
@@ -748,7 +748,7 @@ func (v *VM) Run(frame *Frame, args int) Value {
 	}
 }
 
-func (v *VM) pushFrame(f *Frame, args int) {
+func (v *VM) pushFrame(f Frame, args int) {
 	v.fp++
 
 	for range f.NumVars - args {
@@ -759,13 +759,13 @@ func (v *VM) pushFrame(f *Frame, args int) {
 	}
 
 	v.callStack[v.fp] = f
-	v.curFrame = f
+	v.curFrame = &v.callStack[v.fp]
 }
 
 func (v *VM) popFrame() {
 	v.fp--
 	if v.fp >= 0 {
-		v.curFrame = v.callStack[v.fp]
+		v.curFrame = &v.callStack[v.fp]
 	} else {
 		v.curFrame = nil
 	}
@@ -779,7 +779,7 @@ func (v *VM) RunFunction(f Value, args ...Value) Value {
 		v.sp++
 		v.stack[v.sp] = arg
 	}
-	v.Run(&Frame{
+	v.Run(Frame{
 		Instructions: fn.Instructions,
 		NumVars:      fn.NumVars,
 		FreeVars:     fn.FreeVars,

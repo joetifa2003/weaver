@@ -312,8 +312,26 @@ func moduleIndexExpr() pargo.Parser[ast.Expr] {
 	)
 }
 
+func rangeExpr() pargo.Parser[ast.Expr] {
+	return pargo.Sequence3(
+		pargo.OneOf(
+			intExpr(),
+			floatExpr(),
+		),
+		pargo.Exactly(".."),
+		pargo.OneOf(
+			intExpr(),
+			floatExpr(),
+		),
+		func(start ast.Expr, _ string, end ast.Expr) ast.Expr {
+			return ast.RangeIteratorExpr{Start: start, End: end}
+		},
+	)
+}
+
 func atom() pargo.Parser[ast.Expr] {
 	return pargo.OneOf(
+		rangeExpr(),
 		intExpr(),
 		floatExpr(),
 		booleanExpr(),

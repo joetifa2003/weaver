@@ -77,7 +77,7 @@ func main() {
 
 					executor := vm.NewExecutor(constants)
 					val := executor.Run(
-						&vm.Frame{
+						vm.Frame{
 							Instructions: instructions,
 							NumVars:      vars,
 							HaltAfter:    true,

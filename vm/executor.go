@@ -22,8 +22,7 @@ func NewExecutor(constants []Value) *Executor {
 	}
 }
 
-func (e *Executor) Run(frame *Frame, args int) Value {
-
+func (e *Executor) Run(frame Frame, args int) Value {
 	e.l.RLock()
 	for _, vm := range e.Vms {
 		if vm.busy.CompareAndSwap(false, true) {

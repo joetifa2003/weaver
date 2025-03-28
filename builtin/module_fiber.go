@@ -8,7 +8,6 @@ import (
 
 func registerFiberModule(builder *RegistryBuilder) {
 	builder.RegisterModule("fiber", map[string]vm.Value{
-
 		"run": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
 			fnArg, ok := args.Get(0, vm.ValueTypeFunction)
 			if !ok {
@@ -19,7 +18,7 @@ func registerFiberModule(builder *RegistryBuilder) {
 
 			res := make(chan vm.Value)
 			go func() {
-				v := v.Executor.Run(&vm.Frame{
+				v := v.Executor.Run(vm.Frame{
 					Instructions: fn.Instructions,
 					NumVars:      fn.NumVars,
 					FreeVars:     fn.FreeVars,

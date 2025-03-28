@@ -747,6 +747,21 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 	case ast.NilExpr:
 		return NilExpr{}, nil
 
+	case ast.RangeIteratorExpr:
+		start, err := c.CompileExpr(e.Start)
+		if err != nil {
+			return nil, err
+		}
+		end, err := c.CompileExpr(e.End)
+		if err != nil {
+			return nil, err
+		}
+
+		return CallExpr{
+			Expr: BuiltInExpr{"range"},
+			Args: []Expr{start, end},
+		}, nil
+
 	case ast.TernaryExpr:
 		cond, err := c.CompileExpr(e.Expr)
 		if err != nil {

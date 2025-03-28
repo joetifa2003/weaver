@@ -3,6 +3,7 @@ package vm
 import (
 	"errors"
 	"fmt"
+	"iter"
 	"strconv"
 	"strings"
 	"sync"
@@ -31,6 +32,7 @@ const (
 	ValueTypeLock
 	ValueTypeChannel
 	ValueTypeTime
+	ValueTypeIterator
 )
 
 func (t ValueType) Is(other ...ValueType) bool {
@@ -78,6 +80,8 @@ func (t ValueType) String() string {
 		return "channel"
 	case ValueTypeTime:
 		return "time"
+	case ValueTypeIterator:
+		return "iterator"
 	default:
 		panic(fmt.Sprintf("unimplemented %d", t))
 	}
@@ -121,6 +125,15 @@ func (v *Value) SetTime(t time.Time) {
 
 func (v *Value) GetTime() time.Time {
 	return *(*time.Time)(v.nonPrimitive)
+}
+
+func (v *Value) SetIter(iter iter.Seq[Value]) {
+	v.VType = ValueTypeIterator
+	v.nonPrimitive = unsafe.Pointer(&iter)
+}
+
+func (v *Value) GetIter() iter.Seq[Value] {
+	return *(*iter.Seq[Value])(v.nonPrimitive)
 }
 
 type Task struct {
@@ -383,6 +396,12 @@ func NewTime(t time.Time) Value {
 	return val
 }
 
+func NewIter(iter iter.Seq[Value]) Value {
+	val := Value{}
+	val.SetIter(iter)
+	return val
+}
+
 func NewErrFromErr(err error) Value {
 	return NewError(err.Error(), Value{})
 }
@@ -449,6 +468,9 @@ func (v *Value) string(i int) string {
 
 	case ValueTypeTime:
 		return v.GetTime().String()
+
+	case ValueTypeIterator:
+		return "iterator"
 
 	default:
 		panic(fmt.Sprintf("Value.String(): unimplemented %T", v.VType))

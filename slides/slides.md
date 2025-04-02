@@ -387,7 +387,7 @@ if (len(arr) >= 4) {
 
 ```weaver
 n := 1
-what := n % 2 == 0 ? "even" : "odd"
+what := n % 2 == 0 ? "even" | "odd"
 echo(what) // "even"
 ```
 
@@ -450,15 +450,6 @@ match arr {
 ---
 
 ```weaver
-match [1, 2, 3, 4] {
-    // matches an array which has at least 4 elements, and binds the first and last elements to a and b
-    [a, _, __, b] => echo(a + b) // a=1; b=4; 5,
-}
-```
-
-<v-click>
-
-```weaver
 n := 15
 match n {
     0..10 => echo("n is between 0 and 10"),
@@ -467,24 +458,26 @@ match n {
 }
 ```
 
-</v-click>
-
 <v-click>
 
 ```weaver
-p := {
-    name: "Youssef",
-    bank: { debt: 100, cash: 10}
-};
+students := [
+    { name: "Youssef", gpa: 3.5 },
+    { name: "John", gpa: 1.5 },
+    { name: "Mahmoud", gpa: 2.0 },
+];
 
-match p {
-    { bank: { debt: d, cash: c} }
-    if d >= 1 && d - c >= 0 => {
-        echo("You have enough money to pay your debt");
-    },
-
-    _ => echo("You are still in debt"),
+for student in students {
+    match student {
+        { name, gpa: 0..1.5} => echo(name + " is good"),
+        { name, gpa: 2..5} => echo(name + " is really good"),
+    }
 }
+
+// output:
+// Youssef is good
+// John is good
+// Mahmoud is really good
 ```
 
 </v-click>
@@ -631,7 +624,7 @@ Weaver has a unique approach to error handling. Errors are values, just like num
 ```weaver
 // Example: Automatic error propagation
 divide := |a, b| {
-    b == 0 ? error("Division by zero", {divisor: b}) | return a / b;
+    return b == 0 ? error("Division by zero", {divisor: b}) | a / b;
 };
 
 result := divide(10, 0)
@@ -698,5 +691,17 @@ try {
   console.log(data);
 } catch (error) {
   console.error("An error occurred:", error);
+}
+```
+
+```weaver
+response := http:get("https://example.com/api/data")!
+match response {
+    error(msg, { status }) => {
+        echo("An error occurred: " + msg);
+    },
+    { body } => {
+        echo(body)
+    }
 }
 ```

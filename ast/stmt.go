@@ -31,6 +31,15 @@ type ForStmt struct {
 
 func (t ForStmt) stmt() {}
 
+type ForRangeStmt struct {
+	Variable string
+	Start    Expr
+	End      Expr
+	Body     Statement
+}
+
+func (t ForRangeStmt) stmt() {}
+
 type IfStmt struct {
 	Condition   Expr
 	Body        Statement

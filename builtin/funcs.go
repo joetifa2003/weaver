@@ -123,27 +123,4 @@ func registerBuiltinFuncs(builder *RegistryBuilder) {
 			return vm.NewError("invalid type for int()", vm.Value{})
 		}
 	})
-
-	builder.RegisterFunc("range", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-		startArg, ok := args.Get(0, vm.ValueTypeNumber)
-		if !ok {
-			return startArg
-		}
-
-		endArg, ok := args.Get(1, vm.ValueTypeNumber)
-		if !ok {
-			return endArg
-		}
-
-		start := startArg.GetNumber()
-		end := endArg.GetNumber()
-
-		return vm.NewIter(func(yield func(vm.Value) bool) {
-			for i := start; i <= end; i++ {
-				if !yield(vm.NewNumber(i)) {
-					return
-				}
-			}
-		})
-	})
 }

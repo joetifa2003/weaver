@@ -40,20 +40,53 @@ func whileStmt() pargo.Parser[ast.Statement] {
 }
 
 func forStmt() pargo.Parser[ast.Statement] {
-	return pargo.Sequence6(
-		pargo.Exactly("for"),
-		pargo.Lazy(stmt),
+	return pargo.OneOf(
+		pargo.Sequence6(
+			pargo.Exactly("for"),
+			pargo.Lazy(stmt),
+			pargo.Lazy(expr),
+			pargo.Exactly(";"),
+			pargo.Lazy(expr),
+			blockStmt(),
+			func(_ string, initStmt ast.Statement, condition ast.Expr, _ string, increment ast.Expr, body ast.Statement) ast.Statement {
+				return ast.ForStmt{
+					InitStmt:  initStmt,
+					Condition: condition,
+					Increment: increment,
+					Body:      body,
+				}
+			},
+		),
+		pargo.Sequence5(
+			pargo.Exactly("for"),
+			pargo.TokenType(TT_IDENT),
+			pargo.Exactly("in"),
+			rangeAtom(),
+			pargo.Lazy(stmt),
+			func(_ string, variable string, _ string, r rangeType, body ast.Statement) ast.Statement {
+				return ast.ForRangeStmt{
+					Variable: variable,
+					Start:    r.start,
+					End:      r.end,
+					Body:     body,
+				}
+			},
+		),
+	)
+}
+
+type rangeType struct {
+	start ast.Expr
+	end   ast.Expr
+}
+
+func rangeAtom() pargo.Parser[rangeType] {
+	return pargo.Sequence3(
 		pargo.Lazy(expr),
-		pargo.Exactly(";"),
+		pargo.Exactly(".."),
 		pargo.Lazy(expr),
-		blockStmt(),
-		func(_ string, initStmt ast.Statement, condition ast.Expr, _ string, increment ast.Expr, body ast.Statement) ast.Statement {
-			return ast.ForStmt{
-				InitStmt:  initStmt,
-				Condition: condition,
-				Increment: increment,
-				Body:      body,
-			}
+		func(start ast.Expr, _ string, end ast.Expr) rangeType {
+			return rangeType{start, end}
 		},
 	)
 }
@@ -171,13 +204,13 @@ func matchCondition() pargo.Parser[ast.MatchCaseCondition] {
 func matchRangeCondition() pargo.Parser[ast.MatchCaseCondition] {
 	return pargo.Sequence3(
 		pargo.OneOf(
-			intExpr(),
 			floatExpr(),
+			intExpr(),
 		),
 		pargo.Exactly(".."),
 		pargo.OneOf(
-			intExpr(),
 			floatExpr(),
+			intExpr(),
 		),
 		func(left ast.Expr, _ string, right ast.Expr) ast.MatchCaseCondition {
 			return ast.MatchCaseRange{Begin: left, End: right}

@@ -14,7 +14,6 @@ func init() {
 	registerHTTPModule(builder)
 	registerFiberModule(builder)
 	registerTimeModule(builder)
-	registerIterModule(builder)
 
 	registerModuleRL(builder)
 

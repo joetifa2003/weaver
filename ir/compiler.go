@@ -224,6 +224,22 @@ func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 
 		return res, nil
 
+	case ast.ForRangeStmt:
+		return c.CompileStmt(ast.ForStmt{
+			InitStmt: ast.LetStmt{
+				Name: s.Variable,
+				Expr: s.Start,
+			},
+			Condition: ast.BinaryExpr{
+				Operands: []ast.Expr{ast.IdentExpr{Name: s.Variable}, s.End},
+				Operator: ast.BinaryOpLte,
+			},
+			Increment: ast.VarIncrementExpr{
+				Name: s.Variable,
+			},
+			Body: s.Body,
+		})
+
 	case ast.MatchStmt:
 		outer := c.currentFrame().pushBlock()
 
@@ -746,21 +762,6 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 
 	case ast.NilExpr:
 		return NilExpr{}, nil
-
-	case ast.RangeIteratorExpr:
-		start, err := c.CompileExpr(e.Start)
-		if err != nil {
-			return nil, err
-		}
-		end, err := c.CompileExpr(e.End)
-		if err != nil {
-			return nil, err
-		}
-
-		return CallExpr{
-			Expr: BuiltInExpr{"range"},
-			Args: []Expr{start, end},
-		}, nil
 
 	case ast.TernaryExpr:
 		cond, err := c.CompileExpr(e.Expr)

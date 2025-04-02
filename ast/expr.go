@@ -177,10 +177,3 @@ type ReturnExpr struct {
 }
 
 func (t ReturnExpr) expr() {}
-
-type RangeIteratorExpr struct {
-	Start Expr
-	End   Expr
-}
-
-func (t RangeIteratorExpr) expr() {}

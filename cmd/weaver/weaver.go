@@ -51,12 +51,7 @@ func main() {
 
 					irout, err := os.Create("irout.wvr")
 					defer irout.Close()
-					res := ""
-					for _, s := range ircr.Statements {
-						res += s.String(0)
-						res += "\n"
-					}
-					_, err = irout.WriteString(res)
+					_, err = irout.WriteString(ircr.String())
 					if err != nil {
 						return err
 					}

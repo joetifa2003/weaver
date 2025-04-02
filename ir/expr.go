@@ -204,17 +204,20 @@ type FrameExpr struct {
 func (t FrameExpr) expr() {}
 
 func (t FrameExpr) String(indent int) string {
-	stmts := make([]string, 0, len(t.Body))
-	for _, stmt := range t.Body {
-		stmts = append(stmts, stmt.String(indent+1))
-	}
+	var b strings.Builder
+	indentStr := strings.Repeat("\t", indent)
+	innerIndentStr := strings.Repeat("\t", indent+1)
 
-	return fmt.Sprintf(
-		"@frame(vars:%d, freeVars:%d,) %s",
-		t.VarCount,
-		len(t.FreeVars),
-		strings.Join(stmts, "\n"),
-	)
+	b.WriteString(fmt.Sprintf("@frame(vars:%d, params:%d, freeVars:%d) {\n", t.VarCount, t.ParamsCount, len(t.FreeVars)))
+	for _, stmt := range t.Body {
+		b.WriteString(innerIndentStr)
+		b.WriteString(stmt.String(indent + 1))
+		b.WriteString("\n")
+	}
+	b.WriteString(indentStr)
+	b.WriteString("}")
+
+	return b.String()
 }
 
 type BinaryOp int
@@ -277,14 +280,13 @@ type BinaryExpr struct {
 func (t BinaryExpr) expr() {}
 
 func (t BinaryExpr) String(indent int) string {
+	// Binary expressions usually fit on one line, indentation level doesn't propagate inwards
 	res := make([]string, 0, len(t.Operands))
-	for i, expr := range t.Operands {
-		res = append(res, expr.String(indent))
-		if i != len(t.Operands)-1 {
-			res = append(res, t.Operator.String())
-		}
+	for _, expr := range t.Operands {
+		res = append(res, expr.String(0)) // Operands don't get extra indent
 	}
-	return fmt.Sprintf("(%s)", strings.Join(res, " "))
+	// Join operands with the operator
+	return fmt.Sprintf("(%s)", strings.Join(res, fmt.Sprintf(" %s ", t.Operator.String())))
 }
 
 type NilExpr struct{}
@@ -315,7 +317,7 @@ type IfExpr struct {
 func (t IfExpr) expr() {}
 
 func (t IfExpr) String(indent int) string {
-	return fmt.Sprintf("if (%s) %s else %s", t.Condition.String(indent), t.TrueExpr.String(indent), t.FalseExpr.String(indent))
+	return fmt.Sprintf("(%s ? %s | %s)", t.Condition.String(0), t.TrueExpr.String(0), t.FalseExpr.String(0))
 }
 
 type ReturnExpr struct {
@@ -325,7 +327,8 @@ type ReturnExpr struct {
 func (t ReturnExpr) expr() {}
 
 func (t ReturnExpr) String(i int) string {
-	return fmt.Sprintf("%sreturn %s", strings.Repeat("\t", i), t.Expr.String(i))
+	// Return expression itself doesn't add indent, but contains an expression
+	return fmt.Sprintf("return %s", t.Expr.String(0)) // Contained expr doesn't get extra indent
 }
 
 type IndexExpr struct {
@@ -336,7 +339,8 @@ type IndexExpr struct {
 func (t IndexExpr) expr() {}
 
 func (t IndexExpr) String(i int) string {
-	return fmt.Sprintf("%s[%s]", t.Expr.String(i), t.Index.String(i))
+	// Index expression itself doesn't add indent
+	return fmt.Sprintf("%s[%s]", t.Expr.String(0), t.Index.String(0)) // Contained exprs don't get extra indent
 }
 
 type CallExpr struct {
@@ -347,9 +351,10 @@ type CallExpr struct {
 func (t CallExpr) expr() {}
 
 func (t CallExpr) String(i int) string {
+	// Call expression itself doesn't add indent
 	res := make([]string, 0, len(t.Args))
 	for _, arg := range t.Args {
-		res = append(res, arg.String(i))
+		res = append(res, arg.String(0)) // Args don't get extra indent
 	}
-	return fmt.Sprintf("%s(%s)", t.Expr.String(i), strings.Join(res, ", "))
+	return fmt.Sprintf("%s(%s)", t.Expr.String(0), strings.Join(res, ", ")) // Callee doesn't get extra indent
 }

@@ -15,6 +15,16 @@ type Statement interface {
 	String(indent int) string
 }
 
+func (p *Program) String() string {
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf("# VarCount: %d\n", p.VarCount))
+	for _, stmt := range p.Statements {
+		b.WriteString(stmt.String(0))
+		b.WriteString("\n")
+	}
+	return b.String()
+}
+
 type BlockStmt struct {
 	Statements []Statement
 }
@@ -22,11 +32,20 @@ type BlockStmt struct {
 func (t BlockStmt) stmt() {}
 
 func (t BlockStmt) String(i int) string {
-	res := make([]string, 0, len(t.Statements))
+	var b strings.Builder
+	indentStr := strings.Repeat("\t", i)
+	innerIndentStr := strings.Repeat("\t", i+1)
+
+	b.WriteString("{\n")
 	for _, stmt := range t.Statements {
-		res = append(res, stmt.String(i+1))
+		b.WriteString(innerIndentStr)
+		b.WriteString(stmt.String(i + 1))
+		b.WriteString("\n")
 	}
-	return fmt.Sprintf("%s{\n%s\n%s}", strings.Repeat("\t", i), strings.Join(res, "\n"), strings.Repeat("\t", i))
+	b.WriteString(indentStr)
+	b.WriteString("}")
+
+	return b.String()
 }
 
 type LoopStmt struct {
@@ -36,7 +55,7 @@ type LoopStmt struct {
 func (t LoopStmt) stmt() {}
 
 func (t LoopStmt) String(i int) string {
-	return fmt.Sprintf("%sloop %s", strings.Repeat("\t", i), t.Body.String(i+1))
+	return fmt.Sprintf("loop %s", t.Body.String(i))
 }
 
 type IfStmt struct {
@@ -48,22 +67,16 @@ type IfStmt struct {
 func (t IfStmt) stmt() {}
 
 func (t IfStmt) String(i int) string {
-	var res []string
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf("if (%s) ", t.Condition.String(i)))
+	b.WriteString(t.Body.String(i))
+
 	if t.Alternative != nil {
-		res = append(res, fmt.Sprintf(
-			"%sif %s {\n%s\n%s} else {\n%s\n%s}",
-			strings.Repeat("\t", i),
-			t.Condition.String(i),
-			t.Body.String(i+1),
-			strings.Repeat("\t", i),
-			(*t.Alternative).String(i+1),
-			strings.Repeat("\t", i),
-		),
-		)
-	} else {
-		res = append(res, fmt.Sprintf("%sif %s {\n%s\n%s}", strings.Repeat("\t", i), t.Condition.String(i), t.Body.String(i+1), strings.Repeat("\t", i)))
+		b.WriteString(" else ")
+		b.WriteString((*t.Alternative).String(i))
 	}
-	return strings.Join(res, "\n")
+
+	return b.String()
 }
 
 type ExpressionStmt struct {
@@ -73,7 +86,7 @@ type ExpressionStmt struct {
 func (t ExpressionStmt) stmt() {}
 
 func (t ExpressionStmt) String(i int) string {
-	return fmt.Sprintf("%s%s", strings.Repeat("\t", i), t.Expr.String(i))
+	return t.Expr.String(i)
 }
 
 type ContinueStmt struct {
@@ -83,7 +96,7 @@ type ContinueStmt struct {
 func (t ContinueStmt) stmt() {}
 
 func (t ContinueStmt) String(i int) string {
-	return strings.Repeat("\t", i) + "continue"
+	return "continue"
 }
 
 type BreakStmt struct{}
@@ -91,5 +104,5 @@ type BreakStmt struct{}
 func (t BreakStmt) stmt() {}
 
 func (t BreakStmt) String(i int) string {
-	return strings.Repeat("\t", i) + "break"
+	return "break"
 }

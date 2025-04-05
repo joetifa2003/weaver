@@ -12,6 +12,8 @@ type frame struct {
 	FreeVars   []*basicVar
 	Blocks     *ds.Stack[*basicBlock]
 	Statements []Statement
+	Labels     *ds.Set[string]
+	gotos      *ds.Set[string]
 }
 
 func NewFrame(parent *frame) *frame {
@@ -19,6 +21,8 @@ func NewFrame(parent *frame) *frame {
 		Parent: parent,
 		Vars:   []*basicVar{},
 		Blocks: ds.NewStack[*basicBlock](&basicBlock{}),
+		Labels: ds.NewSet[string](),
+		gotos:  ds.NewSet[string](),
 	}
 }
 
@@ -98,17 +102,42 @@ func (c *frame) pushStmt(s Statement) {
 	c.Statements = append(c.Statements, s)
 }
 
-func (c *frame) export() FrameExpr {
+var ErrLabelAlreadyDefined = fmt.Errorf("label already defined")
+
+func (c *frame) defineLabel(name string) error {
+	if c.Labels.Contains(name) {
+		return ErrLabelAlreadyDefined
+	}
+
+	c.Labels.Add(name)
+
+	return nil
+}
+
+func (c *frame) registerGoto(name string) {
+	c.gotos.Add(name)
+}
+
+var ErrLabelNotDefined = fmt.Errorf("label not defined")
+
+func (c *frame) export() (FrameExpr, error) {
+	for gotoo := range c.gotos.Iter() {
+		if !c.Labels.Contains(gotoo) {
+			return FrameExpr{}, fmt.Errorf("%w: %s", ErrLabelNotDefined, gotoo)
+		}
+	}
+
 	f := FrameExpr{
 		VarCount: len(c.Vars),
 		Body:     c.Statements,
+		Labels:   c.Labels.Items(),
 	}
 
 	for _, v := range c.FreeVars {
 		f.FreeVars = append(f.FreeVars, v.Parent.export())
 	}
 
-	return f
+	return f, nil
 }
 
 type VarScope int

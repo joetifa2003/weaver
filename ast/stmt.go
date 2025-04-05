@@ -146,3 +146,15 @@ type MatchCaseOr struct {
 }
 
 func (t MatchCaseOr) matchCaseCondition() {}
+
+type LabelStmt struct {
+	Name string
+}
+
+func (t LabelStmt) stmt() {}
+
+type GotoStmt struct {
+	Name string
+}
+
+func (t GotoStmt) stmt() {}

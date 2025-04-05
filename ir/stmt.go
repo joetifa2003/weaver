@@ -8,6 +8,7 @@ import (
 type Program struct {
 	VarCount   int
 	Statements []Statement
+	Labels     []string
 }
 
 type Statement interface {
@@ -105,4 +106,24 @@ func (t BreakStmt) stmt() {}
 
 func (t BreakStmt) String(i int) string {
 	return "break"
+}
+
+type LabelStmt struct {
+	Name string
+}
+
+func (t LabelStmt) stmt() {}
+
+func (t LabelStmt) String(i int) string {
+	return fmt.Sprintf("label %s", t.Name)
+}
+
+type GotoStmt struct {
+	Name string
+}
+
+func (t GotoStmt) stmt() {}
+
+func (t GotoStmt) String(i int) string {
+	return fmt.Sprintf("goto %s", t.Name)
 }

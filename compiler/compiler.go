@@ -18,6 +18,11 @@ type Compiler struct {
 	functionsIdx        []int
 	labelCounter        int
 	reg                 *builtin.Registry
+	frameContext        *ds.Stack[*frameContext]
+}
+
+type frameContext struct {
+	labels map[string]int
 }
 
 type loopContext struct {
@@ -38,7 +43,8 @@ func New(reg *builtin.Registry, opts ...CompilerOption) *Compiler {
 	nilValue.SetNil()
 
 	c := &Compiler{
-		loopContext: &ds.Stack[loopContext]{},
+		loopContext:  &ds.Stack[loopContext]{},
+		frameContext: &ds.Stack[*frameContext]{},
 		constants: []vm.Value{
 			nilValue,
 		},
@@ -56,6 +62,13 @@ func New(reg *builtin.Registry, opts ...CompilerOption) *Compiler {
 func (c *Compiler) Compile(p ir.Program) ([]opcode.OpCode, int, []vm.Value, error) {
 	var instructions []opcode.OpCode
 
+	c.pushFrameContext()
+
+	for _, label := range p.Labels {
+		c.frameContext.Peek().labels[label] = c.label()
+	}
+	fmt.Println(c.frameContext.Peek().labels)
+
 	for _, s := range p.Statements {
 		r, err := c.compileStmt(s)
 		if err != nil {
@@ -63,6 +76,9 @@ func (c *Compiler) Compile(p ir.Program) ([]opcode.OpCode, int, []vm.Value, erro
 		}
 		instructions = append(instructions, r...)
 	}
+
+	c.popFrameContext()
+
 	instructions = append(instructions, opcode.OP_HALT)
 	if c.optimizationEnabled {
 		instructions = c.optimize(instructions)
@@ -78,6 +94,16 @@ func (c *Compiler) Compile(p ir.Program) ([]opcode.OpCode, int, []vm.Value, erro
 	}
 
 	return instructions, p.VarCount, c.constants, nil
+}
+
+func (c *Compiler) pushFrameContext() {
+	c.frameContext.Push(&frameContext{
+		labels: map[string]int{},
+	})
+}
+
+func (c *Compiler) popFrameContext() {
+	c.frameContext.Pop()
 }
 
 func (c *Compiler) handleLabels(instructions []opcode.OpCode) []opcode.OpCode {
@@ -122,6 +148,19 @@ func (c *Compiler) handleLabels(instructions []opcode.OpCode) []opcode.OpCode {
 
 func (c *Compiler) compileStmt(s ir.Statement) ([]opcode.OpCode, error) {
 	switch s := s.(type) {
+	case ir.LabelStmt:
+		return []opcode.OpCode{
+			opcode.OP_LABEL,
+			opcode.OpCode(c.frameContext.Peek().labels[s.Name]),
+		}, nil
+
+	case ir.GotoStmt:
+		label := c.frameContext.Peek().labels[s.Name]
+		return []opcode.OpCode{
+			opcode.OP_JUMP,
+			opcode.OpCode(label),
+		}, nil
+
 	case ir.BlockStmt:
 		instructions := []opcode.OpCode{}
 		for _, stmt := range s.Statements {

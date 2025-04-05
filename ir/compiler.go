@@ -57,16 +57,31 @@ func (c *Compiler) Compile(p ast.Program) (Program, error) {
 		c.currentFrame().pushStmt(stmtIr)
 	}
 
-	res := c.popFrame().export()
+	res, err := c.popFrame().export()
+	if err != nil {
+		return Program{}, err
+	}
 
 	return Program{
 		VarCount:   res.VarCount,
 		Statements: res.Body,
+		Labels:     res.Labels,
 	}, nil
 }
 
 func (c *Compiler) CompileStmt(s ast.Statement) (Statement, error) {
 	switch s := s.(type) {
+	case ast.LabelStmt:
+		err := c.currentFrame().defineLabel(s.Name)
+		if err != nil {
+			return nil, err
+		}
+		return LabelStmt{Name: s.Name}, nil
+
+	case ast.GotoStmt:
+		c.currentFrame().registerGoto(s.Name)
+		return GotoStmt{Name: s.Name}, nil
+
 	case ast.BreakStmt:
 		return BreakStmt{}, nil
 
@@ -739,7 +754,10 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 
 		frame.pushStmt(body)
 
-		frameExpr := c.popFrame().export()
+		frameExpr, err := c.popFrame().export()
+		if err != nil {
+			return nil, err
+		}
 		frameExpr.ParamsCount = len(e.Params)
 
 		return frameExpr, nil

@@ -368,6 +368,26 @@ func matchCaseIdent() pargo.Parser[ast.MatchCaseCondition] {
 	)
 }
 
+func labelStmt() pargo.Parser[ast.Statement] {
+	return pargo.Sequence2(
+		pargo.TokenType(TT_IDENT),
+		pargo.Exactly(":"),
+		func(s string, _ string) ast.Statement {
+			return ast.LabelStmt{Name: s}
+		},
+	)
+}
+
+func gotoStmt() pargo.Parser[ast.Statement] {
+	return pargo.Sequence2(
+		pargo.Exactly("goto"),
+		pargo.TokenType(TT_IDENT),
+		func(_ string, name string) ast.Statement {
+			return ast.GotoStmt{Name: name}
+		},
+	)
+}
+
 func stmt() pargo.Parser[ast.Statement] {
 	return pargo.OneOf(
 		varDeclStmt(),
@@ -378,6 +398,8 @@ func stmt() pargo.Parser[ast.Statement] {
 		continueStmt(),
 		breakStmt(),
 		matchStmt(),
+		labelStmt(),
+		gotoStmt(),
 
 		// keep this at the end
 		exprStmt(),

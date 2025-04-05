@@ -199,6 +199,7 @@ type FrameExpr struct {
 	ParamsCount int
 	FreeVars    []Var
 	Body        []Statement
+	Labels      []string
 }
 
 func (t FrameExpr) expr() {}

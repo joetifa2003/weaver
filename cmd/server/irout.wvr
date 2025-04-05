@@ -1,0 +1,2 @@
+# VarCount: 1
+(@isError(v0_local = @echo("Hello World!")) ? return v0_local | v0_local)

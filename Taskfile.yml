@@ -3,7 +3,6 @@ tasks:
   all:
     deps:
       - test
-      - build
       - install
 
   test:
@@ -19,3 +18,18 @@ tasks:
     dir: cmd/weaver
     cmds:
       - go install .
+
+  slides:
+    deps:
+      - server
+      - slides-dev
+
+  slides-dev:
+    dir: slides
+    cmds:
+      - pnpm dev
+
+  server:
+    dir: cmd/server
+    cmds:
+      - go run main.go

@@ -1,0 +1,90 @@
+# .goreleaser.yml
+
+# Cross-compiler installation commands for Debian/Ubuntu amd64 host:
+#
+# Prerequisites: Ensure multi-arch support is enabled
+#   sudo dpkg --add-architecture i386
+#   sudo apt-get update
+#
+# For Windows:
+#   sudo apt-get install gcc-mingw-w64
+#
+# For Linux (amd64 - host architecture):
+#   Install CGo dependencies for the native build (if CGO_ENABLED=1)
+#   sudo apt-get install libgl1-mesa-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev libwayland-dev libxkbcommon-dev
+#
+# For Linux (386 cross-compilation):
+#   Install cross-compiler and C standard library headers:
+#   sudo apt-get install gcc-i686-linux-gnu libc6-dev-i386-cross
+#   Install required CGo dependency development libraries for the i386 target:
+#   sudo apt-get install \
+#       libgl1-mesa-dev:i386 libxi-dev:i386 libxcursor-dev:i386 \
+#       libxrandr-dev:i386 libxinerama-dev:i386 libwayland-dev:i386 \
+#       libxkbcommon-dev:i386
+#
+
+version: 2
+
+project_name: weaver
+
+builds:
+  # === Linux ===
+  - id: linux-amd64
+    main: ./cmd/weaver
+    goos: [linux]
+    goarch: [amd64]
+    ldflags: [-s -w]
+    env:
+      - CGO_ENABLED=1 # Requires native -dev packages listed above
+
+  - id: linux-386
+    main: ./cmd/weaver
+    goos: [linux]
+    goarch: ['386']
+    ldflags: [-s -w]
+    env:
+      - CGO_ENABLED=1
+      - CC=i686-linux-gnu-gcc
+      - CXX=i686-linux-gnu-g++
+      # Requires i386 cross-compiler, libc6-dev-i386-cross, and lib*-dev:i386 packages listed above
+
+  # === Windows ===
+  - id: windows-amd64
+    main: ./cmd/weaver
+    goos: [windows]
+    goarch: [amd64]
+    ldflags: [-s -w]
+    env:
+      - CGO_ENABLED=1
+      - CC=x86_64-w64-mingw32-gcc
+      - CXX=x86_64-w64-mingw32-g++
+
+  - id: windows-386
+    main: ./cmd/weaver
+    goos: [windows]
+    goarch: ['386']
+    ldflags: [-s -w]
+    env:
+      - CGO_ENABLED=1
+      - CC=i686-w64-mingw32-gcc
+      - CXX=i686-w64-mingw32-g++
+
+archives:
+  - formats: [tar.gz]
+    # Adjusted template slightly - removed the explicit arm condition since arm builds are gone.
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"

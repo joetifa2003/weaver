@@ -369,10 +369,11 @@ func matchCaseIdent() pargo.Parser[ast.MatchCaseCondition] {
 }
 
 func labelStmt() pargo.Parser[ast.Statement] {
-	return pargo.Sequence2(
+	return pargo.Sequence3(
+		pargo.Exactly("label"),
 		pargo.TokenType(TT_IDENT),
 		pargo.Exactly(":"),
-		func(s string, _ string) ast.Statement {
+		func(_ string, s string, _ string) ast.Statement {
 			return ast.LabelStmt{Name: s}
 		},
 	)

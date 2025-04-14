@@ -284,10 +284,11 @@ func registerTimeModule(builder *RegistryBuilder) {
 			}
 			t := timeArg.GetTime()
 			hour, min, sec := t.Clock()
-			return vm.NewArray([]vm.Value{
-				vm.NewNumber(float64(hour)),
-				vm.NewNumber(float64(min)),
-				vm.NewNumber(float64(sec)),
+
+			return vm.NewObject(map[string]vm.Value{
+				"hour":   vm.NewNumber(float64(hour)),
+				"minute": vm.NewNumber(float64(min)),
+				"second": vm.NewNumber(float64(sec)),
 			})
 		}),
 

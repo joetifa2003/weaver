@@ -46,7 +46,6 @@ builds:
       - CGO_ENABLED=1
       - CC=i686-linux-gnu-gcc
       - CXX=i686-linux-gnu-g++
-      # Requires i386 cross-compiler, libc6-dev-i386-cross, and lib*-dev:i386 packages listed above
 
   # === Windows ===
   - id: windows-amd64
@@ -69,9 +68,15 @@ builds:
       - CC=i686-w64-mingw32-gcc
       - CXX=i686-w64-mingw32-g++
 
+  - id: darwin
+    main: ./cmd/weaver
+    goos: [darwin]
+    ldflags: [-s -w]
+    env:
+      - CGO_ENABLED=0 # until we have a native build for darwin
+
 archives:
   - formats: [tar.gz]
-    # Adjusted template slightly - removed the explicit arm condition since arm builds are gone.
     name_template: >-
       {{ .ProjectName }}_
       {{- title .Os }}_

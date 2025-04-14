@@ -317,6 +317,10 @@ func (a NativeFunctionArgs) Get(i int, types ...ValueType) (Value, bool) {
 	return CheckValueType(a[i], types...)
 }
 
+func (a NativeFunctionArgs) Len() int {
+	return len(a)
+}
+
 func CheckValueType(val Value, types ...ValueType) (Value, bool) {
 	if val.VType.Is(types...) {
 		return val, true

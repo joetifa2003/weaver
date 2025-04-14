@@ -1,18 +1,31 @@
 package builtin
 
-import "github.com/joetifa2003/weaver/vm"
+import (
+	"github.com/joetifa2003/weaver/vm"
+)
 
 func registerBuiltinFuncsArr(builder *RegistryBuilder) {
 	builder.RegisterFunc("makeArr", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-		val, ok := args.Get(0)
+		length := 0
+		capacity := 0
+
+		lengthArg, ok := args.Get(0)
 		if !ok {
-			return val
+			return lengthArg
 		}
 
-		res := vm.Value{}
-		arr := make([]vm.Value, int(val.GetNumber()))
-		res.SetArray(arr)
-		return res
+		length = int(lengthArg.GetNumber())
+
+		if args.Len() > 1 {
+			capacityArg, ok := args.Get(1)
+			if !ok {
+				return capacityArg
+			}
+			capacity = int(capacityArg.GetNumber())
+			return vm.NewArray(make([]vm.Value, length, capacity))
+		}
+
+		return vm.NewArray(make([]vm.Value, length))
 	})
 
 	builder.RegisterFunc("push", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {

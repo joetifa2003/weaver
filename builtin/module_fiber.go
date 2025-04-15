@@ -3,10 +3,11 @@ package builtin
 import (
 	"sync"
 
+	"github.com/joetifa2003/weaver/registry"
 	"github.com/joetifa2003/weaver/vm"
 )
 
-func registerFiberModule(builder *RegistryBuilder) {
+func registerFiberModule(builder *registry.RegistryBuilder) {
 	builder.RegisterModule("fiber", map[string]vm.Value{
 		"run": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
 			fnArg, ok := args.Get(0, vm.ValueTypeFunction)
@@ -22,6 +23,7 @@ func registerFiberModule(builder *RegistryBuilder) {
 					Instructions: fn.Instructions,
 					NumVars:      fn.NumVars,
 					FreeVars:     fn.FreeVars,
+					Constants:    fn.Constants,
 					HaltAfter:    true,
 				}, 0)
 				res <- v

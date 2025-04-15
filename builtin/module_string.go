@@ -4,10 +4,11 @@ import (
 	"strings"
 
 	"github.com/joetifa2003/weaver/internal/pkg/helpers"
+	"github.com/joetifa2003/weaver/registry"
 	"github.com/joetifa2003/weaver/vm"
 )
 
-func registerStringModule(builder *RegistryBuilder) {
+func registerStringModule(builder *registry.RegistryBuilder) {
 	builder.RegisterModule("strings", map[string]vm.Value{
 		"concat": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
 			var res string

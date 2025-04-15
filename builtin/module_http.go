@@ -5,10 +5,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/joetifa2003/weaver/registry"
 	"github.com/joetifa2003/weaver/vm"
 )
 
-func registerHTTPModule(builder *RegistryBuilder) {
+func registerHTTPModule(builder *registry.RegistryBuilder) {
 	m := map[string]vm.Value{
 		"request": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
 			// Get the options object

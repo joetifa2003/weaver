@@ -278,6 +278,8 @@ type FunctionValue struct {
 	NumVars      int
 	Instructions []opcode.OpCode
 	FreeVars     []Value
+	Constants    []Value
+	Path         string
 }
 
 func (v *Value) SetFunction(f FunctionValue) {

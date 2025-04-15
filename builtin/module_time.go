@@ -3,10 +3,11 @@ package builtin
 import (
 	"time"
 
+	"github.com/joetifa2003/weaver/registry"
 	"github.com/joetifa2003/weaver/vm"
 )
 
-func registerTimeModule(builder *RegistryBuilder) {
+func registerTimeModule(builder *registry.RegistryBuilder) {
 	m := map[string]vm.Value{
 		// --- Time Constants ---
 		"ansic":       vm.NewString(time.ANSIC),

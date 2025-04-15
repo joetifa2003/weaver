@@ -9,6 +9,7 @@ type Program struct {
 	VarCount   int
 	Statements []Statement
 	Labels     []string
+	Path       string
 }
 
 type Statement interface {

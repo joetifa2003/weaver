@@ -3,26 +3,25 @@ package compiler
 import (
 	"fmt"
 
-	"github.com/joetifa2003/weaver/builtin"
 	"github.com/joetifa2003/weaver/internal/pkg/ds"
 	"github.com/joetifa2003/weaver/internal/pkg/helpers"
 	"github.com/joetifa2003/weaver/ir"
 	"github.com/joetifa2003/weaver/opcode"
+	"github.com/joetifa2003/weaver/registry"
 	"github.com/joetifa2003/weaver/vm"
 )
 
 type Compiler struct {
-	constants           []vm.Value
-	optimizationEnabled bool
-	loopContext         *ds.Stack[loopContext]
-	functionsIdx        []int
-	labelCounter        int
-	reg                 *builtin.Registry
-	frameContext        *ds.Stack[*frameContext]
+	loopContext  *ds.Stack[loopContext]
+	labelCounter int
+	reg          *registry.Registry
+	frameContext *ds.Stack[*frameContext]
+	path         string
 }
 
 type frameContext struct {
-	labels map[string]int
+	labels    map[string]int
+	constants []vm.Value
 }
 
 type loopContext struct {
@@ -30,30 +29,11 @@ type loopContext struct {
 	loopEnd   int
 }
 
-type CompilerOption func(*Compiler)
-
-func WithOptimization(enabled bool) CompilerOption {
-	return func(c *Compiler) {
-		c.optimizationEnabled = enabled
-	}
-}
-
-func New(reg *builtin.Registry, opts ...CompilerOption) *Compiler {
-	nilValue := vm.Value{}
-	nilValue.SetNil()
-
+func New(reg *registry.Registry) *Compiler {
 	c := &Compiler{
 		loopContext:  &ds.Stack[loopContext]{},
 		frameContext: &ds.Stack[*frameContext]{},
-		constants: []vm.Value{
-			nilValue,
-		},
-		optimizationEnabled: true,
-		reg:                 reg,
-	}
-
-	for _, opt := range opts {
-		opt(c)
+		reg:          reg,
 	}
 
 	return c
@@ -62,12 +42,13 @@ func New(reg *builtin.Registry, opts ...CompilerOption) *Compiler {
 func (c *Compiler) Compile(p ir.Program) ([]opcode.OpCode, int, []vm.Value, error) {
 	var instructions []opcode.OpCode
 
+	c.path = p.Path
+
 	c.pushFrameContext()
 
 	for _, label := range p.Labels {
 		c.frameContext.Peek().labels[label] = c.label()
 	}
-	fmt.Println(c.frameContext.Peek().labels)
 
 	for _, s := range p.Statements {
 		r, err := c.compileStmt(s)
@@ -77,33 +58,33 @@ func (c *Compiler) Compile(p ir.Program) ([]opcode.OpCode, int, []vm.Value, erro
 		instructions = append(instructions, r...)
 	}
 
-	c.popFrameContext()
+	frameContext := c.popFrameContext()
 
 	instructions = append(instructions, opcode.OP_HALT)
-	if c.optimizationEnabled {
-		instructions = c.optimize(instructions)
-	}
+	instructions = c.optimize(instructions)
 	instructions = c.handleLabels(instructions)
 
-	for _, f := range c.functionsIdx {
-		fn := c.constants[f].GetFunction()
-		if c.optimizationEnabled {
-			fn.Instructions = c.optimize(fn.Instructions)
-		}
-		fn.Instructions = c.handleLabels(fn.Instructions)
-	}
-
-	return instructions, p.VarCount, c.constants, nil
+	return instructions, p.VarCount, frameContext.constants, nil
 }
 
 func (c *Compiler) pushFrameContext() {
+	nilValue := vm.Value{}
+	nilValue.SetNil()
+
 	c.frameContext.Push(&frameContext{
 		labels: map[string]int{},
+		constants: []vm.Value{
+			nilValue,
+		},
 	})
 }
 
-func (c *Compiler) popFrameContext() {
-	c.frameContext.Pop()
+func (c *Compiler) currentFrameContext() *frameContext {
+	return c.frameContext.Peek()
+}
+
+func (c *Compiler) popFrameContext() *frameContext {
+	return c.frameContext.Pop()
 }
 
 func (c *Compiler) handleLabels(instructions []opcode.OpCode) []opcode.OpCode {
@@ -387,12 +368,16 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 
 	case ir.FrameExpr:
 		var frameBodyInstructions []opcode.OpCode
+
+		c.pushFrameContext()
 		body, err := c.compileStmt(ir.BlockStmt{
 			Statements: e.Body,
 		})
 		if err != nil {
 			return nil, err
 		}
+		frameCtx := c.popFrameContext()
+
 		frameBodyInstructions = append(frameBodyInstructions, body...)
 		// default return
 		frameBodyInstructions = append(frameBodyInstructions,
@@ -402,17 +387,20 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 			opcode.OP_RET,
 		)
 
+		frameBodyInstructions = c.optimize(frameBodyInstructions)
+		frameBodyInstructions = c.handleLabels(frameBodyInstructions)
+
 		fnValue := vm.Value{}
 		fnValue.SetFunction(vm.FunctionValue{
 			NumVars:      e.VarCount,
 			Instructions: frameBodyInstructions,
+			Path:         c.path,
+			Constants:    frameCtx.constants,
 		})
 
 		constant := c.defineConstant(fnValue)
-		c.functionsIdx = append(c.functionsIdx, constant)
 
 		var instructions []opcode.OpCode
-
 		for _, freeVar := range helpers.ReverseIter(e.FreeVars) {
 			instructions = append(instructions, c.loadVar(freeVar, opcode.OP_UPGRADE_REF)...)
 		}
@@ -721,8 +709,9 @@ func (c *Compiler) unaryOperatorOpcode(operator ir.UnaryOp) opcode.OpCode {
 }
 
 func (c *Compiler) defineConstant(v vm.Value) int {
-	c.constants = append(c.constants, v)
-	return len(c.constants) - 1
+	frameContext := c.currentFrameContext()
+	frameContext.constants = append(frameContext.constants, v)
+	return len(frameContext.constants) - 1
 }
 
 func (c *Compiler) label() int {

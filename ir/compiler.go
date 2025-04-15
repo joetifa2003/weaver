@@ -46,7 +46,7 @@ func (c *Compiler) currentFrame() *frame {
 	return c.frames.Peek()
 }
 
-func (c *Compiler) Compile(p ast.Program) (Program, error) {
+func (c *Compiler) Compile(path string, p ast.Program) (Program, error) {
 	c.pushFrame()
 
 	for _, stmt := range p.Statements {
@@ -66,6 +66,7 @@ func (c *Compiler) Compile(p ast.Program) (Program, error) {
 		VarCount:   res.VarCount,
 		Statements: res.Body,
 		Labels:     res.Labels,
+		Path:       path,
 	}, nil
 }
 

@@ -10,6 +10,7 @@ import (
 	"github.com/joetifa2003/weaver/compiler"
 	"github.com/joetifa2003/weaver/ir"
 	"github.com/joetifa2003/weaver/parser"
+	"github.com/joetifa2003/weaver/registry"
 	"github.com/joetifa2003/weaver/vm"
 )
 
@@ -711,24 +712,25 @@ func TestVM(t *testing.T) {
 				assert.NoError(err)
 
 				irc := ir.NewCompiler()
-				ircr, err := irc.Compile(p)
+				ircr, err := irc.Compile("<test>", p)
 				assert.NoError(err)
 
-				reg := builtin.NewRegBuilderFrom(builtin.StdReg).
+				reg := registry.NewRegBuilderFrom(builtin.StdReg).
 					RegisterFunc("tempDir", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
 						return vm.NewString(t.TempDir())
 					}).
 					Build()
-				c := compiler.New(reg, compiler.WithOptimization(opt))
+				c := compiler.New(reg)
 				instructions, vars, constants, err := c.Compile(ircr)
 				assert.NoError(err)
 
-				executor := vm.NewExecutor(constants)
+				executor := vm.NewExecutor()
 				val := executor.Run(
 					vm.Frame{
 						Instructions: instructions,
 						NumVars:      vars,
 						HaltAfter:    true,
+						Constants:    constants,
 					},
 					0,
 				)

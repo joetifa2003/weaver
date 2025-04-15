@@ -15,6 +15,8 @@ type Frame struct {
 	FreeVars     []Value
 	HaltAfter    bool
 	NumVars      int
+	Path         string
+	Constants    []Value
 
 	ip          int
 	stackOffset int
@@ -25,19 +27,17 @@ type VM struct {
 	Executor  *Executor
 	stack     [MaxStack]Value
 	callStack [MaxCallStack]Frame
-	constants []Value
 	curFrame  *Frame
 
 	sp int
 	fp int
 }
 
-func New(constants []Value, executor *Executor) *VM {
+func New(executor *Executor) *VM {
 	vm := &VM{
-		Executor:  executor,
-		constants: constants,
-		sp:        -1,
-		fp:        -1,
+		Executor: executor,
+		sp:       -1,
+		fp:       -1,
 	}
 
 	return vm
@@ -45,7 +45,7 @@ func New(constants []Value, executor *Executor) *VM {
 
 var scopeGettersDeref = [4]func(v *VM, idx int) *Value{
 	opcode.ScopeTypeConst: func(v *VM, idx int) *Value {
-		return v.constants[idx].deref()
+		return v.curFrame.Constants[idx].deref()
 	},
 	opcode.ScopeTypeGlobal: func(v *VM, idx int) *Value {
 		return v.stack[idx].deref()
@@ -60,7 +60,7 @@ var scopeGettersDeref = [4]func(v *VM, idx int) *Value{
 
 var scopeGetters = [4]func(v *VM, idx int) *Value{
 	opcode.ScopeTypeConst: func(v *VM, idx int) *Value {
-		return &v.constants[idx]
+		return &v.curFrame.Constants[idx]
 	},
 	opcode.ScopeTypeGlobal: func(v *VM, idx int) *Value {
 		return &v.stack[idx]
@@ -71,6 +71,10 @@ var scopeGetters = [4]func(v *VM, idx int) *Value{
 	opcode.ScopeTypeFree: func(v *VM, idx int) *Value {
 		return &v.curFrame.FreeVars[idx]
 	},
+}
+
+func (v *VM) CurrentFrame() *Frame {
+	return v.curFrame
 }
 
 func (v *VM) Run(frame Frame, args int) Value {
@@ -210,6 +214,7 @@ func (v *VM) Run(frame Frame, args int) Value {
 			emptyFunc.FreeVars = f.FreeVars
 			emptyFunc.Instructions = f.Instructions
 			emptyFunc.NumVars = f.NumVars
+			emptyFunc.Constants = f.Constants
 			v.curFrame.ip += 3
 
 		case opcode.OP_FUNC:
@@ -223,7 +228,7 @@ func (v *VM) Run(frame Frame, args int) Value {
 				v.sp--
 			}
 
-			fn := *v.constants[constantIndex].GetFunction()
+			fn := *v.curFrame.Constants[constantIndex].GetFunction()
 			fn.FreeVars = freeVars
 			v.sp++
 			v.stack[v.sp].SetFunction(fn)
@@ -415,6 +420,8 @@ func (v *VM) Run(frame Frame, args int) Value {
 					Instructions: fn.Instructions,
 					NumVars:      fn.NumVars,
 					FreeVars:     fn.FreeVars,
+					Constants:    fn.Constants,
+					Path:         v.curFrame.Path,
 					ip:           0,
 					stackOffset:  argsBegin,
 					returnAddr:   calleeIdx,
@@ -783,6 +790,7 @@ func (v *VM) RunFunction(f Value, args ...Value) Value {
 		Instructions: fn.Instructions,
 		NumVars:      fn.NumVars,
 		FreeVars:     fn.FreeVars,
+		Constants:    fn.Constants,
 		HaltAfter:    true,
 		ip:           0,
 		stackOffset:  retAddr + 1,

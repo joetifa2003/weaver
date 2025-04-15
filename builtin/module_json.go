@@ -3,10 +3,11 @@ package builtin
 import (
 	"encoding/json"
 
+	"github.com/joetifa2003/weaver/registry"
 	"github.com/joetifa2003/weaver/vm"
 )
 
-func registerJSONModule(builder *RegistryBuilder) {
+func registerJSONModule(builder *registry.RegistryBuilder) {
 	builder.RegisterModule("json", map[string]vm.Value{
 		"parse": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
 			dataArg, ok := args.Get(0, vm.ValueTypeString)

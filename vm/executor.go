@@ -6,9 +6,8 @@ import (
 )
 
 type Executor struct {
-	Vms       []*VMState
-	Constants []Value
-	l         sync.RWMutex
+	Vms []*VMState
+	l   sync.RWMutex
 }
 
 type VMState struct {
@@ -16,10 +15,8 @@ type VMState struct {
 	busy atomic.Bool
 }
 
-func NewExecutor(constants []Value) *Executor {
-	return &Executor{
-		Constants: constants,
-	}
+func NewExecutor() *Executor {
+	return &Executor{}
 }
 
 func (e *Executor) Run(frame Frame, args int) Value {
@@ -34,7 +31,7 @@ func (e *Executor) Run(frame Frame, args int) Value {
 	e.l.RUnlock()
 
 	newVm := &VMState{
-		VM:   New(e.Constants, e),
+		VM:   New(e),
 		busy: atomic.Bool{},
 	}
 	newVm.busy.Store(true)

@@ -2,7 +2,6 @@ package main
 
 import (
 	"io"
-	"os"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -47,30 +46,24 @@ func main() {
 
 		irc := ir.NewCompiler()
 
-		ircr, err := irc.Compile(p)
+		ircr, err := irc.Compile("<main>", p)
 		if err != nil {
 			return c.String(200, err.Error())
 		}
 
-		irout, err := os.Create("irout.wvr")
-		defer irout.Close()
-		_, err = irout.WriteString(ircr.String())
-		if err != nil {
-			return c.String(200, err.Error())
-		}
-
-		compiler := compiler.New(builtin.StdReg, compiler.WithOptimization(true))
+		compiler := compiler.New(builtin.StdReg)
 		instructions, vars, constants, err := compiler.Compile(ircr)
 		if err != nil {
 			return c.String(200, err.Error())
 		}
 
-		executor := vm.NewExecutor(constants)
+		executor := vm.NewExecutor()
 		val := executor.Run(
 			vm.Frame{
 				Instructions: instructions,
 				NumVars:      vars,
 				HaltAfter:    true,
+				Constants:    constants,
 			},
 			0,
 		)

@@ -7,10 +7,11 @@ import (
 	"path/filepath"
 
 	"github.com/joetifa2003/weaver/internal/pkg/helpers"
+	"github.com/joetifa2003/weaver/registry"
 	"github.com/joetifa2003/weaver/vm"
 )
 
-func registerIOModule(builder *RegistryBuilder) {
+func registerIOModule(builder *registry.RegistryBuilder) {
 	builder.RegisterModule("io", map[string]vm.Value{
 		"println": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
 			val, ok := args.Get(0)

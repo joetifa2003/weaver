@@ -1,5 +1,8 @@
 # Game of Life
 
+rl := import("rl");
+fiber := import("fiber");
+
 CELL_SIZE := 5;
 WORLD_WIDTH := 1024;
 WORLD_HEIGHT := 1024;
@@ -46,7 +49,7 @@ countNeighbors := |y, x| {
 
 # Function to process a chunk of the grid
 processChunk := |startRow, endRow, newCells| {
-    return fiber:run(|| {
+    return fiber.run(|| {
         for y := startRow; y < endRow; y++ {
             for x := 0; x < COLS; x++ {
                 neighbors := countNeighbors(y, x);
@@ -87,29 +90,29 @@ updateCells := || {
     }
 
     # Wait for all fibers to complete
-    fiber:wait(fibers);
+    fiber.wait(fibers);
 
     return newCells;
 };
 
-rl:initWindow(WORLD_WIDTH, WORLD_HEIGHT, "Game of Life");
+rl.initWindow(WORLD_WIDTH, WORLD_HEIGHT, "Game of Life");
 
-while !rl:windowShouldClose() {
+while !rl.windowShouldClose() {
     cells = updateCells();
     # Draw
-    rl:beginDrawing();
-    rl:clearBackground(rl:colorRayWhite);
+    rl.beginDrawing();
+    rl.clearBackground(rl.colorRayWhite);
 
     for y := 0; y < ROWS; y++ {
         for x := 0; x < COLS; x++ {
             if cells[y][x] {
-                rl:drawRectangle(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE, rl:colorBlack);
+                rl.drawRectangle(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE, rl.colorBlack);
             }
         }
     }
 
-    rl:drawFps(10, 10);
-    rl:endDrawing();
+    rl.drawFps(10, 10);
+    rl.endDrawing();
 }
 
-rl:closeWindow();
+rl.closeWindow();

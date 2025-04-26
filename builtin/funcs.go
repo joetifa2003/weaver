@@ -5,12 +5,10 @@ import (
 	"math/rand/v2"
 	"time"
 
-	"github.com/joetifa2003/weaver/registry"
 	"github.com/joetifa2003/weaver/vm"
 )
 
-func registerBuiltinFuncs(builder *registry.RegistryBuilder) {
-
+func registerBuiltinFuncs(builder *vm.RegistryBuilder) {
 	builder.RegisterFunc("error", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
 		msgArg, ok := args.Get(0, vm.ValueTypeString)
 		if !ok {

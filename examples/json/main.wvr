@@ -1,6 +1,9 @@
-data := io:readFile("test.json");
+io := import("io");
+json := import("json");
 
-candidates := data |> json:parse();
+data := io.readFile("test.json");
+
+candidates := data |> json.parse();
 
 for i := 0; i < len(candidates); i++ {
   match candidates[i] {

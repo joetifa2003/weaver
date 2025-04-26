@@ -1,0 +1,4 @@
+mod := import ("./lib/module1.wvr")
+
+2 |> mod.isEven() |> echo()
+3 |> mod.isOdd() |> echo()

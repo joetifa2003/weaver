@@ -5,11 +5,10 @@ package builtin
 import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 
-	"github.com/joetifa2003/weaver/registry"
 	"github.com/joetifa2003/weaver/vm"
 )
 
-func registerModuleRL(builder *registry.RegistryBuilder) {
+func registerModuleRL(builder *vm.RegistryBuilder) {
 	m := map[string]vm.Value{
 		"initWindow": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
 			widthArg, ok := args.Get(0, vm.ValueTypeNumber)
@@ -202,5 +201,5 @@ func registerModuleRL(builder *registry.RegistryBuilder) {
 		m["key"+k.name] = vm.NewNumber(float64(k.key))
 	}
 
-	builder.RegisterModule("rl", m)
+	builder.RegisterModule("rl", vm.NewObject(m))
 }

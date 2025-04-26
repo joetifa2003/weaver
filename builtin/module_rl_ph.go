@@ -2,6 +2,6 @@
 
 package builtin
 
-import "github.com/joetifa2003/weaver/registry"
+import "github.com/joetifa2003/weaver/vm"
 
-func registerModuleRL(builder *registry.RegistryBuilder) {}
+func registerModuleRL(builder *vm.RegistryBuilder) {}

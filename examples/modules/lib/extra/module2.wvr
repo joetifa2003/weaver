@@ -1,0 +1,6 @@
+isEven := |x| x % 2 == 0
+
+
+return {
+  isEven: isEven
+};

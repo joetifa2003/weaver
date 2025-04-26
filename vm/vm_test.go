@@ -10,7 +10,6 @@ import (
 	"github.com/joetifa2003/weaver/compiler"
 	"github.com/joetifa2003/weaver/ir"
 	"github.com/joetifa2003/weaver/parser"
-	"github.com/joetifa2003/weaver/registry"
 	"github.com/joetifa2003/weaver/vm"
 )
 
@@ -470,34 +469,36 @@ func TestVM(t *testing.T) {
 		false |> assert();
 		`,
 		37: `
+			io := import("io");
+
 			tempD := tempDir();
-			tempD |> io:isDir() |> assert();
+			tempD |> io.isDir() |> assert();
 			
-			path := io:join(tempD, "test.txt");
-			io:dirname(path) == tempD |> assert();
-			io:basename(path) == "test.txt" |> assert();
-			io:extname(path) == ".txt" |> assert();
+			path := io.join(tempD, "test.txt");
+			io.dirname(path) == tempD |> assert();
+			io.basename(path) == "test.txt" |> assert();
+			io.extname(path) == ".txt" |> assert();
 			
-			io:writeFile(path, "hello world");
-			io:exists(path) |> assert();
-			io:readFile(path) == "hello world" |> assert();
+			io.writeFile(path, "hello world");
+			io.exists(path) |> assert();
+			io.readFile(path) == "hello world" |> assert();
 			
-			subDir := io:join(tempD, "subdir");
-			io:mkdir(subDir);
-			io:isDir(subDir) |> assert();
+			subDir := io.join(tempD, "subdir");
+			io.mkdir(subDir);
+			io.isDir(subDir) |> assert();
 			
-			io:size(path) == 11 |> assert();
-			!io:isDir(path) |> assert();
+			io.size(path) == 11 |> assert();
+			!io.isDir(path) |> assert();
 			
-			newPath := io:join(tempD, "renamed.txt");
-			io:rename(path, newPath) ;
-			io:exists(newPath) |> assert();
-			!io:exists(path) |> assert();
+			newPath := io.join(tempD, "renamed.txt");
+			io.rename(path, newPath) ;
+			io.exists(newPath) |> assert();
+			!io.exists(path) |> assert();
 			
-			io:remove(newPath);
-			!io:exists(newPath) |> assert();
-			io:remove(subDir);
-			!io:exists(subDir) |> assert();
+			io.remove(newPath);
+			!io.exists(newPath) |> assert();
+			io.remove(subDir);
+			!io.exists(subDir) |> assert();
 		`,
 		38: `
 		match 19 {
@@ -516,7 +517,9 @@ func TestVM(t *testing.T) {
 		return error("3 should match 2..3");
 		`,
 		40: `
-		match {a: {b: [1, 2, "3", 4.5]}} |> json:stringify() |> json:parse() {
+		json := import("json");
+
+		match {a: {b: [1, 2, "3", 4.5]}} |> json.stringify() |> json.parse() {
 			{a: {b: [1, 2, "3", 4.5]}} => {
 				return;
 			}
@@ -543,64 +546,68 @@ func TestVM(t *testing.T) {
 			f() == 1 |> assert();
 		`,
 		43: ` 
-			strings:concat("a", "b", "c") == "abc" |> assert();
-			(strings:split("a,b,c", ",") |> len()) == 3 |> assert();
-			strings:split("a,b,c", ",")[0] == "a" |> assert();
-			strings:lower("HELLO") == "hello" |> assert();
-			strings:upper("hello") == "HELLO" |> assert();
-			strings:trim("  hello  ") == "hello" |> assert();
-			strings:contains("hello world", "world") |> assert();
-			!strings:contains("hello world", "foo") |> assert();
-			strings:startsWith("hello world", "hello") |> assert();
-			!strings:startsWith("hello world", "world") |> assert();
-			strings:endsWith("hello world", "world") |> assert();
-			!strings:endsWith("hello world", "hello") |> assert();
-			strings:replace("hello world world", "world", "weaver", 1) == "hello weaver world" |> assert();
-			strings:replace("hello world world", "world", "weaver") == "hello weaver weaver" |> assert();
-			strings:substring("hello world", 6) == "world" |> assert();
-			strings:substring("hello world", 0, 5) == "hello" |> assert();
-			strings:substring("hello", 5) == "" |> assert(); 
-			strings:substring("hello", 6) == "" |> assert();
-			strings:substring("hello", 2, 1) == "" |> assert();
-			strings:indexOf("hello world", "world") == 6 |> assert();
-			strings:indexOf("hello world", "foo") == -1 |> assert();
-			strings:lastIndexOf("hello world world", "world") == 12 |> assert();
-			strings:lastIndexOf("hello world world", "foo") == -1 |> assert();
-			strings:padStart("hi", 5) == "   hi" |> assert();
-			strings:padStart("hi", 5, " ") == "   hi" |> assert();
-			strings:padStart("hi", 5, "xo") == "xoxhi" |> assert();
-			strings:padStart("hi", 2) == "hi" |> assert();
-			strings:padEnd("hi", 5) == "hi   " |> assert();
-			strings:padEnd("hi", 5, " ") == "hi   " |> assert();
-			strings:padEnd("hi", 5, "xo") == "hixox" |> assert();
-			strings:padEnd("hi", 2) == "hi" |> assert();
+			strings := import("strings");
+
+			strings.concat("a", "b", "c") == "abc" |> assert();
+			(strings.split("a,b,c", ",") |> len()) == 3 |> assert();
+			strings.split("a,b,c", ",")[0] == "a" |> assert();
+			strings.lower("HELLO") == "hello" |> assert();
+			strings.upper("hello") == "HELLO" |> assert();
+			strings.trim("  hello  ") == "hello" |> assert();
+			strings.contains("hello world", "world") |> assert();
+			!strings.contains("hello world", "foo") |> assert();
+			strings.startsWith("hello world", "hello") |> assert();
+			!strings.startsWith("hello world", "world") |> assert();
+			strings.endsWith("hello world", "world") |> assert();
+			!strings.endsWith("hello world", "hello") |> assert();
+			strings.replace("hello world world", "world", "weaver", 1) == "hello weaver world" |> assert();
+			strings.replace("hello world world", "world", "weaver") == "hello weaver weaver" |> assert();
+			strings.substring("hello world", 6) == "world" |> assert();
+			strings.substring("hello world", 0, 5) == "hello" |> assert();
+			strings.substring("hello", 5) == "" |> assert(); 
+			strings.substring("hello", 6) == "" |> assert();
+			strings.substring("hello", 2, 1) == "" |> assert();
+			strings.indexOf("hello world", "world") == 6 |> assert();
+			strings.indexOf("hello world", "foo") == -1 |> assert();
+			strings.lastIndexOf("hello world world", "world") == 12 |> assert();
+			strings.lastIndexOf("hello world world", "foo") == -1 |> assert();
+			strings.padStart("hi", 5) == "   hi" |> assert();
+			strings.padStart("hi", 5, " ") == "   hi" |> assert();
+			strings.padStart("hi", 5, "xo") == "xoxhi" |> assert();
+			strings.padStart("hi", 2) == "hi" |> assert();
+			strings.padEnd("hi", 5) == "hi   " |> assert();
+			strings.padEnd("hi", 5, " ") == "hi   " |> assert();
+			strings.padEnd("hi", 5, "xo") == "hixox" |> assert();
+			strings.padEnd("hi", 2) == "hi" |> assert();
 		`,
 		44: `
-			t1 := time:now();
+			time := import("time");
+
+			t1 := time.now();
 			type(t1) == "time" |> assert();
 
-			time:nanosecond == 1 |> assert();
-			time:microsecond == 1000 |> assert();
-			time:millisecond == 1000000 |> assert();
-			time:second == 1000000000 |> assert();
-			time:minute == 60000000000 |> assert();
-			time:hour == 3600000000000 |> assert();
+			time.nanosecond == 1 |> assert();
+			time.microsecond == 1000 |> assert();
+			time.millisecond == 1000000 |> assert();
+			time.second == 1000000000 |> assert();
+			time.minute == 60000000000 |> assert();
+			time.hour == 3600000000000 |> assert();
 
-			dur := time:parseDuration("2h30m");
-			dur == (time:hour * 2 + time:minute * 30) |> assert();
-			time:getHours(dur) == 2.5 |> assert();
-			time:getMinutes(dur) == 150 |> assert();
-			time:getSeconds(dur) == 9000 |> assert();
-			time:getMilliseconds(dur) == 9000000 |> assert();
-			time:getMicroseconds(dur) == 9000000000 |> assert();
-			time:getNanoseconds(dur) == 9000000000000 |> assert();
-			time:getDurationString(dur) == "2h30m0s" |> assert();
+			dur := time.parseDuration("2h30m");
+			dur == (time.hour * 2 + time.minute * 30) |> assert();
+			time.getHours(dur) == 2.5 |> assert();
+			time.getMinutes(dur) == 150 |> assert();
+			time.getSeconds(dur) == 9000 |> assert();
+			time.getMilliseconds(dur) == 9000000 |> assert();
+			time.getMicroseconds(dur) == 9000000000 |> assert();
+			time.getNanoseconds(dur) == 9000000000000 |> assert();
+			time.getDurationString(dur) == "2h30m0s" |> assert();
 
-			s := time:since(t1);
-			u := time:until(time:add(time:now(), time:second));
+			s := time.since(t1);
+			u := time.until(time.add(time.now(), time.second));
 			s > 0 |> assert();
 			u > 0 |> assert();
-			u <= time:second |> assert();
+			u <= time.second |> assert();
 		`,
 		45: `
 			match 1 {
@@ -666,6 +673,8 @@ func TestVM(t *testing.T) {
 			false |> assert(); # Should not reach here
 		`,
 		53: `
+			time := import("time");
+
 			# timezone tests
 			# Note: These tests assume the presence of common timezone databases (e.g., tzdata) on the system.
 			# Test parseInLocation and inLocation
@@ -673,23 +682,23 @@ func TestVM(t *testing.T) {
 			timeStr := "2024-03-26 10:00:00";
 			
 			# Parse in UTC
-			utcTime := time:parseInLocation(layout, timeStr, "UTC");
-			time:getHour(utcTime) == 10 |> assert();
-			zoneUTC := time:getZone(utcTime);
+			utcTime := time.parseInLocation(layout, timeStr, "UTC");
+			time.getHour(utcTime) == 10 |> assert();
+			zoneUTC := time.getZone(utcTime);
 			zoneUTC.name == "UTC" |> assert();
 			zoneUTC.offset == 0 |> assert();
 
 			# Parse in New York (assuming EST/EDT)
-			nyTime := time:parseInLocation(layout, timeStr, "America/New_York");
+			nyTime := time.parseInLocation(layout, timeStr, "America/New_York");
 			# Hour might be different due to timezone offset
-			zoneNY := time:getZone(nyTime);
+			zoneNY := time.getZone(nyTime);
 			(zoneNY.name == "EST" || zoneNY.name == "EDT") |> assert(); # Account for DST
 			(zoneNY.offset == -5*3600 || zoneNY.offset == -4*3600) |> assert(); # EST or EDT offset
 
 			# Convert UTC time to New York time
-			nyTimeConverted := time:inLocation(nyTime, "America/New_York");
-			time:getUnixNanoTime(nyTime) == time:getUnixNanoTime(nyTimeConverted) |> assert(); # Compare instants (nanoseconds)
-			`,
+			nyTimeConverted := time.inLocation(nyTime, "America/New_York");
+			time.getUnixNanoTime(nyTime) == time.getUnixNanoTime(nyTimeConverted) |> assert(); # Compare instants (nanoseconds)
+		`,
 		54: `
 		results := [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 		iters := 0;
@@ -715,7 +724,7 @@ func TestVM(t *testing.T) {
 				ircr, err := irc.Compile("<test>", p)
 				assert.NoError(err)
 
-				reg := registry.NewRegBuilderFrom(builtin.StdReg).
+				reg := vm.NewRegBuilderFrom(builtin.StdReg).
 					RegisterFunc("tempDir", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
 						return vm.NewString(t.TempDir())
 					}).
@@ -724,7 +733,7 @@ func TestVM(t *testing.T) {
 				instructions, vars, constants, err := c.Compile(ircr)
 				assert.NoError(err)
 
-				executor := vm.NewExecutor()
+				executor := vm.NewExecutor(builtin.StdReg)
 				val := executor.Run(
 					vm.Frame{
 						Instructions: instructions,

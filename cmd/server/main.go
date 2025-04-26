@@ -57,7 +57,7 @@ func main() {
 			return c.String(200, err.Error())
 		}
 
-		executor := vm.NewExecutor()
+		executor := vm.NewExecutor(builtin.StdReg)
 		val := executor.Run(
 			vm.Frame{
 				Instructions: instructions,

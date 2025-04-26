@@ -8,6 +8,7 @@ import (
 type Executor struct {
 	Vms []*VMState
 	l   sync.RWMutex
+	Reg *Registry
 }
 
 type VMState struct {
@@ -15,8 +16,10 @@ type VMState struct {
 	busy atomic.Bool
 }
 
-func NewExecutor() *Executor {
-	return &Executor{}
+func NewExecutor(reg *Registry) *Executor {
+	return &Executor{
+		Reg: reg,
+	}
 }
 
 func (e *Executor) Run(frame Frame, args int) Value {

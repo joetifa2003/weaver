@@ -28,6 +28,7 @@ type VM struct {
 	stack     [MaxStack]Value
 	callStack [MaxCallStack]Frame
 	curFrame  *Frame
+	reg       *Registry
 
 	sp int
 	fp int

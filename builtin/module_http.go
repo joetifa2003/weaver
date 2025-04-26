@@ -5,11 +5,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/joetifa2003/weaver/registry"
 	"github.com/joetifa2003/weaver/vm"
 )
 
-func registerHTTPModule(builder *registry.RegistryBuilder) {
+func registerHTTPModule(builder *vm.RegistryBuilder) {
 	m := map[string]vm.Value{
 		"request": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
 			// Get the options object
@@ -65,7 +64,8 @@ func registerHTTPModule(builder *registry.RegistryBuilder) {
 			return makeRequest(req)
 		})
 	}
-	builder.RegisterModule("http", m)
+
+	builder.RegisterModule("http", vm.NewObject(m))
 }
 
 func createRequest(method string, url string, args vm.NativeFunctionArgs) (*http.Request, vm.Value, bool) {

@@ -1,11 +1,13 @@
 package builtin
 
-import "github.com/joetifa2003/weaver/registry"
+import (
+	"github.com/joetifa2003/weaver/vm"
+)
 
-var StdReg *registry.Registry
+var StdReg *vm.Registry
 
 func init() {
-	builder := registry.NewRegBuilder()
+	builder := vm.NewRegBuilder()
 
 	registerBuiltinFuncs(builder)
 	registerBuiltinFuncsModules(builder)

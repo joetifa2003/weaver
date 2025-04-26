@@ -624,9 +624,6 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 
 		return BuiltInExpr{e.Name}, nil
 
-	case ast.ModuleLoadExpr:
-		return ModuleLoadExpr{Name: e.Name, Load: e.Load}, nil
-
 	case ast.BinaryExpr:
 		if e.Operator == ast.BinaryOpPipe {
 			return c.compilePipeExpr(e.Operands)

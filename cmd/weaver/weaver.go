@@ -60,7 +60,7 @@ func main() {
 						return err
 					}
 
-					executor := vm.NewExecutor()
+					executor := vm.NewExecutor(builtin.StdReg)
 					val := executor.Run(
 						vm.Frame{
 							Instructions: instructions,

@@ -7,14 +7,13 @@ import (
 	"github.com/joetifa2003/weaver/internal/pkg/helpers"
 	"github.com/joetifa2003/weaver/ir"
 	"github.com/joetifa2003/weaver/opcode"
-	"github.com/joetifa2003/weaver/registry"
 	"github.com/joetifa2003/weaver/vm"
 )
 
 type Compiler struct {
 	loopContext  *ds.Stack[loopContext]
 	labelCounter int
-	reg          *registry.Registry
+	reg          *vm.Registry
 	frameContext *ds.Stack[*frameContext]
 	path         string
 }
@@ -29,7 +28,7 @@ type loopContext struct {
 	loopEnd   int
 }
 
-func New(reg *registry.Registry) *Compiler {
+func New(reg *vm.Registry) *Compiler {
 	c := &Compiler{
 		loopContext:  &ds.Stack[loopContext]{},
 		frameContext: &ds.Stack[*frameContext]{},
@@ -418,31 +417,13 @@ func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 	case ir.BuiltInExpr:
 		val, ok := c.reg.ResolveFunc(e.Name)
 		if !ok {
-			return nil, fmt.Errorf("unknown built-in function %s", e.Name)
+			return nil, fmt.Errorf("unefined %s", e.Name)
 		}
 
 		return []opcode.OpCode{
 			opcode.OP_LOAD,
 			opcode.ScopeTypeConst,
 			opcode.OpCode(c.defineConstant(val)),
-		}, nil
-
-	case ir.ModuleLoadExpr:
-		val, ok := c.reg.ResolveModule(e.Name)
-		if !ok {
-			return nil, fmt.Errorf("unknown module %s", e.Name)
-		}
-
-		mod := val.GetModule()
-		fn, ok := mod[e.Load]
-		if !ok {
-			return nil, fmt.Errorf("unknown module %s:%s", e.Name, e.Load)
-		}
-
-		return []opcode.OpCode{
-			opcode.OP_LOAD,
-			opcode.ScopeTypeConst,
-			opcode.OpCode(c.defineConstant(fn)),
 		}, nil
 
 	case ir.IntExpr:

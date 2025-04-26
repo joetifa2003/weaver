@@ -24,7 +24,6 @@ const (
 	ValueTypeFunction
 	ValueTypeArray
 	ValueTypeNativeFunction
-	ValueTypeModule
 	ValueTypeNativeObject
 	ValueTypeRef
 	ValueTypeError
@@ -223,15 +222,6 @@ func (v *Value) GetObject() map[string]Value {
 	return *(*map[string]Value)(v.nonPrimitive)
 }
 
-func (v *Value) SetModule(m map[string]Value) {
-	v.VType = ValueTypeModule
-	v.nonPrimitive = unsafe.Pointer(&m)
-}
-
-func (v *Value) GetModule() map[string]Value {
-	return *(*map[string]Value)(v.nonPrimitive)
-}
-
 func (v *Value) GetBool() bool {
 	return *interpret[bool](&v.primitive)
 }
@@ -416,9 +406,6 @@ func (v *Value) String() string { return v.string(0) }
 
 func (v *Value) string(i int) string {
 	switch v.VType {
-	case ValueTypeModule:
-		return "module"
-
 	case ValueTypeString:
 		str := v.GetString()
 		return str

@@ -3,41 +3,42 @@ package builtin
 import (
 	"encoding/json"
 
-	"github.com/joetifa2003/weaver/registry"
 	"github.com/joetifa2003/weaver/vm"
 )
 
-func registerJSONModule(builder *registry.RegistryBuilder) {
-	builder.RegisterModule("json", map[string]vm.Value{
-		"parse": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-			dataArg, ok := args.Get(0, vm.ValueTypeString)
-			if !ok {
-				return dataArg
-			}
+func registerJSONModule(builder *vm.RegistryBuilder) {
+	builder.RegisterModule("json", vm.NewObject(
+		map[string]vm.Value{
+			"parse": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				dataArg, ok := args.Get(0, vm.ValueTypeString)
+				if !ok {
+					return dataArg
+				}
 
-			data := dataArg.String()
-			var result interface{}
-			err := json.Unmarshal([]byte(data), &result)
-			if err != nil {
-				return vm.NewError(err.Error(), vm.Value{})
-			}
+				data := dataArg.String()
+				var result interface{}
+				err := json.Unmarshal([]byte(data), &result)
+				if err != nil {
+					return vm.NewError(err.Error(), vm.Value{})
+				}
 
-			return valufiyJSON(result)
-		}),
-		"stringify": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-			dataArg, ok := args.Get(0)
-			if !ok {
-				return dataArg
-			}
+				return valufiyJSON(result)
+			}),
+			"stringify": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				dataArg, ok := args.Get(0)
+				if !ok {
+					return dataArg
+				}
 
-			res, ok := stringify(dataArg)
-			if !ok {
+				res, ok := stringify(dataArg)
+				if !ok {
+					return res
+				}
+
 				return res
-			}
-
-			return res
-		}),
-	})
+			}),
+		},
+	))
 }
 
 func stringify(v vm.Value) (vm.Value, bool) {

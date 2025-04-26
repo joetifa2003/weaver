@@ -1,11 +1,10 @@
 package builtin
 
 import (
-	"github.com/joetifa2003/weaver/registry"
 	"github.com/joetifa2003/weaver/vm"
 )
 
-func registerBuiltinFuncsArr(builder *registry.RegistryBuilder) {
+func registerBuiltinFuncsArr(builder *vm.RegistryBuilder) {
 	builder.RegisterFunc("makeArr", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
 		length := 0
 		capacity := 0

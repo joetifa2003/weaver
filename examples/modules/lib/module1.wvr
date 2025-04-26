@@ -1,0 +1,6 @@
+extra := import ("./extra/module2.wvr")
+
+return {
+  isEven: extra.isEven,
+  isOdd: |x| !extra.isEven(x),
+}

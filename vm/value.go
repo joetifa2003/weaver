@@ -135,21 +135,13 @@ func (v *Value) GetIter() iter.Seq[Value] {
 	return *(*iter.Seq[Value])(v.nonPrimitive)
 }
 
-type Task struct {
-	C     chan Value
-	Value Value
-}
-
-func (v *Value) SetTask(c chan Value) {
+func (v *Value) SetTask(t *ExecutorTask) {
 	v.VType = ValueTypeTask
-	task := &Task{
-		C: c,
-	}
-	v.nonPrimitive = unsafe.Pointer(task)
+	v.nonPrimitive = unsafe.Pointer(t)
 }
 
-func (v *Value) GetTask() *Task {
-	return (*Task)(v.nonPrimitive)
+func (v *Value) GetTask() *ExecutorTask {
+	return (*ExecutorTask)(v.nonPrimitive)
 }
 
 type Lock struct {

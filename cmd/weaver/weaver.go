@@ -61,7 +61,7 @@ func main() {
 					}
 
 					executor := vm.NewExecutor(builtin.StdReg)
-					val := executor.Run(
+					task := executor.Run(
 						vm.Frame{
 							Instructions: instructions,
 							NumVars:      vars,
@@ -71,6 +71,7 @@ func main() {
 						},
 						0,
 					)
+					val := task.Wait()
 					if val.VType == vm.ValueTypeError {
 						fmt.Println(val.String())
 					}

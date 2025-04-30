@@ -1,7 +1,9 @@
 package vm
 
 import (
+	"context"
 	"fmt"
+	"sync/atomic"
 
 	"github.com/joetifa2003/weaver/opcode"
 )
@@ -24,24 +26,45 @@ type Frame struct {
 }
 
 type VM struct {
-	Executor  *Executor
+	Executor *Executor
+	Ctx      context.Context
+
 	stack     [MaxStack]Value
 	callStack [MaxCallStack]Frame
 	curFrame  *Frame
 	reg       *Registry
-
-	sp int
-	fp int
+	ctxCancel context.CancelFunc
+	running   *atomic.Bool
+	sp        int
+	fp        int
 }
 
 func New(executor *Executor) *VM {
+	running := atomic.Bool{}
+	running.Store(true)
+	ctx, cancel := context.WithCancel(context.Background())
 	vm := &VM{
-		Executor: executor,
-		sp:       -1,
-		fp:       -1,
+		Executor:  executor,
+		sp:        -1,
+		fp:        -1,
+		running:   &running,
+		Ctx:       ctx,
+		ctxCancel: cancel,
 	}
 
 	return vm
+}
+
+func (v *VM) Resurrect() {
+	v.running.Store(true)
+	v.sp = 0
+	v.fp = 0
+	v.curFrame = nil
+}
+
+func (v *VM) Stop() {
+	v.ctxCancel()
+	v.running.Store(false)
 }
 
 var scopeGettersDeref = [4]func(v *VM, idx int) *Value{
@@ -82,6 +105,10 @@ func (v *VM) Run(frame Frame, args int) Value {
 	v.pushFrame(frame, args)
 
 	for {
+		if !v.running.Load() {
+			return Value{}
+		}
+
 		switch v.curFrame.Instructions[v.curFrame.ip] {
 		case opcode.OP_UPGRADE_REF:
 			scope := v.curFrame.Instructions[v.curFrame.ip+1]
@@ -422,7 +449,7 @@ func (v *VM) Run(frame Frame, args int) Value {
 					NumVars:      fn.NumVars,
 					FreeVars:     fn.FreeVars,
 					Constants:    fn.Constants,
-					Path:         v.curFrame.Path,
+					Path:         fn.Path,
 					ip:           0,
 					stackOffset:  argsBegin,
 					returnAddr:   calleeIdx,

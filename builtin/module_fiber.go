@@ -17,21 +17,17 @@ func registerFiberModule(builder *vm.RegistryBuilder) {
 
 				fn := fnArg.GetFunction()
 
-				res := make(chan vm.Value)
-				go func() {
-					v := v.Executor.Run(vm.Frame{
-						Instructions: fn.Instructions,
-						NumVars:      fn.NumVars,
-						FreeVars:     fn.FreeVars,
-						Constants:    fn.Constants,
-						HaltAfter:    true,
-					}, 0)
-					res <- v
-					close(res)
-				}()
+				task := v.Executor.Run(vm.Frame{
+					Instructions: fn.Instructions,
+					NumVars:      fn.NumVars,
+					FreeVars:     fn.FreeVars,
+					Constants:    fn.Constants,
+					Path:         fn.Path,
+					HaltAfter:    true,
+				}, 0)
 
 				resVal := vm.Value{}
-				resVal.SetTask(res)
+				resVal.SetTask(task)
 
 				return resVal
 			}),
@@ -55,6 +51,18 @@ func registerFiberModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewArray(vals)
 				}
+			}),
+
+			"cancel": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				taskArg, ok := args.Get(0, vm.ValueTypeTask)
+				if !ok {
+					return taskArg
+				}
+
+				task := taskArg.GetTask()
+				task.Cancel()
+
+				return vm.Value{}
 			}),
 
 			"newLock": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
@@ -140,13 +148,5 @@ func registerFiberModule(builder *vm.RegistryBuilder) {
 }
 
 func waitForTask(taskArg vm.Value) vm.Value {
-	task := taskArg.GetTask()
-
-	val, ok := <-task.C
-	if !ok {
-		return task.Value
-	}
-
-	task.Value = val
-	return val
+	return taskArg.GetTask().Wait()
 }

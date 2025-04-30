@@ -734,7 +734,7 @@ func TestVM(t *testing.T) {
 				assert.NoError(err)
 
 				executor := vm.NewExecutor(builtin.StdReg)
-				val := executor.Run(
+				task := executor.Run(
 					vm.Frame{
 						Instructions: instructions,
 						NumVars:      vars,
@@ -743,6 +743,7 @@ func TestVM(t *testing.T) {
 					},
 					0,
 				)
+				val := task.Wait()
 				if val.IsError() {
 					t.Error(val.GetError())
 				}

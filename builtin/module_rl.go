@@ -59,7 +59,7 @@ func registerModuleRL(builder *vm.RegistryBuilder) {
 			if !ok {
 				return colorArg
 			}
-			color := colorArg.GetNativeObject().(rl.Color)
+			color := colorArg.GetNativeObject().Obj.(rl.Color)
 			rl.ClearBackground(color)
 			return vm.Value{}
 		}),
@@ -89,7 +89,7 @@ func registerModuleRL(builder *vm.RegistryBuilder) {
 			posY := posYArg.GetNumber()
 			width := widthArg.GetNumber()
 			height := heightArg.GetNumber()
-			color := colorArg.GetNativeObject().(rl.Color)
+			color := colorArg.GetNativeObject().Obj.(rl.Color)
 
 			rl.DrawRectangle(int32(posX), int32(posY), int32(width), int32(height), color)
 			return vm.Value{}
@@ -157,7 +157,7 @@ func registerModuleRL(builder *vm.RegistryBuilder) {
 		{"RayWhite", rl.RayWhite},
 	}
 	for _, c := range colors {
-		m["color"+c.name] = vm.NewNativeObject(c.color)
+		m["color"+c.name] = vm.NewNativeObject(c.color, nil)
 	}
 
 	keys := [...]struct {

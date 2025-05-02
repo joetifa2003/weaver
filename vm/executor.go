@@ -2,59 +2,40 @@ package vm
 
 import (
 	"sync"
-	"sync/atomic"
+
+	"github.com/joetifa2003/weaver/internal/pkg/pool"
 )
 
 type Executor struct {
-	Vms []*VMState
-	l   sync.RWMutex
-	Reg *Registry
-}
-
-type VMState struct {
-	*VM
-	busy atomic.Bool
+	l    sync.RWMutex
+	Reg  *Registry
+	Pool *pool.Pool[*VM]
 }
 
 func NewExecutor(reg *Registry) *Executor {
-	return &Executor{
+	e := &Executor{
 		Reg: reg,
 	}
+	e.Pool = pool.New(func() *VM {
+		return New(e)
+	})
+
+	return e
 }
 
-func (e *Executor) Run(frame Frame, args int) *ExecutorTask {
+func (e *Executor) Run(frame Frame, args ...Value) *ExecutorTask {
+	v := e.Pool.Get()
+	v.Resurrect()
 
-	e.l.RLock()
-	for _, vm := range e.Vms {
-		if vm.busy.CompareAndSwap(false, true) {
-			vm.Resurrect()
-			task := newExecutorTask(vm.VM)
-
-			go func() {
-				defer vm.busy.Store(false)
-				task.Complete(vm.Run(frame, args))
-			}()
-
-			e.l.RUnlock()
-
-			return task
-		}
+	for _, arg := range args {
+		v.sp++
+		v.stack[v.sp] = arg
 	}
-	e.l.RUnlock()
 
-	newVm := &VMState{
-		VM:   New(e),
-		busy: atomic.Bool{},
-	}
-	newVm.busy.Store(true)
-	e.l.Lock()
-	e.Vms = append(e.Vms, newVm)
-	e.l.Unlock()
-
-	task := newExecutorTask(newVm.VM)
+	task := newExecutorTask(v)
 	go func() {
-		defer newVm.busy.Store(false)
-		task.Complete(newVm.Run(frame, args))
+		defer e.Pool.Put(v)
+		task.Complete(v.Run(frame, len(args)))
 	}()
 
 	return task

@@ -69,7 +69,6 @@ func main() {
 							Path:         absPath,
 							Constants:    constants,
 						},
-						0,
 					)
 					val := task.Wait()
 					if val.VType == vm.ValueTypeError {

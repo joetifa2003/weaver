@@ -15,21 +15,7 @@ func registerFiberModule(builder *vm.RegistryBuilder) {
 					return fnArg
 				}
 
-				fn := fnArg.GetFunction()
-
-				task := v.Executor.Run(vm.Frame{
-					Instructions: fn.Instructions,
-					NumVars:      fn.NumVars,
-					FreeVars:     fn.FreeVars,
-					Constants:    fn.Constants,
-					Path:         fn.Path,
-					HaltAfter:    true,
-				}, 0)
-
-				resVal := vm.Value{}
-				resVal.SetTask(task)
-
-				return resVal
+				return vm.NewTask(runFunc(v, fnArg))
 			}),
 
 			"wait": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
@@ -149,4 +135,19 @@ func registerFiberModule(builder *vm.RegistryBuilder) {
 
 func waitForTask(taskArg vm.Value) vm.Value {
 	return taskArg.GetTask().Wait()
+}
+
+func runFunc(v *vm.VM, fnArg vm.Value, args ...vm.Value) *vm.ExecutorTask {
+	fn := fnArg.GetFunction()
+
+	task := v.Executor.Run(vm.Frame{
+		Instructions: fn.Instructions,
+		NumVars:      fn.NumVars,
+		FreeVars:     fn.FreeVars,
+		Constants:    fn.Constants,
+		Path:         fn.Path,
+		HaltAfter:    true,
+	}, args...)
+
+	return task
 }

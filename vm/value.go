@@ -282,13 +282,21 @@ func (v *Value) GetString() string {
 	return *(*string)(v.nonPrimitive)
 }
 
-func (v *Value) SetNativeObject(obj interface{}) {
-	v.VType = ValueTypeNativeObject
-	v.nonPrimitive = unsafe.Pointer(&obj)
+type NativeObject struct {
+	Obj     interface{}
+	Methods map[string]Value
 }
 
-func (v *Value) GetNativeObject() interface{} {
-	return *(*interface{})(v.nonPrimitive)
+func (v *Value) SetNativeObject(obj interface{}, methods map[string]Value) {
+	v.VType = ValueTypeNativeObject
+	v.nonPrimitive = unsafe.Pointer(&NativeObject{
+		Obj:     obj,
+		Methods: methods,
+	})
+}
+
+func (v *Value) GetNativeObject() *NativeObject {
+	return (*NativeObject)(v.nonPrimitive)
 }
 
 type NativeFunctionArgs []Value
@@ -336,15 +344,24 @@ func NewArray(a []Value) Value {
 	return val
 }
 
+func NewTask(t *ExecutorTask) Value {
+	val := Value{}
+	val.SetTask(t)
+	return val
+}
+
 func NewNativeFunction(f NativeFunction) Value {
 	val := Value{}
 	val.SetNativeFunction(f)
 	return val
 }
 
-func NewNativeObject(o interface{}) Value {
+func NewNativeObject(
+	o interface{},
+	methods map[string]Value,
+) Value {
 	val := Value{}
-	val.SetNativeObject(o)
+	val.SetNativeObject(o, methods)
 	return val
 }
 
@@ -670,6 +687,18 @@ func (v *Value) Index(idx *Value, res *Value) {
 			case "unlock":
 				res.SetNativeFunction(lock.unlock)
 				return
+			}
+		}
+
+	case ValueTypeNativeObject:
+		switch idx.VType {
+		case ValueTypeString:
+			obj := v.GetNativeObject()
+			if obj.Methods != nil {
+				if method, ok := obj.Methods[idx.GetString()]; ok {
+					res.Set(method)
+					return
+				}
 			}
 		}
 	}

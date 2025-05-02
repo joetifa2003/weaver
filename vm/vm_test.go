@@ -741,7 +741,6 @@ func TestVM(t *testing.T) {
 						HaltAfter:    true,
 						Constants:    constants,
 					},
-					0,
 				)
 				val := task.Wait()
 				if val.IsError() {

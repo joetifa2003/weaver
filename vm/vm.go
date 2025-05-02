@@ -57,9 +57,10 @@ func New(executor *Executor) *VM {
 
 func (v *VM) Resurrect() {
 	v.running.Store(true)
-	v.sp = 0
-	v.fp = 0
+	v.sp = -1
+	v.fp = -1
 	v.curFrame = nil
+	v.Ctx, v.ctxCancel = context.WithCancel(context.Background())
 }
 
 func (v *VM) Stop() {
@@ -786,12 +787,12 @@ func (v *VM) Run(frame Frame, args int) Value {
 func (v *VM) pushFrame(f Frame, args int) {
 	v.fp++
 
+	// local variables initialization
 	for range f.NumVars - args {
 		v.sp++
-		val := Value{}
-		val.SetNil()
-		v.stack[v.sp] = val
 	}
+
+	// TODO: handle case when args > NumVars
 
 	v.callStack[v.fp] = f
 	v.curFrame = &v.callStack[v.fp]
@@ -819,6 +820,7 @@ func (v *VM) RunFunction(f Value, args ...Value) Value {
 		NumVars:      fn.NumVars,
 		FreeVars:     fn.FreeVars,
 		Constants:    fn.Constants,
+		Path:         fn.Path,
 		HaltAfter:    true,
 		ip:           0,
 		stackOffset:  retAddr + 1,

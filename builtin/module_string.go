@@ -97,6 +97,64 @@ func registerStringModule(builder *vm.RegistryBuilder) {
 				}
 				return vm.NewBoolean(strings.HasSuffix(strArg.GetString(), suffixArg.GetString()))
 			}),
+			"fmt": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				formatStrArg, ok := args.Get(0, vm.ValueTypeString)
+				if !ok {
+					return formatStrArg // Return error if the first arg is not a string
+				}
+				formatStr := formatStrArg.GetString()
+				formatArgs := args[1:] // Arguments to format in
+
+				var result strings.Builder
+				argIndex := 0
+
+				for i := 0; i < len(formatStr); i++ {
+					char := formatStr[i]
+
+					switch char {
+					case '\\':
+						// Check for escape sequence
+						if i+1 < len(formatStr) {
+							nextChar := formatStr[i+1]
+							if nextChar == '{' || nextChar == '}' || nextChar == '\\' {
+								// Append the escaped character
+								result.WriteByte(nextChar)
+								i++ // Skip the next character
+							} else {
+								// Not a valid escape sequence, append the backslash literally
+								result.WriteByte(char)
+							}
+						} else {
+							// Backslash at the end of the string, append it literally
+							result.WriteByte(char)
+						}
+					case '{':
+						// Check if next char is '}' for placeholder
+						if i+1 < len(formatStr) && formatStr[i+1] == '}' {
+							if argIndex >= len(formatArgs) {
+								// Not enough arguments provided for placeholders, append "{}" literally
+								result.WriteString("{}")
+							} else {
+								arg := formatArgs[argIndex]
+								if arg.IsError() { // Propagate errors from arguments
+									return arg
+								}
+								result.WriteString(arg.String()) // Append string representation of the arg
+								argIndex++
+							}
+							i++ // Skip the '}'
+						} else {
+							// It's just a literal '{', append it
+							result.WriteByte(char)
+						}
+					default:
+						// Append regular character
+						result.WriteByte(char)
+					}
+				}
+
+				return vm.NewString(result.String())
+			}),
 			"replace": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
 				strArg, ok := args.Get(0, vm.ValueTypeString)
 				if !ok {

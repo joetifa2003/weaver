@@ -1,0 +1,19 @@
+http := import("http");
+io := import("io");
+json := import("json");
+
+str := import("strings");
+
+router := http.newRouter();
+
+router.get("/user/{id}", |req| {
+    id := req.getParam("id");
+    users := io.readFile("./main.json") |> json.parse();
+    user := users |> find(|user| {
+      return user.id == number(id)
+    });
+
+    return user;
+});
+
+http.listenAndServe(":8080", router);

@@ -3,6 +3,7 @@ package builtin
 import (
 	"fmt"
 	"math/rand/v2"
+	"strconv"
 	"time"
 
 	"github.com/joetifa2003/weaver/vm"
@@ -107,6 +108,20 @@ func registerBuiltinFuncs(builder *vm.RegistryBuilder) {
 		}
 
 		return vm.NewString(val.String())
+	})
+
+	builder.RegisterFunc("number", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+		val, ok := args.Get(0, vm.ValueTypeString)
+		if !ok {
+			return val
+		}
+
+		floatVal, err := strconv.ParseFloat(val.GetString(), 64)
+		if err != nil {
+			return vm.NewErrFromErr(err)
+		}
+
+		return vm.NewNumber(floatVal)
 	})
 
 	builder.RegisterFunc("int", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {

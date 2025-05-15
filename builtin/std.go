@@ -16,6 +16,7 @@ func init() {
 	registerIOModule(builder)
 	registerStringModule(builder)
 	registerJSONModule(builder)
+	registerMathModule(builder)
 	registerHTTPModule(builder)
 	registerFiberModule(builder)
 	registerTimeModule(builder)

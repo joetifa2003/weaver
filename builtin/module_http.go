@@ -1,6 +1,7 @@
 package builtin
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -262,6 +263,7 @@ func runHandler(v *vm.VM, handlerArg vm.Value, req *http.Request, w http.Respons
 	val := task.Wait()
 	if val.IsError() {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		fmt.Println(val.String())
 		return
 	}
 

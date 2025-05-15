@@ -122,4 +122,39 @@ func registerBuiltinFuncsArr(builder *vm.RegistryBuilder) {
 
 		return vm.NewBool(false)
 	})
+
+	builder.RegisterFunc("find", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+		arrArg, ok := args.Get(0, vm.ValueTypeArray)
+		if !ok {
+			return arrArg
+		}
+
+		f, ok := args.Get(1)
+		if !ok {
+			return f
+		}
+
+		arr := *arrArg.GetArray()
+		if f.VType == vm.ValueTypeFunction {
+			for _, val := range arr {
+				r := v.RunFunction(f, val)
+				if r.IsError() {
+					return r
+				}
+				if r.IsTruthy() {
+					return val
+				}
+			}
+		} else {
+			isEqual := vm.Value{}
+			for _, val := range arr {
+				val.Equal(&f, &isEqual)
+				if isEqual.IsTruthy() {
+					return val
+				}
+			}
+		}
+
+		return vm.Value{}
+	})
 }

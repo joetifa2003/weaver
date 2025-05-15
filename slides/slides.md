@@ -156,9 +156,6 @@ true && nil    // nil
 true && "foo"  // "foo" (string)
 ```
 
-```weaver
-greet := |name| echo("Hello " + name);
-```
 
 ```weaver
 greet := |name| echo("Hello " + name);
@@ -172,21 +169,6 @@ greet() // Hello nil
 ```
 
 ```weaver
-// What if we want to display default name?
-// no one is named "nil" :)
-greet := |name| echo("Hello " + name);
-greet("John") // Hello John
-greet() // Hello nil
-```
-
-```weaver
-greet := |name| echo("Hello " + (name || "unknown"));
-greet("John") // Hello John
-greet() // Hello unknown
-```
-
-```weaver
-// What if we want to return error if name is not provided?
 greet := |name| echo("Hello " + (name || "unknown"));
 greet("John") // Hello John
 greet() // Hello unknown
@@ -202,27 +184,7 @@ greet()       // error: name is required
 ```
 
 ```weaver
-// Can we do better?
 greet := |name| {
-    if (!name) { return error("name is required"); }
-    echo("Hello " + name);
-};
-greet("John") // Hello John
-greet()       // error: name is required
-```
-
-```weaver
-greet := |name| {
-    name || return error("name is required");
-    echo("Hello " + name);
-};
-greet("John") // Hello John
-greet()       // error: name is required
-```
-
-```weaver
-greet := |name| {
-    // Yes, return can be used as an expression
     name || return error("name is required");
     echo("Hello " + name);
 };
@@ -313,7 +275,7 @@ add(1)  // error: illegal operands number + nil (missing argument)
 
 <v-click>
 
-This allows for expressive and concise code, which will be otherwise very verbose.
+This allows for expressive and concise code.
 
 ````md magic-move {lines: true}
 ```weaver
@@ -537,83 +499,6 @@ match x {
     [a, b] if a <= 10 && b <= 10 => {},
 }
 ```
-
----
-
-````md magic-move {lines: true}
-
-```weaver
-goodPartner := |p| {
-    match p {
-        { name: n, age: 18..30, isMarried: false } => return true,
-        _ => return false,
-    }
-}
-```
-
-```weaver
-goodPartner := |p| {
-    match p {
-        { name: n, age: 18..30, isMarried: false } => return true,
-        _ => return false,
-    }
-}
-
-goodPartner({
-    name: "John",
-    age: 25,
-    isMarried: true,
-}) // false
-
-```
-
-```weaver
-goodPartner := |p| {
-    match p {
-        { name: n, age: 18..30, isMarried: false } => return true,
-        _ => return false,
-    }
-}
-
-goodPartner({
-    name: "Youssef",
-    age: 21,
-    isMarried: false,
-}) // true
-
-```
-
-```weaver
-goodPartner := |p| {
-    match p {
-        { name: n, age: 18..30, isMarried: false } => return true,
-        _ => return false,
-    }
-}
-
-goodPartner({
-    name: "Mahmoud",
-    age: 45,
-    isMarried: true,
-}) // false
-```
-
-```weaver
-goodPartner := |p| {
-    if (!p.name) { return false }
-    if (!p.age || p.age < 18 || p.age > 30) { return false }
-    if (p.isMarried) { return false }
-    return false
-}
-
-goodPartner({
-    name: "Mahmoud",
-    age: 45,
-    isMarried: true,
-}) // false
-```
-
-````
 
 ---
 

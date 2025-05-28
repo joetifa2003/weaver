@@ -174,24 +174,6 @@ greet("John") // Hello John
 greet() // Hello unknown
 ```
 
-```weaver
-greet := |name| {
-    if (!name) { return error("name is required"); }
-    echo("Hello " + name);
-};
-greet("John") // Hello John
-greet()       // error: name is required
-```
-
-```weaver
-greet := |name| {
-    name || return error("name is required");
-    echo("Hello " + name);
-};
-greet("John") // Hello John
-greet()       // error: name is required
-```
-
 ````
 
 </v-click>
@@ -300,14 +282,6 @@ echo(evenNumbers) // [2, 4]
 ```weaver
 arr := [1, 2, 3, 4]
 echo(filter(arr, |n| n % 2 == 0)) // [2, 4]
-```
-
-```weaver
-echo(filter([1, 2, 3, 4], |n| n % 2 == 0)) // [2, 4]
-```
-
-```weaver
-filter([1, 2, 3, 4], |n| n % 2 == 0) |> echo() // [2, 4]
 ```
 
 ```weaver

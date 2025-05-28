@@ -30,7 +30,7 @@ func TestVM(t *testing.T) {
 			x := 1;
 			cond := true;
 
-			if cond {
+			if (cond) {
 				x = 2;
 			} else {
 				x = 3;
@@ -42,7 +42,7 @@ func TestVM(t *testing.T) {
 			x := 1;
 			cond := false;
 
-			if cond {
+			if (cond) {
 				x = 2;
 			} else {
 				x = 3;
@@ -53,8 +53,8 @@ func TestVM(t *testing.T) {
 		4: `
 			even := 0;
 			odd := 0;
-			for i := 0; i < 10; i = i + 1 {
-				if i % 2 == 0 {
+			for (i := 0; i < 10; i = i + 1) {
+				if (i % 2 == 0) {
 					even = even + 1;
 				}	else {
 					odd = odd + 1;
@@ -69,8 +69,8 @@ func TestVM(t *testing.T) {
 			odd := 0;
 			isEven := |x| x % 2 == 0;
 
-			for i := 0; i < 10; i = i + 1 {
-				if isEven(i) {
+			for (i := 0; i < 10; i = i + 1) {
+				if (isEven(i)) {
 					even = even + 1;
 				}	else {
 					odd = odd + 1;
@@ -86,8 +86,8 @@ func TestVM(t *testing.T) {
 			isEven := |x| x % 2 == 0;
 			
 			i := 0;
-			while i < 10 {
-				if isEven(i) {
+			while (i < 10) {
+				if (isEven(i)) {
 					even = even + 1;
 				}	else {
 					odd = odd + 1;
@@ -319,9 +319,9 @@ func TestVM(t *testing.T) {
 		res := "";
 		res2 := "";
 
-		for i := 0; i < len(students); i = i + 1 {
+		for (i := 0; i < len(students); i = i + 1) {
 			match students[i] {
-				{name: n, age: a} if a >= 10 && a <= 20 => {
+				{name: n, age: a} if (a >= 10 && a <= 20) => {
 					res = res + n;
 				},
 				else => {
@@ -336,8 +336,8 @@ func TestVM(t *testing.T) {
 		27: `
 			even := 0;
 			odd := 0;
-			for i := 0; i < 10; i++ {
-				if i % 2 == 0 {
+			for (i := 0; i < 10; i++) {
+				if (i % 2 == 0) {
 					even = even + 1;
 				}	else {
 					odd = odd + 1;
@@ -355,8 +355,8 @@ func TestVM(t *testing.T) {
 		29: `
 			even := 0;
 			odd := 0;
-			for i := 10; i > 0; i-- {
-				if i % 2 == 0 {
+			for (i := 10; i > 0; i--) {
+				if (i % 2 == 0) {
 					even++;
 				} else {
 					odd++;
@@ -368,7 +368,7 @@ func TestVM(t *testing.T) {
 		`,
 		30: `
 			fib := |n| {
-				if n <= 1 {
+				if (n <= 1) {
 					return n;
 				}
 
@@ -702,12 +702,18 @@ func TestVM(t *testing.T) {
 		54: `
 		results := [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 		iters := 0;
-		for i in 0..10 {
+		for (i in 0..10) {
 			i == results[i] |> assert();
 			iters++;
 		}
 
 		iters == 11 |> assert();
+		`,
+		55: `
+			len([1, 2, 3] |> filter(|x| x % 2 != 0)) == 2 |> assert();
+			len([1, 2, 3] 
+				|> filter() { it % 2 != 0 }) == 2 
+				|> assert();
 		`,
 	}
 

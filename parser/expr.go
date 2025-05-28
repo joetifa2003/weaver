@@ -255,13 +255,23 @@ func postFixIndexOp() pargo.Parser[ast.PostFixOp] {
 }
 
 func postFixCallOp() pargo.Parser[ast.PostFixOp] {
-	return pargo.Sequence4(
+	return pargo.Sequence5(
 		pargo.Exactly("("),
 		pargo.ManySep(pargo.Lazy(expr), pargo.Exactly(",")),
 		pargo.Exactly(")"),
+		pargo.Optional(
+			pargo.Sequence3(
+				pargo.Exactly("{"),
+				pargo.Many(pargo.Lazy(stmt)),
+				pargo.Exactly("}"),
+				func(_ string, stmts []ast.Statement, _ string) []ast.Statement {
+					return stmts
+				},
+			),
+		),
 		pargo.Optional(pargo.Exactly("!")),
-		func(_ string, args []ast.Expr, _ string, bang *string) ast.PostFixOp {
-			return ast.CallOp{Args: args, Bang: bang != nil}
+		func(_ string, args []ast.Expr, _ string, stmts *[]ast.Statement, bang *string) ast.PostFixOp {
+			return ast.CallOp{Args: args, Bang: bang != nil, ExtraFunc: stmts}
 		},
 	)
 }
@@ -359,7 +369,7 @@ func functionExpr() pargo.Parser[ast.Expr] {
 		paramList(),
 		blockStmt(),
 		func(params []string, body ast.Statement) ast.Expr {
-			return ast.FunctionExpr{Params: params, Body: body}
+			return ast.FunctionExpr{Params: params, Body: body.(ast.BlockStmt)}
 		},
 	)
 }

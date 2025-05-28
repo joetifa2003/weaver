@@ -53,6 +53,11 @@ func main() {
 					if err != nil {
 						return err
 					}
+					f, err := os.Create("ir.wvr")
+					if err != nil {
+						return err
+					}
+					f.WriteString(ircr.String())
 
 					c := compiler.New(builtin.StdReg)
 					instructions, vars, constants, err := c.Compile(ircr)

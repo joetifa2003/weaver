@@ -60,7 +60,7 @@ func (t IdentExpr) expr() {}
 
 type FunctionExpr struct {
 	Params []string
-	Body   Statement
+	Body   BlockStmt
 }
 
 func (t FunctionExpr) expr() {}
@@ -135,8 +135,9 @@ type DotOp struct {
 func (t DotOp) postFixOp() {}
 
 type CallOp struct {
-	Args []Expr
-	Bang bool
+	Args      []Expr
+	ExtraFunc *[]Statement
+	Bang      bool
 }
 
 func (t CallOp) postFixOp() {}

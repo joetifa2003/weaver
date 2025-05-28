@@ -29,11 +29,13 @@ func blockStmt() pargo.Parser[ast.Statement] {
 }
 
 func whileStmt() pargo.Parser[ast.Statement] {
-	return pargo.Sequence3(
+	return pargo.Sequence5(
 		pargo.Exactly("while"),
+		pargo.Exactly("("),
 		expr(),
+		pargo.Exactly(")"),
 		blockStmt(),
-		func(_ string, condition ast.Expr, statement ast.Statement) ast.Statement {
+		func(_, _ string, condition ast.Expr, _ string, statement ast.Statement) ast.Statement {
 			return ast.WhileStmt{Condition: condition, Body: statement}
 		},
 	)
@@ -41,14 +43,16 @@ func whileStmt() pargo.Parser[ast.Statement] {
 
 func forStmt() pargo.Parser[ast.Statement] {
 	return pargo.OneOf(
-		pargo.Sequence6(
+		pargo.Sequence8(
 			pargo.Exactly("for"),
+			pargo.Exactly("("),
 			pargo.Lazy(stmt),
 			pargo.Lazy(expr),
 			pargo.Exactly(";"),
 			pargo.Lazy(expr),
+			pargo.Exactly(")"),
 			blockStmt(),
-			func(_ string, initStmt ast.Statement, condition ast.Expr, _ string, increment ast.Expr, body ast.Statement) ast.Statement {
+			func(_, _ string, initStmt ast.Statement, condition ast.Expr, _ string, increment ast.Expr, _ string, body ast.Statement) ast.Statement {
 				return ast.ForStmt{
 					InitStmt:  initStmt,
 					Condition: condition,
@@ -57,13 +61,15 @@ func forStmt() pargo.Parser[ast.Statement] {
 				}
 			},
 		),
-		pargo.Sequence5(
+		pargo.Sequence7(
 			pargo.Exactly("for"),
+			pargo.Exactly("("),
 			pargo.TokenType(TT_IDENT),
 			pargo.Exactly("in"),
 			rangeAtom(),
+			pargo.Exactly(")"),
 			pargo.Lazy(stmt),
-			func(_ string, variable string, _ string, r rangeType, body ast.Statement) ast.Statement {
+			func(_, _ string, variable string, _ string, r rangeType, _ string, body ast.Statement) ast.Statement {
 				return ast.ForRangeStmt{
 					Variable: variable,
 					Start:    r.start,
@@ -94,7 +100,14 @@ func rangeAtom() pargo.Parser[rangeType] {
 func ifStmt() pargo.Parser[ast.Statement] {
 	return pargo.Sequence4(
 		pargo.Exactly("if"),
-		expr(),
+		pargo.Sequence3(
+			pargo.Exactly("("),
+			expr(),
+			pargo.Exactly(")"),
+			func(_ string, cond ast.Expr, _ string) ast.Expr {
+				return cond
+			},
+		),
 		blockStmt(),
 		pargo.Optional(
 			pargo.Sequence2(

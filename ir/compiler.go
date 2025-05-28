@@ -692,6 +692,24 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 					args = append(args, expr)
 				}
 
+				if op.ExtraFunc != nil {
+					stmts := *op.ExtraFunc
+
+					fnExpr, err := c.CompileExpr(
+						ast.FunctionExpr{
+							Params: []string{"it"},
+							Body: ast.BlockStmt{
+								Statements: stmts,
+							},
+						},
+					)
+					if err != nil {
+						return nil, err
+					}
+
+					args = append(args, fnExpr)
+				}
+
 				if ident, ok := expr.(BuiltInExpr); ok {
 					if ident.Name == "error" {
 						expr = irCall(expr, args...)
@@ -745,12 +763,26 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 			frame.define(param)
 		}
 
-		body, err := c.CompileStmt(e.Body)
-		if err != nil {
-			return nil, err
-		}
+		for i, s := range e.Body.Statements {
+			if i == len(e.Body.Statements)-1 {
+				if exprStmt, ok := s.(ast.ExprStmt); ok {
+					if _, isReturn := exprStmt.Expr.(ast.ReturnExpr); !isReturn {
+						s = ast.ExprStmt{
+							Expr: ast.ReturnExpr{
+								Expr: &exprStmt.Expr,
+							},
+						}
+					}
+				}
+			}
 
-		frame.pushStmt(body)
+			stmt, err := c.CompileStmt(s)
+			if err != nil {
+				return nil, err
+			}
+
+			frame.pushStmt(stmt)
+		}
 
 		frameExpr, err := c.popFrame().export()
 		if err != nil {

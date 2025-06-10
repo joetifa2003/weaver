@@ -312,8 +312,8 @@ func atom() pargo.Parser[ast.Expr] {
 	return pargo.OneOf(
 		intExpr(),
 		floatExpr(),
-		booleanExpr(),
 		stringExpr(),
+		booleanExpr(),
 		nilExpr(),
 		identExpr(),
 		functionExpr(),

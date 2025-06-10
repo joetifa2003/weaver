@@ -21,6 +21,7 @@ func init() {
 	registerFiberModule(builder)
 	registerTimeModule(builder)
 	registerModuleRL(builder)
+	registerHtmlModule(builder)
 
 	StdReg = builder.Build()
 }

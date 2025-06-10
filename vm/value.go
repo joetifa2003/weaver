@@ -411,6 +411,16 @@ func NewErrFromErr(err error) Value {
 	return NewError(err.Error(), Value{})
 }
 
+func GetNativeObject[T any](v Value) (T, bool) {
+	if v.VType != ValueTypeNativeObject {
+		return *new(T), false
+	}
+	obj := v.GetNativeObject()
+
+	res, ok := obj.Obj.(T)
+	return res, ok
+}
+
 func (v *Value) String() string { return v.string(0) }
 
 func (v *Value) string(i int) string {
@@ -473,6 +483,9 @@ func (v *Value) string(i int) string {
 
 	case ValueTypeIterator:
 		return "iterator"
+
+	case ValueTypeNativeObject:
+		return fmt.Sprintf("native object(%T)", v.GetNativeObject().Obj)
 
 	default:
 		panic(fmt.Sprintf("Value.String(): unimplemented %T", v.VType))

@@ -282,7 +282,9 @@ func runHandler(v *vm.VM, handlerArg vm.Value, req *http.Request, w http.Respons
 		w.WriteHeader(response.status)
 		w.Write([]byte(str.String()))
 	default:
-		w.Header().Set("Content-Type", "text/plain")
+		if w.Header().Get("Content-Type") == "" {
+			w.Header().Set("Content-Type", "text/plain")
+		}
 		w.WriteHeader(response.status)
 		w.Write([]byte(val.String()))
 	}
@@ -300,6 +302,14 @@ func makeRequestObject(req *http.Request) vm.Value {
 			}
 
 			return vm.NewString(req.URL.Query().Get(keyArg.GetString()))
+		}),
+		"getFormValue": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			keyArg, ok := args.Get(0, vm.ValueTypeString)
+			if !ok {
+				return keyArg
+			}
+
+			return vm.NewString(req.FormValue(keyArg.GetString()))
 		}),
 		"getParam": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
 			keyArg, ok := args.Get(0, vm.ValueTypeString)

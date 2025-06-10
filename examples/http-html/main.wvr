@@ -1,0 +1,109 @@
+http := import("http");
+h := import("html")
+
+todos := [];
+idCounter := 0;
+
+addTodo := |text| {
+  todos |> push({
+    id: idCounter,
+    text: text,
+  });
+
+  idCounter++;
+};
+
+addTodo("Todo 1");
+addTodo("Todo 2");
+
+router := http.newRouter();
+
+page := |body| h.html(
+  h.head(
+    h.script(h.setAttr("src", "https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4")),
+    h.script(h.setAttr("src", "https://unpkg.com/htmx.org@2.0.4")),
+  ),
+  h.body(
+    h.setAttr("hx-boost", "true"),
+    h.withClass("bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen py-8"),
+    body,
+  ),
+)
+
+Todo := |todo| h.div(
+  h.withClass("flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200"),
+  h.div(
+    h.withClass("flex-1 text-gray-800 font-medium"),
+    todo.text
+  ),
+  h.button(
+    h.setAttr("hx-delete", "/delete/"+string(todo.id)),
+    h.setAttr("hx-target", "#todos-wrapper"),
+    h.withClass("ml-4 px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-md transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"),
+    "Delete",
+  )
+)
+
+router.get("/", |req, res| {
+  res.setHeader("Content-Type", "text/html");
+
+  return (
+    h.div(
+      h.withClass("max-w-md mx-auto bg-white rounded-xl shadow-lg p-6"),
+      h.div(
+        h.withClass("mb-6"),
+        h.h1(
+          h.withClass("text-2xl font-bold text-gray-800 text-center mb-2"),
+          "Todo List"
+        ),
+        h.p(
+          h.withClass("text-gray-600 text-center text-sm"),
+          "Stay organized and productive"
+        )
+      ),
+      h.div(
+        h.withClass("mb-6"),
+        h.input(
+          h.setAttr("name", "todo-input"),
+          h.setAttr("type", "text"), 
+          h.setAttr("placeholder", "Add a new todo..."), 
+          h.setAttr("hx-post", "/add"), 
+          h.setAttr("hx-target", "#todos-wrapper"),
+          h.setAttr("hx-on::after-request", "this.value = ''"),
+          h.withClass("w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 placeholder-gray-400")
+        )
+      ),
+      h.div(
+        h.setAttr("id", "todos-wrapper"),
+        h.withClass("space-y-3"),
+        todos |> map(Todo)
+      )
+    ) |> page()
+      |> h.render()
+  )
+});
+
+router.post("/add", |req, res| {
+  todos = todos |> push({
+    id: len(todos)+1,
+    text: req.getFormValue("todo-input"),
+  });
+
+  return h.div(
+    h.withClass("space-y-3"),
+    todos |> map(Todo)
+  ) |> h.render();
+});
+
+router.delete("/delete/{id}", |req, res| {
+  id := req.getParam("id");
+
+  todos = todos |> filter(|todo| todo.id != number(id));
+
+  return h.div(
+    h.withClass("space-y-3"),
+    todos |> map(Todo)
+  ) |> h.render();
+});
+
+http.listenAndServe(":8080", router);

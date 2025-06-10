@@ -9,24 +9,24 @@ p := {
 
 speed := 250;
 
-while !rl.windowShouldClose() {
+while (!rl.windowShouldClose()) {
     rl.beginDrawing();
     rl.clearBackground(rl.colorRayWhite);
     rl.drawFps(10, 10);
     rl.drawRectangle(int(p.x), int(p.y), 40, 40, rl.colorBlack);
-    if rl.isKeyDown(rl.keyLeft) {
+    if (rl.isKeyDown(rl.keyLeft)) {
       p.x = p.x - speed * rl.getFrameTime();
     }
 
-    if rl.isKeyDown(rl.keyRight) {
+    if (rl.isKeyDown(rl.keyRight)) {
       p.x = p.x + speed * rl.getFrameTime();
     }
 
-    if rl.isKeyDown(rl.keyUp) {
+    if (rl.isKeyDown(rl.keyUp)) {
       p.y = p.y - speed * rl.getFrameTime();
     }
 
-    if rl.isKeyDown(rl.keyDown) {
+    if (rl.isKeyDown(rl.keyDown)) {
       p.y = p.y + speed * rl.getFrameTime();
     }
     rl.endDrawing();

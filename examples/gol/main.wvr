@@ -14,13 +14,13 @@ COLS := int(WORLD_WIDTH / CELL_SIZE);
 NUM_CHUNKS := 10;  # You can adjust this based on your CPU
 
 cells := makeArr(ROWS);
-for i := 0; i < ROWS; i++ {
+for (i := 0; i < ROWS; i++) {
     cells[i] = makeArr(COLS);
 }
 
 # Initialize random starting pattern
-for y := 0; y < ROWS; y++ {
-    for x := 0; x < COLS; x++ {
+for (y := 0; y < ROWS; y++) {
+    for (x := 0; x < COLS; x++) {
         cells[y][x] = rand() > 0.8;
     }
 }
@@ -29,16 +29,16 @@ for y := 0; y < ROWS; y++ {
 countNeighbors := |y, x| {
     count := 0;
 
-    for dy := -1; dy <= 1; dy++ {
-        for dx := -1; dx <= 1; dx++ {
-            if dy == 0 && dx == 0 { 
+    for (dy := -1; dy <= 1; dy++) {
+        for (dx := -1; dx <= 1; dx++) {
+            if (dy == 0 && dx == 0) { 
               continue
             }
 
             ny := (y + dy + ROWS) % ROWS;    # Wrap around edges
             nx := (x + dx + COLS) % COLS;
 
-            if cells[ny][nx] { 
+            if (cells[ny][nx]) { 
               count++;
             }
         }
@@ -50,10 +50,10 @@ countNeighbors := |y, x| {
 # Function to process a chunk of the grid
 processChunk := |startRow, endRow, newCells| {
     return fiber.run(|| {
-        for y := startRow; y < endRow; y++ {
-            for x := 0; x < COLS; x++ {
+        for (y := startRow; y < endRow; y++) {
+            for (x := 0; x < COLS; x++) {
                 neighbors := countNeighbors(y, x);
-                if cells[y][x] {
+                if (cells[y][x]) {
                     # Cell is alive
                     newCells[y][x] = neighbors == 2 || neighbors == 3;
                 } else {
@@ -69,21 +69,21 @@ processChunk := |startRow, endRow, newCells| {
 updateCells := || {
     # Create a new grid for the next state
     newCells := makeArr(ROWS);
-    for i := 0; i < ROWS; i++ {
+    for (i := 0; i < ROWS; i++) {
         newCells[i] = makeArr(COLS);
     }
 
     # Calculate chunk size
     chunkSize := int(ROWS / NUM_CHUNKS);
-    if chunkSize < 1 {
+    if (chunkSize < 1) {
         chunkSize = 1;
     }
 
     # Create fibers for each chunk
     fibers := [];
-    for i := 0; i < ROWS; i = i + chunkSize {
+    for (i := 0; i < ROWS; i = i + chunkSize) {
         endRow := i + chunkSize;
-        if endRow > ROWS {
+        if (endRow > ROWS) {
             endRow = ROWS;
         }
         fibers |> push(processChunk(i, endRow, newCells));
@@ -97,15 +97,15 @@ updateCells := || {
 
 rl.initWindow(WORLD_WIDTH, WORLD_HEIGHT, "Game of Life");
 
-while !rl.windowShouldClose() {
+while (!rl.windowShouldClose()) {
     cells = updateCells();
     # Draw
     rl.beginDrawing();
     rl.clearBackground(rl.colorRayWhite);
 
-    for y := 0; y < ROWS; y++ {
-        for x := 0; x < COLS; x++ {
-            if cells[y][x] {
+    for (y := 0; y < ROWS; y++) {
+        for (x := 0; x < COLS; x++) {
+            if (cells[y][x]) {
                 rl.drawRectangle(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE, rl.colorBlack);
             }
         }

@@ -12,89 +12,92 @@ import (
 )
 
 func registerHTTPModule(builder *vm.RegistryBuilder) {
-	m := map[string]vm.Value{
-		"request": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-			// Get the options object
-			optionsArg, ok := args.Get(0, vm.ValueTypeObject)
-			if !ok {
-				return optionsArg
-			}
 
-			options := optionsArg.GetObject()
+	builder.RegisterModule("http", func() vm.Value {
+		m := map[string]vm.Value{
+			"request": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				// Get the options object
+				optionsArg, ok := args.Get(0, vm.ValueTypeObject)
+				if !ok {
+					return optionsArg
+				}
 
-			// Get required URL
-			urlVal, ok := options["url"]
-			if !ok {
-				return vm.NewError("[http.request]: missing required field 'url'", vm.Value{})
-			}
-			url, ok := vm.CheckValueType(urlVal, vm.ValueTypeString)
-			if !ok {
-				return url
-			}
+				options := optionsArg.GetObject()
 
-			// Get required method
-			methodVal, ok := options["method"]
-			if !ok {
-				return vm.NewError("[http.request]: missing required field 'method'", vm.Value{})
-			}
-			method, ok := vm.CheckValueType(methodVal, vm.ValueTypeString)
-			if !ok {
-				return method
-			}
+				// Get required URL
+				urlVal, ok := options["url"]
+				if !ok {
+					return vm.NewError("[http.request]: missing required field 'url'", vm.Value{})
+				}
+				url, ok := vm.CheckValueType(urlVal, vm.ValueTypeString)
+				if !ok {
+					return url
+				}
 
-			// Create and make the request
-			req, err, ok := createRequest(strings.ToUpper(method.GetString()), url.GetString(), vm.NativeFunctionArgs{optionsArg})
-			if !ok {
-				return err
-			}
+				// Get required method
+				methodVal, ok := options["method"]
+				if !ok {
+					return vm.NewError("[http.request]: missing required field 'method'", vm.Value{})
+				}
+				method, ok := vm.CheckValueType(methodVal, vm.ValueTypeString)
+				if !ok {
+					return method
+				}
 
-			return makeRequest(req)
-		}),
+				// Create and make the request
+				req, err, ok := createRequest(strings.ToUpper(method.GetString()), url.GetString(), vm.NativeFunctionArgs{optionsArg})
+				if !ok {
+					return err
+				}
 
-		"newRouter": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-			router := chi.NewRouter()
-			return vm.NewNativeObject(router, makeRouterMethods(router))
-		}),
+				return makeRequest(req)
+			}),
 
-		"listenAndServe": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-			addrArg, ok := args.Get(0, vm.ValueTypeString)
-			if !ok {
-				return addrArg
-			}
+			"newRouter": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				router := chi.NewRouter()
+				return vm.NewNativeObject(router, makeRouterMethods(router))
+			}),
 
-			routerArg, ok := args.Get(1, vm.ValueTypeNativeObject)
-			if !ok {
-				return routerArg
-			}
+			"listenAndServe": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				addrArg, ok := args.Get(0, vm.ValueTypeString)
+				if !ok {
+					return addrArg
+				}
 
-			router := routerArg.GetNativeObject().Obj.(*chi.Mux)
+				routerArg, ok := args.Get(1, vm.ValueTypeNativeObject)
+				if !ok {
+					return routerArg
+				}
 
-			err := http.ListenAndServe(addrArg.GetString(), router)
-			if err != nil {
-				return vm.NewErrFromErr(err)
-			}
+				router := routerArg.GetNativeObject().Obj.(*chi.Mux)
 
-			return vm.Value{}
-		}),
-	}
+				err := http.ListenAndServe(addrArg.GetString(), router)
+				if err != nil {
+					return vm.NewErrFromErr(err)
+				}
 
-	for _, method := range []string{"get", "post", "put", "delete"} {
-		m[method] = vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-			urlArg, ok := args.Get(0, vm.ValueTypeString)
-			if !ok {
-				return urlArg
-			}
+				return vm.Value{}
+			}),
+		}
 
-			req, err, ok := createRequest(strings.ToUpper(method), urlArg.GetString(), args)
-			if !ok {
-				return err
-			}
+		for _, method := range []string{"get", "post", "put", "delete"} {
+			m[method] = vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				urlArg, ok := args.Get(0, vm.ValueTypeString)
+				if !ok {
+					return urlArg
+				}
 
-			return makeRequest(req)
-		})
-	}
+				req, err, ok := createRequest(strings.ToUpper(method), urlArg.GetString(), args)
+				if !ok {
+					return err
+				}
 
-	builder.RegisterModule("http", vm.NewObject(m))
+				return makeRequest(req)
+			})
+		}
+
+		return vm.NewObject(m)
+	})
 }
 
 func createRequest(method string, url string, args vm.NativeFunctionArgs) (*http.Request, vm.Value, bool) {

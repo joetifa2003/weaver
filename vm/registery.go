@@ -5,13 +5,13 @@ import (
 )
 
 type RegistryBuilder struct {
-	modules *ds.ConcMap[string, Value]
+	modules *ds.ConcMap[string, func() Value]
 	funcs   *ds.ConcMap[string, Value]
 }
 
 func NewRegBuilder() *RegistryBuilder {
 	return &RegistryBuilder{
-		modules: ds.NewConcMap[string, Value](),
+		modules: ds.NewConcMap[string, func() Value](),
 		funcs:   ds.NewConcMap[string, Value](),
 	}
 }
@@ -19,7 +19,7 @@ func NewRegBuilder() *RegistryBuilder {
 func NewRegBuilderFrom(other *Registry) *RegistryBuilder {
 	r := &RegistryBuilder{
 		funcs:   ds.NewConcMap[string, Value](),
-		modules: ds.NewConcMap[string, Value](),
+		modules: ds.NewConcMap[string, func() Value](),
 	}
 
 	for k, f := range other.funcs.Iter() {
@@ -33,19 +33,19 @@ func NewRegBuilderFrom(other *Registry) *RegistryBuilder {
 	return r
 }
 
-func (r *RegistryBuilder) RegisterModule(name string, v Value) *RegistryBuilder {
-	r.modules.Set(name, v)
+func (r *RegistryBuilder) RegisterModule(name string, factory func() Value) *RegistryBuilder {
+	r.modules.Set(name, factory)
 	return r
 }
 
-func (r *RegistryBuilder) ResolveModule(name string) (Value, bool) {
+func (r *RegistryBuilder) ResolveModule(name string) (func() Value, bool) {
 	return r.modules.Get(name)
 }
 
-func (r *RegistryBuilder) RemoveModule(name string) Value {
+func (r *RegistryBuilder) RemoveModule(name string) func() Value {
 	v, ok := r.modules.Get(name)
 	if !ok {
-		return Value{}
+		return nil
 	}
 	r.modules.Delete(name)
 	return v
@@ -77,7 +77,7 @@ func (r *RegistryBuilder) Build() *Registry {
 		funcs.Set(k, v)
 	}
 
-	modules := ds.NewConcMap[string, Value]()
+	modules := ds.NewConcMap[string, func() Value]()
 	for k, v := range r.modules.Iter() {
 		modules.Set(k, v)
 	}
@@ -89,7 +89,7 @@ func (r *RegistryBuilder) Build() *Registry {
 }
 
 type Registry struct {
-	modules *ds.ConcMap[string, Value]
+	modules *ds.ConcMap[string, func() Value]
 	funcs   *ds.ConcMap[string, Value]
 }
 
@@ -97,6 +97,6 @@ func (r *Registry) ResolveFunc(name string) (Value, bool) {
 	return r.funcs.Get(name)
 }
 
-func (r *Registry) ResolveModule(name string) (Value, bool) {
+func (r *Registry) ResolveModule(name string) (func() Value, bool) {
 	return r.modules.Get(name)
 }

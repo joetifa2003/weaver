@@ -162,69 +162,71 @@ var htmlTags = [...]string{
 }
 
 func registerHtmlModule(builder *vm.RegistryBuilder) {
-	m := map[string]vm.Value{
-		"withClass": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-			classArg, ok := args.Get(0, vm.ValueTypeString)
-			if !ok {
-				return classArg
-			}
-
-			classStr := classArg.GetString()
-
-			return vm.NewNativeObject(&WithClass{Class: classStr}, nil)
-		}),
-		"setAttr": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-			keyArg, ok := args.Get(0, vm.ValueTypeString)
-			if !ok {
-				return keyArg
-			}
-
-			valArg, ok := args.Get(1, vm.ValueTypeString)
-			if !ok {
-				return valArg
-			}
-
-			return vm.NewNativeObject(&SetAttr{Key: keyArg.GetString(), Value: valArg.GetString()}, nil)
-		}),
-		"render": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-			elArg, ok := args.Get(0)
-			if !ok {
-				return elArg
-			}
-
-			el, ok := handleElement(v, elArg)
-			if !ok {
-				return vm.NewError("invalid element", vm.Value{})
-			}
-
-			return vm.NewString(el.Render(nil))
-		}),
-	}
-
-	for _, tag := range htmlTags {
-		m[tag] = vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-			children := make([]Element, 0, len(args))
-
-			tag := &Tag{
-				Name:  tag,
-				Attrs: map[string]string{},
-			}
-
-			for _, arg := range args {
-				el, ok := handleElement(v, arg)
+	builder.RegisterModule("html", func() vm.Value {
+		m := map[string]vm.Value{
+			"withClass": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				classArg, ok := args.Get(0, vm.ValueTypeString)
 				if !ok {
-					return vm.NewError("invalid argument type", vm.Value{})
+					return classArg
 				}
-				children = append(children, el)
-			}
 
-			tag.Children = children
+				classStr := classArg.GetString()
 
-			return vm.NewNativeObject(tag, nil)
-		})
-	}
+				return vm.NewNativeObject(&WithClass{Class: classStr}, nil)
+			}),
+			"setAttr": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				keyArg, ok := args.Get(0, vm.ValueTypeString)
+				if !ok {
+					return keyArg
+				}
 
-	builder.RegisterModule("html", vm.NewObject(m))
+				valArg, ok := args.Get(1, vm.ValueTypeString)
+				if !ok {
+					return valArg
+				}
+
+				return vm.NewNativeObject(&SetAttr{Key: keyArg.GetString(), Value: valArg.GetString()}, nil)
+			}),
+			"render": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				elArg, ok := args.Get(0)
+				if !ok {
+					return elArg
+				}
+
+				el, ok := handleElement(v, elArg)
+				if !ok {
+					return vm.NewError("invalid element", vm.Value{})
+				}
+
+				return vm.NewString(el.Render(nil))
+			}),
+		}
+
+		for _, tag := range htmlTags {
+			m[tag] = vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				children := make([]Element, 0, len(args))
+
+				tag := &Tag{
+					Name:  tag,
+					Attrs: map[string]string{},
+				}
+
+				for _, arg := range args {
+					el, ok := handleElement(v, arg)
+					if !ok {
+						return vm.NewError("invalid argument type", vm.Value{})
+					}
+					children = append(children, el)
+				}
+
+				tag.Children = children
+
+				return vm.NewNativeObject(tag, nil)
+			})
+		}
+
+		return vm.NewObject(m)
+	})
 }
 
 func handleElement(v *vm.VM, val vm.Value) (Element, bool) {

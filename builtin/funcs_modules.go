@@ -30,10 +30,11 @@ func registerBuiltinFuncsModules(builder *vm.RegistryBuilder) {
 			return mod
 		}
 
-		builtinModule, ok := v.Executor.Reg.ResolveModule(pathStr)
+		modInit, ok := v.Executor.Reg.ResolveModule(pathStr)
 		if ok {
-			moduleCache[pathStr] = builtinModule
-			return builtinModule
+			mod := modInit()
+			moduleCache[pathStr] = mod
+			return mod
 		}
 
 		userMod := initModule(v, pathStr)

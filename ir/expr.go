@@ -348,3 +348,23 @@ func (t CallExpr) String(i int) string {
 	}
 	return fmt.Sprintf("%s(%s)", t.Expr.String(0), strings.Join(res, ", ")) // Callee doesn't get extra indent
 }
+
+type TryExpr struct {
+	Expr Expr
+}
+
+func (t TryExpr) expr() {}
+
+func (t TryExpr) String(i int) string {
+	return fmt.Sprintf("try %s", t.Expr.String(0))
+}
+
+type RaiseExpr struct {
+	Expr Expr
+}
+
+func (t RaiseExpr) expr() {}
+
+func (t RaiseExpr) String(i int) string {
+	return fmt.Sprintf("raise %s", t.Expr.String(0))
+}

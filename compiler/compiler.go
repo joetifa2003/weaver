@@ -258,6 +258,33 @@ func (c *Compiler) compileStmt(s ir.Statement) ([]opcode.OpCode, error) {
 
 func (c *Compiler) compileExpr(e ir.Expr) ([]opcode.OpCode, error) {
 	switch e := e.(type) {
+	case ir.TryExpr:
+		var instructions []opcode.OpCode
+
+		expr, err := c.compileExpr(e.Expr)
+		if err != nil {
+			return nil, err
+		}
+
+		instructions = append(instructions, opcode.OP_TRY)
+		instructions = append(instructions, expr...)
+		instructions = append(instructions, opcode.OP_TRY)
+
+		return instructions, nil
+
+	case ir.RaiseExpr:
+		var instructions []opcode.OpCode
+
+		expr, err := c.compileExpr(e.Expr)
+		if err != nil {
+			return nil, err
+		}
+
+		instructions = append(instructions, expr...)
+		instructions = append(instructions, opcode.OP_RAISE)
+
+		return instructions, nil
+
 	case ir.ReturnExpr:
 		var instructions []opcode.OpCode
 

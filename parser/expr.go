@@ -32,9 +32,35 @@ func returnExpr() pargo.Parser[ast.Expr] {
 	return pargo.OneOf(
 		pargo.Sequence2(
 			pargo.Exactly("return"),
-			pargo.Optional(ternaryExpr()),
+			pargo.Optional(raiseExpr()),
 			func(_ string, expr *ast.Expr) ast.Expr {
 				return ast.ReturnExpr{Expr: expr}
+			},
+		),
+		raiseExpr(),
+	)
+}
+
+func raiseExpr() pargo.Parser[ast.Expr] {
+	return pargo.OneOf(
+		pargo.Sequence2(
+			pargo.Exactly("raise"),
+			tryExpr(),
+			func(_ string, expr ast.Expr) ast.Expr {
+				return ast.RaiseExpr{Expr: expr}
+			},
+		),
+		tryExpr(),
+	)
+}
+
+func tryExpr() pargo.Parser[ast.Expr] {
+	return pargo.OneOf(
+		pargo.Sequence2(
+			pargo.Exactly("try"),
+			ternaryExpr(),
+			func(_ string, expr ast.Expr) ast.Expr {
+				return ast.TryExpr{Expr: expr}
 			},
 		),
 		ternaryExpr(),
@@ -255,7 +281,7 @@ func postFixIndexOp() pargo.Parser[ast.PostFixOp] {
 }
 
 func postFixCallOp() pargo.Parser[ast.PostFixOp] {
-	return pargo.Sequence5(
+	return pargo.Sequence4(
 		pargo.Exactly("("),
 		pargo.ManySep(pargo.Lazy(expr), pargo.Exactly(",")),
 		pargo.Exactly(")"),
@@ -269,9 +295,8 @@ func postFixCallOp() pargo.Parser[ast.PostFixOp] {
 				},
 			),
 		),
-		pargo.Optional(pargo.Exactly("!")),
-		func(_ string, args []ast.Expr, _ string, stmts *[]ast.Statement, bang *string) ast.PostFixOp {
-			return ast.CallOp{Args: args, Bang: bang != nil, ExtraFunc: stmts}
+		func(_ string, args []ast.Expr, _ string, stmts *[]ast.Statement) ast.PostFixOp {
+			return ast.CallOp{Args: args, ExtraFunc: stmts}
 		},
 	)
 }

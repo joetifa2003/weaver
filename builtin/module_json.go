@@ -10,33 +10,33 @@ func registerJSONModule(builder *vm.RegistryBuilder) {
 	builder.RegisterModule("json", func() vm.Value {
 		return vm.NewObject(
 			map[string]vm.Value{
-				"parse": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"parse": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					dataArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
-						return dataArg
+						return dataArg, false
 					}
 
 					data := dataArg.String()
 					var result interface{}
 					err := json.Unmarshal([]byte(data), &result)
 					if err != nil {
-						return vm.NewError(err.Error(), vm.Value{})
+						return vm.NewError(err.Error(), vm.Value{}), false
 					}
 
-					return valufiyJSON(result)
+					return valufiyJSON(result), true
 				}),
-				"stringify": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"stringify": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					dataArg, ok := args.Get(0)
 					if !ok {
-						return dataArg
+						return dataArg, false
 					}
 
 					res, ok := stringify(dataArg)
 					if !ok {
-						return res
+						return res, false
 					}
 
-					return res
+					return res, true
 				}),
 			},
 		)

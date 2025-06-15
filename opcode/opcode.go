@@ -15,6 +15,7 @@ const (
 
 	OP_CALL
 	OP_RET
+	OP_RAISE
 	OP_HALT
 	OP_INC     // arg1: scope; arg2: variable index
 	OP_INC_POP // arg1: scope; arg2: variable index
@@ -54,6 +55,8 @@ const (
 	OP_NEQ // !=
 	OP_NOT // !
 	OP_NEG // -
+
+	OP_TRY // try
 
 	OP_ECHO
 	OP_EMPTY_FUNC
@@ -102,6 +105,8 @@ type OpCodeDef struct {
 }
 
 var opCodeDefs = map[OpCode]OpCodeDef{
+	OP_TRY:          {OP_TRY, "try", 0},
+	OP_RAISE:        {OP_RAISE, "raise", 0},
 	OP_POP:          {OP_POP, "pop", 0},
 	OP_CALL:         {OP_CALL, "call", 1},
 	OP_RET:          {OP_RET, "ret", 0},

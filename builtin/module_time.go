@@ -39,204 +39,204 @@ func registerTimeModule(builder *vm.RegistryBuilder) {
 			"hour":        vm.NewNumber(float64(time.Hour)),
 
 			// --- Time Functions ---
-			"now": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-				return vm.NewTime(time.Now())
+			"now": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				return vm.NewTime(time.Now()), true
 			}),
 
-			"unix": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"unix": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				secArg, ok := args.Get(0, vm.ValueTypeNumber)
 				if !ok {
-					return secArg
+					return secArg, false
 				}
 				nsecArg := vm.NewNumber(0) // Default nsec to 0
 				if len(args) > 1 {
 					nsecArg, ok = args.Get(1, vm.ValueTypeNumber)
 					if !ok {
-						return nsecArg
+						return nsecArg, false
 					}
 				}
-				return vm.NewTime(time.Unix(int64(secArg.GetNumber()), int64(nsecArg.GetNumber())))
+				return vm.NewTime(time.Unix(int64(secArg.GetNumber()), int64(nsecArg.GetNumber()))), true
 			}),
 
-			"unixMilli": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"unixMilli": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				milliArg, ok := args.Get(0, vm.ValueTypeNumber)
 				if !ok {
-					return milliArg
+					return milliArg, false
 				}
-				return vm.NewTime(time.UnixMilli(int64(milliArg.GetNumber())))
+				return vm.NewTime(time.UnixMilli(int64(milliArg.GetNumber()))), true
 			}),
 
-			"unixMicro": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"unixMicro": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				microArg, ok := args.Get(0, vm.ValueTypeNumber)
 				if !ok {
-					return microArg
+					return microArg, false
 				}
-				return vm.NewTime(time.UnixMicro(int64(microArg.GetNumber())))
+				return vm.NewTime(time.UnixMicro(int64(microArg.GetNumber()))), true
 			}),
 
-			"parse": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"parse": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				layoutArg, ok := args.Get(0, vm.ValueTypeString)
 				if !ok {
-					return layoutArg
+					return layoutArg, false
 				}
 				valueArg, ok := args.Get(1, vm.ValueTypeString)
 				if !ok {
-					return valueArg
+					return valueArg, false
 				}
 
 				t, err := time.Parse(layoutArg.GetString(), valueArg.GetString())
 				if err != nil {
-					return vm.NewErrFromErr(err)
+					return vm.NewErrFromErr(err), false
 				}
-				return vm.NewTime(t)
+				return vm.NewTime(t), true
 			}),
 
-			"since": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"since": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				timeArg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return timeArg
+					return timeArg, false
 				}
-				return vm.NewNumber(float64(time.Since(timeArg.GetTime())))
+				return vm.NewNumber(float64(time.Since(timeArg.GetTime()))), true
 			}),
 
-			"until": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"until": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				timeArg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return timeArg
+					return timeArg, false
 				}
-				return vm.NewNumber(float64(time.Until(timeArg.GetTime())))
+				return vm.NewNumber(float64(time.Until(timeArg.GetTime()))), true
 			}),
 
 			// --- Duration Functions ---
-			"parseDuration": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"parseDuration": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				durationStrArg, ok := args.Get(0, vm.ValueTypeString)
 				if !ok {
-					return durationStrArg
+					return durationStrArg, false
 				}
 				d, err := time.ParseDuration(durationStrArg.GetString())
 				if err != nil {
-					return vm.NewErrFromErr(err)
+					return vm.NewErrFromErr(err), false
 				}
-				return vm.NewNumber(float64(d))
+				return vm.NewNumber(float64(d)), true
 			}),
 
 			// --- Time Methods (as functions taking time as first arg) ---
-			"add": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"add": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				timeArg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return timeArg
+					return timeArg, false
 				}
 				durationArg, ok := args.Get(1, vm.ValueTypeNumber)
 				if !ok {
-					return durationArg
+					return durationArg, false
 				}
 				t := timeArg.GetTime()
 				d := time.Duration(durationArg.GetNumber())
-				return vm.NewTime(t.Add(d))
+				return vm.NewTime(t.Add(d)), true
 			}),
 
-			"sub": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"sub": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				time1Arg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return time1Arg
+					return time1Arg, false
 				}
 				time2Arg, ok := args.Get(1, vm.ValueTypeTime)
 				if !ok {
-					return time2Arg
+					return time2Arg, false
 				}
 				t1 := time1Arg.GetTime()
 				t2 := time2Arg.GetTime()
-				return vm.NewNumber(float64(t1.Sub(t2)))
+				return vm.NewNumber(float64(t1.Sub(t2))), true
 			}),
 
-			"addDate": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"addDate": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				timeArg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return timeArg
+					return timeArg, false
 				}
 				yearsArg, ok := args.Get(1, vm.ValueTypeNumber)
 				if !ok {
-					return yearsArg
+					return yearsArg, false
 				}
 				monthsArg, ok := args.Get(2, vm.ValueTypeNumber)
 				if !ok {
-					return monthsArg
+					return monthsArg, false
 				}
 				daysArg, ok := args.Get(3, vm.ValueTypeNumber)
 				if !ok {
-					return daysArg
+					return daysArg, false
 				}
 				t := timeArg.GetTime()
-				return vm.NewTime(t.AddDate(int(yearsArg.GetNumber()), int(monthsArg.GetNumber()), int(daysArg.GetNumber())))
+				return vm.NewTime(t.AddDate(int(yearsArg.GetNumber()), int(monthsArg.GetNumber()), int(daysArg.GetNumber()))), true
 			}),
 
-			"after": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"after": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				time1Arg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return time1Arg
+					return time1Arg, false
 				}
 				time2Arg, ok := args.Get(1, vm.ValueTypeTime)
 				if !ok {
-					return time2Arg
+					return time2Arg, false
 				}
 				t1 := time1Arg.GetTime()
 				t2 := time2Arg.GetTime()
-				return vm.NewBool(t1.After(t2))
+				return vm.NewBool(t1.After(t2)), true
 			}),
 
-			"before": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"before": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				time1Arg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return time1Arg
+					return time1Arg, false
 				}
 				time2Arg, ok := args.Get(1, vm.ValueTypeTime)
 				if !ok {
-					return time2Arg
+					return time2Arg, false
 				}
 				t1 := time1Arg.GetTime()
 				t2 := time2Arg.GetTime()
-				return vm.NewBool(t1.Before(t2))
+				return vm.NewBool(t1.Before(t2)), true
 			}),
 
-			"equal": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"equal": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				time1Arg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return time1Arg
+					return time1Arg, false
 				}
 				time2Arg, ok := args.Get(1, vm.ValueTypeTime)
 				if !ok {
-					return time2Arg
+					return time2Arg, false
 				}
 				t1 := time1Arg.GetTime()
 				t2 := time2Arg.GetTime()
-				return vm.NewBool(t1.Equal(t2))
+				return vm.NewBool(t1.Equal(t2)), true
 			}),
 
-			"format": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"format": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				timeArg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return timeArg
+					return timeArg, false
 				}
 				layoutArg, ok := args.Get(1, vm.ValueTypeString)
 				if !ok {
-					return layoutArg
+					return layoutArg, false
 				}
 				t := timeArg.GetTime()
-				return vm.NewString(t.Format(layoutArg.GetString()))
+				return vm.NewString(t.Format(layoutArg.GetString())), true
 			}),
 
-			"isZero": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"isZero": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				timeArg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return timeArg
+					return timeArg, false
 				}
-				return vm.NewBool(timeArg.GetTime().IsZero())
+				return vm.NewBool(timeArg.GetTime().IsZero()), true
 			}),
 
-			"date": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"date": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				timeArg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return timeArg
+					return timeArg, false
 				}
 				t := timeArg.GetTime()
 				year, month, day := t.Date()
@@ -244,45 +244,45 @@ func registerTimeModule(builder *vm.RegistryBuilder) {
 					vm.NewNumber(float64(year)),
 					vm.NewNumber(float64(month)),
 					vm.NewNumber(float64(day)),
-				})
+				}), true
 			}),
 
-			"getYear": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"getYear": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				timeArg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return timeArg
+					return timeArg, false
 				}
-				return vm.NewNumber(float64(timeArg.GetTime().Year()))
+				return vm.NewNumber(float64(timeArg.GetTime().Year())), true
 			}),
 
-			"getMonth": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"getMonth": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				timeArg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return timeArg
+					return timeArg, false
 				}
-				return vm.NewNumber(float64(timeArg.GetTime().Month()))
+				return vm.NewNumber(float64(timeArg.GetTime().Month())), true
 			}),
 
-			"getDay": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"getDay": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				timeArg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return timeArg
+					return timeArg, false
 				}
-				return vm.NewNumber(float64(timeArg.GetTime().Day()))
+				return vm.NewNumber(float64(timeArg.GetTime().Day())), true
 			}),
 
-			"weekday": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"weekday": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				timeArg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return timeArg
+					return timeArg, false
 				}
-				return vm.NewNumber(float64(timeArg.GetTime().Weekday()))
+				return vm.NewNumber(float64(timeArg.GetTime().Weekday())), true
 			}),
 
-			"clock": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"clock": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				timeArg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return timeArg
+					return timeArg, false
 				}
 				t := timeArg.GetTime()
 				hour, min, sec := t.Clock()
@@ -291,210 +291,210 @@ func registerTimeModule(builder *vm.RegistryBuilder) {
 					"hour":   vm.NewNumber(float64(hour)),
 					"minute": vm.NewNumber(float64(min)),
 					"second": vm.NewNumber(float64(sec)),
-				})
+				}), true
 			}),
 
-			"getHour": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"getHour": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				timeArg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return timeArg
+					return timeArg, false
 				}
-				return vm.NewNumber(float64(timeArg.GetTime().Hour()))
+				return vm.NewNumber(float64(timeArg.GetTime().Hour())), true
 			}),
 
-			"getMinute": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"getMinute": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				timeArg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return timeArg
+					return timeArg, false
 				}
-				return vm.NewNumber(float64(timeArg.GetTime().Minute()))
+				return vm.NewNumber(float64(timeArg.GetTime().Minute())), true
 			}),
 
-			"getSecond": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"getSecond": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				timeArg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return timeArg
+					return timeArg, false
 				}
-				return vm.NewNumber(float64(timeArg.GetTime().Second()))
+				return vm.NewNumber(float64(timeArg.GetTime().Second())), true
 			}),
 
-			"getNanosecond": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"getNanosecond": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				timeArg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return timeArg
+					return timeArg, false
 				}
-				return vm.NewNumber(float64(timeArg.GetTime().Nanosecond()))
+				return vm.NewNumber(float64(timeArg.GetTime().Nanosecond())), true
 			}),
 
-			"getUnixTime": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"getUnixTime": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				timeArg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return timeArg
+					return timeArg, false
 				}
-				return vm.NewNumber(float64(timeArg.GetTime().Unix()))
+				return vm.NewNumber(float64(timeArg.GetTime().Unix())), true
 			}),
 
-			"getUnixMilliTime": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"getUnixMilliTime": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				timeArg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return timeArg
+					return timeArg, false
 				}
-				return vm.NewNumber(float64(timeArg.GetTime().UnixMilli()))
+				return vm.NewNumber(float64(timeArg.GetTime().UnixMilli())), true
 			}),
 
-			"getUnixMicroTime": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"getUnixMicroTime": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				timeArg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return timeArg
+					return timeArg, false
 				}
-				return vm.NewNumber(float64(timeArg.GetTime().UnixMicro()))
+				return vm.NewNumber(float64(timeArg.GetTime().UnixMicro())), true
 			}),
 
-			"getUnixNanoTime": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"getUnixNanoTime": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				timeArg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return timeArg
+					return timeArg, false
 				}
-				return vm.NewNumber(float64(timeArg.GetTime().UnixNano()))
+				return vm.NewNumber(float64(timeArg.GetTime().UnixNano())), true
 			}),
 
-			"utc": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"utc": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				timeArg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return timeArg
+					return timeArg, false
 				}
-				return vm.NewTime(timeArg.GetTime().UTC())
+				return vm.NewTime(timeArg.GetTime().UTC()), true
 			}),
 
-			"local": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"local": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				timeArg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return timeArg
+					return timeArg, false
 				}
-				return vm.NewTime(timeArg.GetTime().Local())
+				return vm.NewTime(timeArg.GetTime().Local()), true
 			}),
 
 			// --- Duration Methods (as functions taking duration number as first arg) ---
-			"getHours": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"getHours": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				durationArg, ok := args.Get(0, vm.ValueTypeNumber)
 				if !ok {
-					return durationArg
+					return durationArg, false
 				}
 				d := time.Duration(durationArg.GetNumber())
-				return vm.NewNumber(d.Hours())
+				return vm.NewNumber(d.Hours()), true
 			}),
 
-			"getMinutes": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"getMinutes": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				durationArg, ok := args.Get(0, vm.ValueTypeNumber)
 				if !ok {
-					return durationArg
+					return durationArg, false
 				}
 				d := time.Duration(durationArg.GetNumber())
-				return vm.NewNumber(d.Minutes())
+				return vm.NewNumber(d.Minutes()), true
 			}),
 
-			"getSeconds": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"getSeconds": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				durationArg, ok := args.Get(0, vm.ValueTypeNumber)
 				if !ok {
-					return durationArg
+					return durationArg, false
 				}
 				d := time.Duration(durationArg.GetNumber())
-				return vm.NewNumber(d.Seconds())
+				return vm.NewNumber(d.Seconds()), true
 			}),
 
-			"getMilliseconds": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"getMilliseconds": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				durationArg, ok := args.Get(0, vm.ValueTypeNumber)
 				if !ok {
-					return durationArg
+					return durationArg, false
 				}
 				d := time.Duration(durationArg.GetNumber())
-				return vm.NewNumber(float64(d.Milliseconds()))
+				return vm.NewNumber(float64(d.Milliseconds())), true
 			}),
 
-			"getMicroseconds": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"getMicroseconds": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				durationArg, ok := args.Get(0, vm.ValueTypeNumber)
 				if !ok {
-					return durationArg
+					return durationArg, false
 				}
 				d := time.Duration(durationArg.GetNumber())
-				return vm.NewNumber(float64(d.Microseconds()))
+				return vm.NewNumber(float64(d.Microseconds())), true
 			}),
 
-			"getNanoseconds": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"getNanoseconds": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				durationArg, ok := args.Get(0, vm.ValueTypeNumber)
 				if !ok {
-					return durationArg
+					return durationArg, false
 				}
 				d := time.Duration(durationArg.GetNumber())
-				return vm.NewNumber(float64(d.Nanoseconds()))
+				return vm.NewNumber(float64(d.Nanoseconds())), true
 			}),
 
-			"getDurationString": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"getDurationString": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				durationArg, ok := args.Get(0, vm.ValueTypeNumber)
 				if !ok {
-					return durationArg
+					return durationArg, false
 				}
 				d := time.Duration(durationArg.GetNumber())
-				return vm.NewString(d.String())
+				return vm.NewString(d.String()), true
 			}),
 
 			// --- Timezone Functions ---
-			"parseInLocation": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"parseInLocation": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				layoutArg, ok := args.Get(0, vm.ValueTypeString)
 				if !ok {
-					return layoutArg
+					return layoutArg, false
 				}
 				valueArg, ok := args.Get(1, vm.ValueTypeString)
 				if !ok {
-					return valueArg
+					return valueArg, false
 				}
 				locNameArg, ok := args.Get(2, vm.ValueTypeString)
 				if !ok {
-					return locNameArg
+					return locNameArg, false
 				}
 
 				loc, err := time.LoadLocation(locNameArg.GetString())
 				if err != nil {
-					return vm.NewErrFromErr(err)
+					return vm.NewErrFromErr(err), false
 				}
 
 				t, err := time.ParseInLocation(layoutArg.GetString(), valueArg.GetString(), loc)
 				if err != nil {
-					return vm.NewErrFromErr(err)
+					return vm.NewErrFromErr(err), false
 				}
-				return vm.NewTime(t)
+				return vm.NewTime(t), true
 			}),
 
-			"inLocation": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"inLocation": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				timeArg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return timeArg
+					return timeArg, false
 				}
 				locNameArg, ok := args.Get(1, vm.ValueTypeString)
 				if !ok {
-					return locNameArg
+					return locNameArg, false
 				}
 
 				loc, err := time.LoadLocation(locNameArg.GetString())
 				if err != nil {
-					return vm.NewErrFromErr(err)
+					return vm.NewErrFromErr(err), false
 				}
 
 				t := timeArg.GetTime()
-				return vm.NewTime(t.In(loc))
+				return vm.NewTime(t.In(loc)), true
 			}),
 
-			"getZone": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"getZone": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				timeArg, ok := args.Get(0, vm.ValueTypeTime)
 				if !ok {
-					return timeArg
+					return timeArg, false
 				}
 				t := timeArg.GetTime()
 				name, offset := t.Zone()
 				return vm.NewObject(map[string]vm.Value{
 					"name":   vm.NewString(name),
 					"offset": vm.NewNumber(float64(offset)), // Offset in seconds
-				})
+				}), true
 			}),
 		}
 

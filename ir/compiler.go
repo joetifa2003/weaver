@@ -539,6 +539,22 @@ func (c *Compiler) compileMatchCondition(cond ast.MatchCaseCondition, expr Expr)
 
 func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 	switch e := e.(type) {
+	case ast.TryExpr:
+		expr, err := c.CompileExpr(e.Expr)
+		if err != nil {
+			return nil, err
+		}
+
+		return TryExpr{Expr: expr}, nil
+
+	case ast.RaiseExpr:
+		expr, err := c.CompileExpr(e.Expr)
+		if err != nil {
+			return nil, err
+		}
+
+		return RaiseExpr{Expr: expr}, nil
+
 	case ast.ReturnExpr:
 		if e.Expr == nil {
 			return ReturnExpr{
@@ -710,25 +726,7 @@ func (c *Compiler) CompileExpr(e ast.Expr) (Expr, error) {
 					args = append(args, fnExpr)
 				}
 
-				if ident, ok := expr.(BuiltInExpr); ok {
-					if ident.Name == "error" {
-						expr = irCall(expr, args...)
-						continue
-					}
-				}
-
-				if op.Bang {
-					expr = irCall(expr, args...)
-					continue
-				}
-
-				v := c.currentFrame().define("")
-				expr = irIfExpr(
-					irCall(irBuiltIn("isError"), v.assign(irCall(expr, args...))),
-					irReturnExpr(v.load()),
-					v.load(),
-				)
-				v.Free()
+				expr = irCall(expr, args...)
 			default:
 				panic(fmt.Sprintf("unimplemented postfix op %T", op))
 			}

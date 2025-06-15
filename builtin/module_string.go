@@ -11,26 +11,26 @@ func registerStringModule(builder *vm.RegistryBuilder) {
 	builder.RegisterModule("strings", func() vm.Value {
 		return vm.NewObject(
 			map[string]vm.Value{
-				"concat": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"concat": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					var res string
 					for _, arg := range args {
 						if arg.IsError() {
-							return arg
+							return arg, false
 						}
 						res += arg.String()
 					}
 
-					return vm.NewString(res)
+					return vm.NewString(res), true
 				}),
-				"split": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"split": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					strArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
-						return strArg
+						return strArg, false
 					}
 
 					sepArg, ok := args.Get(1, vm.ValueTypeString)
 					if !ok {
-						return sepArg
+						return sepArg, false
 					}
 
 					str := strArg.GetString()
@@ -40,71 +40,71 @@ func registerStringModule(builder *vm.RegistryBuilder) {
 						return vm.NewString(s)
 					})
 
-					return vm.NewArray(parts)
+					return vm.NewArray(parts), true
 				}),
-				"lower": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"lower": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					strArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
-						return strArg
+						return strArg, false
 					}
-					return vm.NewString(strings.ToLower(strArg.GetString()))
+					return vm.NewString(strings.ToLower(strArg.GetString())), true
 				}),
-				"upper": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"upper": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					strArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
-						return strArg
+						return strArg, false
 					}
-					return vm.NewString(strings.ToUpper(strArg.GetString()))
+					return vm.NewString(strings.ToUpper(strArg.GetString())), true
 				}),
-				"trim": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"trim": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					strArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
-						return strArg
+						return strArg, false
 					}
 
 					str := strArg.GetString()
-					return vm.NewString(strings.TrimSpace(str))
+					return vm.NewString(strings.TrimSpace(str)), true
 				}),
-				"contains": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"contains": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					strArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
-						return strArg
+						return strArg, false
 					}
 					substrArg, ok := args.Get(1, vm.ValueTypeString)
 					if !ok {
-						return substrArg
+						return substrArg, false
 					}
-					return vm.NewBoolean(strings.Contains(strArg.GetString(), substrArg.GetString()))
+					return vm.NewBoolean(strings.Contains(strArg.GetString(), substrArg.GetString())), true
 				}),
-				"startsWith": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"startsWith": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					strArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
-						return strArg
+						return strArg, false
 					}
 					prefixArg, ok := args.Get(1, vm.ValueTypeString)
 					if !ok {
-						return prefixArg
+						return prefixArg, false
 					}
-					return vm.NewBoolean(strings.HasPrefix(strArg.GetString(), prefixArg.GetString()))
+					return vm.NewBoolean(strings.HasPrefix(strArg.GetString(), prefixArg.GetString())), true
 				}),
-				"endsWith": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"endsWith": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					strArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
-						return strArg
+						return strArg, false
 					}
 					suffixArg, ok := args.Get(1, vm.ValueTypeString)
 					if !ok {
-						return suffixArg
+						return suffixArg, false
 					}
-					return vm.NewBoolean(strings.HasSuffix(strArg.GetString(), suffixArg.GetString()))
+					return vm.NewBoolean(strings.HasSuffix(strArg.GetString(), suffixArg.GetString())), true
 				}),
-				"fmt": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"fmt": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					formatStrArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
-						return formatStrArg // Return error if the first arg is not a string
+						return formatStrArg, false
 					}
 					formatStr := formatStrArg.GetString()
-					formatArgs := args[1:] // Arguments to format in
+					formatArgs := args[1:]
 
 					var result strings.Builder
 					argIndex := 0
@@ -138,7 +138,7 @@ func registerStringModule(builder *vm.RegistryBuilder) {
 								} else {
 									arg := formatArgs[argIndex]
 									if arg.IsError() { // Propagate errors from arguments
-										return arg
+										return arg, false
 									}
 									result.WriteString(arg.String()) // Append string representation of the arg
 									argIndex++
@@ -154,41 +154,41 @@ func registerStringModule(builder *vm.RegistryBuilder) {
 						}
 					}
 
-					return vm.NewString(result.String())
+					return vm.NewString(result.String()), true
 				}),
-				"replace": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"replace": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					strArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
-						return strArg
+						return strArg, false
 					}
 					oldArg, ok := args.Get(1, vm.ValueTypeString)
 					if !ok {
-						return oldArg
+						return oldArg, false
 					}
 					newArg, ok := args.Get(2, vm.ValueTypeString)
 					if !ok {
-						return newArg
+						return newArg, false
 					}
 
 					count := -1 // Replace all by default
 					if len(args) > 3 {
 						countArg, ok := args.Get(3, vm.ValueTypeNumber)
 						if !ok {
-							return countArg // Error if type is wrong
+							return countArg, false // Error if type is wrong
 						}
 						count = int(countArg.GetNumber())
 					}
 
-					return vm.NewString(strings.Replace(strArg.GetString(), oldArg.GetString(), newArg.GetString(), count))
+					return vm.NewString(strings.Replace(strArg.GetString(), oldArg.GetString(), newArg.GetString(), count)), true
 				}),
-				"substring": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"substring": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					strArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
-						return strArg
+						return strArg, false
 					}
 					startArg, ok := args.Get(1, vm.ValueTypeNumber)
 					if !ok {
-						return startArg
+						return startArg, false
 					}
 
 					str := strArg.GetString()
@@ -198,7 +198,7 @@ func registerStringModule(builder *vm.RegistryBuilder) {
 					if len(args) > 2 {
 						endArg, ok := args.Get(2, vm.ValueTypeNumber)
 						if !ok {
-							return endArg // Error if type is wrong
+							return endArg, false // Error if type is wrong
 						}
 						end = int(endArg.GetNumber())
 					}
@@ -211,49 +211,49 @@ func registerStringModule(builder *vm.RegistryBuilder) {
 						end = len(str)
 					}
 					if start > end || start >= len(str) {
-						return vm.NewString("") // Return empty string for invalid ranges
+						return vm.NewString(""), true // Return empty string for invalid ranges
 					}
 
-					return vm.NewString(str[start:end])
+					return vm.NewString(str[start:end]), true
 				}),
-				"indexOf": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"indexOf": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					strArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
-						return strArg
+						return strArg, false
 					}
 					substrArg, ok := args.Get(1, vm.ValueTypeString)
 					if !ok {
-						return substrArg
+						return substrArg, false
 					}
 
-					return vm.NewNumber(float64(strings.Index(strArg.GetString(), substrArg.GetString())))
+					return vm.NewNumber(float64(strings.Index(strArg.GetString(), substrArg.GetString()))), true
 				}),
-				"lastIndexOf": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"lastIndexOf": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					strArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
-						return strArg
+						return strArg, false
 					}
 					substrArg, ok := args.Get(1, vm.ValueTypeString)
 					if !ok {
-						return substrArg
+						return substrArg, false
 					}
 
-					return vm.NewNumber(float64(strings.LastIndex(strArg.GetString(), substrArg.GetString())))
+					return vm.NewNumber(float64(strings.LastIndex(strArg.GetString(), substrArg.GetString()))), true
 				}),
-				"padStart": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"padStart": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					strArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
-						return strArg
+						return strArg, false
 					}
 					lengthArg, ok := args.Get(1, vm.ValueTypeNumber)
 					if !ok {
-						return lengthArg
+						return lengthArg, false
 					}
 					padStrArg := vm.NewString(" ") // Default pad string
 					if len(args) > 2 {
 						padStrArg, ok = args.Get(2, vm.ValueTypeString)
 						if !ok {
-							return padStrArg
+							return padStrArg, false
 						}
 					}
 
@@ -261,22 +261,22 @@ func registerStringModule(builder *vm.RegistryBuilder) {
 					targetLength := int(lengthArg.GetNumber())
 					padStr := padStrArg.GetString()
 
-					return vm.NewString(padString(str, targetLength, padStr, true))
+					return vm.NewString(padString(str, targetLength, padStr, true)), true
 				}),
-				"padEnd": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"padEnd": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					strArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
-						return strArg
+						return strArg, false
 					}
 					lengthArg, ok := args.Get(1, vm.ValueTypeNumber)
 					if !ok {
-						return lengthArg
+						return lengthArg, false
 					}
 					padStrArg := vm.NewString(" ") // Default pad string
 					if len(args) > 2 {
 						padStrArg, ok = args.Get(2, vm.ValueTypeString)
 						if !ok {
-							return padStrArg
+							return padStrArg, false
 						}
 					}
 
@@ -284,7 +284,7 @@ func registerStringModule(builder *vm.RegistryBuilder) {
 					targetLength := int(lengthArg.GetNumber())
 					padStr := padStrArg.GetString()
 
-					return vm.NewString(padString(str, targetLength, padStr, false))
+					return vm.NewString(padString(str, targetLength, padStr, false)), true
 				}),
 			},
 		)

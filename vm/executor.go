@@ -23,19 +23,14 @@ func NewExecutor(reg *Registry) *Executor {
 	return e
 }
 
-func (e *Executor) Run(frame Frame, args ...Value) *ExecutorTask {
+func (e *Executor) Run(function Value, args ...Value) *ExecutorTask {
 	v := e.Pool.Get()
 	v.Resurrect()
-
-	for _, arg := range args {
-		v.sp++
-		v.stack[v.sp] = arg
-	}
 
 	task := newExecutorTask(v)
 	go func() {
 		defer e.Pool.Put(v)
-		task.Complete(v.Run(frame, len(args)))
+		task.Complete(v.RunFunction(function, args...))
 	}()
 
 	return task
@@ -46,6 +41,7 @@ type ExecutorTask struct {
 	vm   *VM
 	once *sync.Once
 	val  Value
+	ok   bool
 }
 
 func newExecutorTask(vm *VM) *ExecutorTask {
@@ -56,14 +52,15 @@ func newExecutorTask(vm *VM) *ExecutorTask {
 	}
 }
 
-func (t *ExecutorTask) Wait() Value {
+func (t *ExecutorTask) Wait() (Value, bool) {
 	<-t.done
-	return t.val
+	return t.val, t.ok
 }
 
-func (t *ExecutorTask) Complete(val Value) {
+func (t *ExecutorTask) Complete(val Value, ok bool) {
 	t.once.Do(func() {
 		t.val = val
+		t.ok = ok
 		t.vm.running.Store(false)
 		close(t.done)
 	})

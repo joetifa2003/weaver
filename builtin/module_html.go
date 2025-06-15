@@ -164,46 +164,46 @@ var htmlTags = [...]string{
 func registerHtmlModule(builder *vm.RegistryBuilder) {
 	builder.RegisterModule("html", func() vm.Value {
 		m := map[string]vm.Value{
-			"withClass": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"withClass": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				classArg, ok := args.Get(0, vm.ValueTypeString)
 				if !ok {
-					return classArg
+					return classArg, false
 				}
 
 				classStr := classArg.GetString()
 
-				return vm.NewNativeObject(&WithClass{Class: classStr}, nil)
+				return vm.NewNativeObject(&WithClass{Class: classStr}, nil), true
 			}),
-			"setAttr": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"setAttr": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				keyArg, ok := args.Get(0, vm.ValueTypeString)
 				if !ok {
-					return keyArg
+					return keyArg, false
 				}
 
 				valArg, ok := args.Get(1, vm.ValueTypeString)
 				if !ok {
-					return valArg
+					return valArg, false
 				}
 
-				return vm.NewNativeObject(&SetAttr{Key: keyArg.GetString(), Value: valArg.GetString()}, nil)
+				return vm.NewNativeObject(&SetAttr{Key: keyArg.GetString(), Value: valArg.GetString()}, nil), true
 			}),
-			"render": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"render": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				elArg, ok := args.Get(0)
 				if !ok {
-					return elArg
+					return elArg, false
 				}
 
 				el, ok := handleElement(v, elArg)
 				if !ok {
-					return vm.NewError("invalid element", vm.Value{})
+					return vm.NewError("invalid element", vm.Value{}), false
 				}
 
-				return vm.NewString(el.Render(nil))
+				return vm.NewString(el.Render(nil)), true
 			}),
 		}
 
 		for _, tag := range htmlTags {
-			m[tag] = vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			m[tag] = vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				children := make([]Element, 0, len(args))
 
 				tag := &Tag{
@@ -214,14 +214,14 @@ func registerHtmlModule(builder *vm.RegistryBuilder) {
 				for _, arg := range args {
 					el, ok := handleElement(v, arg)
 					if !ok {
-						return vm.NewError("invalid argument type", vm.Value{})
+						return vm.NewError("invalid argument type", vm.Value{}), false
 					}
 					children = append(children, el)
 				}
 
 				tag.Children = children
 
-				return vm.NewNativeObject(tag, nil)
+				return vm.NewNativeObject(tag, nil), true
 			})
 		}
 

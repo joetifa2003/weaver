@@ -15,67 +15,70 @@ func registerBuiltinFuncsModules(builder *vm.RegistryBuilder) {
 	moduleCache := map[string]vm.Value{}
 	lock := sync.Mutex{}
 
-	builder.RegisterFunc("import", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+	builder.RegisterFunc("import", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 		lock.Lock()
 		defer lock.Unlock()
 
 		pathArg, ok := args.Get(0, vm.ValueTypeString)
 		if !ok {
-			return pathArg
+			return pathArg, false
 		}
 
 		pathStr := pathArg.GetString()
 
 		if mod, ok := moduleCache[pathStr]; ok {
-			return mod
+			return mod, true
 		}
 
 		modInit, ok := v.Executor.Reg.ResolveModule(pathStr)
 		if ok {
 			mod := modInit()
 			moduleCache[pathStr] = mod
-			return mod
+			return mod, true
 		}
 
-		userMod := initModule(v, pathStr)
+		userMod, ok := initModule(v, pathStr)
+		if !ok {
+			return userMod, false
+		}
+
 		moduleCache[pathStr] = userMod
-		return userMod
+		return userMod, true
 	})
 }
 
-func initModule(v *vm.VM, path string) vm.Value {
+func initModule(v *vm.VM, path string) (vm.Value, bool) {
 	absPath := filepath.Join(filepath.Dir(v.CurrentFrame().Path), path)
 
 	srcData, err := os.ReadFile(absPath)
 	if err != nil {
-		return vm.NewErrFromErr(err)
+		return vm.NewErrFromErr(err), false
 	}
 	src := string(srcData)
 
 	p, err := parser.Parse(src)
 	if err != nil {
-		return vm.NewErrFromErr(err)
+		return vm.NewErrFromErr(err), false
 	}
 
 	irc := ir.NewCompiler()
 	ircr, err := irc.Compile(absPath, p)
 	if err != nil {
-		return vm.NewErrFromErr(err)
+		return vm.NewErrFromErr(err), false
 	}
 
 	c := compiler.New(StdReg)
 	instructions, vars, constants, err := c.Compile(ircr)
 	if err != nil {
-		return vm.NewErrFromErr(err)
+		return vm.NewErrFromErr(err), false
 	}
 
-	val := v.Run(vm.Frame{
-		NumVars:      vars,
-		Instructions: instructions,
-		Constants:    constants,
-		Path:         absPath,
-		HaltAfter:    true,
-	}, 0)
-
-	return val
+	return v.RunFunction(vm.NewFunction(
+		vm.FunctionValue{
+			NumVars:      vars,
+			Instructions: instructions,
+			Constants:    constants,
+			Path:         absPath,
+		},
+	))
 }

@@ -23,6 +23,7 @@ type Frame struct {
 	ip          int
 	stackOffset int
 	returnAddr  int
+	hasTry      bool
 }
 
 type VM struct {
@@ -102,15 +103,23 @@ func (v *VM) CurrentFrame() *Frame {
 	return v.curFrame
 }
 
-func (v *VM) Run(frame Frame, args int) Value {
+func (v *VM) GetStackVal(idx int) Value {
+	return v.stack[idx]
+}
+
+func (v *VM) Run(frame Frame, args int) bool {
 	v.pushFrame(frame, args)
 
 	for {
 		if !v.running.Load() {
-			return Value{}
+			return true
 		}
 
 		switch v.curFrame.Instructions[v.curFrame.ip] {
+		case opcode.OP_TRY:
+			v.curFrame.hasTry = !v.curFrame.hasTry
+			v.curFrame.ip += 1
+
 		case opcode.OP_UPGRADE_REF:
 			scope := v.curFrame.Instructions[v.curFrame.ip+1]
 			idx := int(v.curFrame.Instructions[v.curFrame.ip+2])
@@ -460,13 +469,23 @@ func (v *VM) Run(frame Frame, args int) Value {
 			case ValueTypeNativeFunction:
 				fn := callee.GetNativeFunction()
 				args := v.stack[argsBegin : argsBegin+numArgs]
-				r := fn(v, args)
+				r, ok := fn(v, args)
 				v.sp = calleeIdx
 				v.stack[v.sp] = r
-
 				v.curFrame.ip += 2
+				if !ok && r.IsError() {
+					if !v.raise(r) {
+						return false
+					}
+				}
 			default:
 				panic(fmt.Sprintf("illegal callee type %s", callee.VType))
+			}
+
+		case opcode.OP_RAISE:
+			val := v.stack[v.sp]
+			if !v.raise(val) {
+				return false
 			}
 
 		case opcode.OP_RET:
@@ -476,11 +495,11 @@ func (v *VM) Run(frame Frame, args int) Value {
 			haltAfter := v.curFrame.HaltAfter
 			v.popFrame()
 			if haltAfter {
-				return val
+				return true
 			}
 
 		case opcode.OP_HALT:
-			return Value{}
+			return true
 
 		case opcode.OP_LOAD_LOAD_ADD:
 			scope1 := v.curFrame.Instructions[v.curFrame.ip+1]
@@ -784,6 +803,30 @@ func (v *VM) Run(frame Frame, args int) Value {
 	}
 }
 
+func (v *VM) raise(val Value) bool {
+	prevFrame := v.curFrame
+	v.popFrame() // pop the current frame
+
+	for v.fp >= 0 {
+		if v.callStack[v.fp].hasTry {
+			v.sp = prevFrame.returnAddr
+			v.stack[v.sp] = val
+			return true
+		}
+
+		if v.curFrame.HaltAfter {
+			v.sp = v.curFrame.returnAddr
+			v.stack[v.sp] = val
+			return false
+		}
+
+		prevFrame = v.curFrame
+		v.popFrame()
+	}
+
+	return false
+}
+
 func (v *VM) pushFrame(f Frame, args int) {
 	v.fp++
 
@@ -807,7 +850,7 @@ func (v *VM) popFrame() {
 	}
 }
 
-func (v *VM) RunFunction(f Value, args ...Value) Value {
+func (v *VM) RunFunction(f Value, args ...Value) (Value, bool) {
 	fn := f.GetFunction()
 	v.sp++
 	retAddr := v.sp
@@ -815,7 +858,8 @@ func (v *VM) RunFunction(f Value, args ...Value) Value {
 		v.sp++
 		v.stack[v.sp] = arg
 	}
-	v.Run(Frame{
+
+	ok := v.Run(Frame{
 		Instructions: fn.Instructions,
 		NumVars:      fn.NumVars,
 		FreeVars:     fn.FreeVars,
@@ -830,5 +874,9 @@ func (v *VM) RunFunction(f Value, args ...Value) Value {
 	retVal := v.stack[retAddr]
 	v.sp--
 
-	return retVal
+	if !ok {
+		return retVal, false
+	}
+
+	return retVal, true
 }

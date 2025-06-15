@@ -731,8 +731,8 @@ func TestVM(t *testing.T) {
 				assert.NoError(err)
 
 				reg := vm.NewRegBuilderFrom(builtin.StdReg).
-					RegisterFunc("tempDir", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
-						return vm.NewString(t.TempDir())
+					RegisterFunc("tempDir", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+						return vm.NewString(t.TempDir()), true
 					}).
 					Build()
 				c := compiler.New(reg)
@@ -741,12 +741,11 @@ func TestVM(t *testing.T) {
 
 				executor := vm.NewExecutor(builtin.StdReg)
 				task := executor.Run(
-					vm.Frame{
+					vm.NewFunction(vm.FunctionValue{
 						Instructions: instructions,
 						NumVars:      vars,
-						HaltAfter:    true,
 						Constants:    constants,
-					},
+					}),
 				)
 				val := task.Wait()
 				if val.IsError() {

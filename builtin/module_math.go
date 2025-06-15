@@ -25,220 +25,220 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 				"ninf":    vm.NewNumber(math.Inf(-1)),
 				"nan":     vm.NewNumber(math.NaN()),
 
-				"abs": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"abs": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg
+						return numArg, false
 					}
 
-					return vm.NewNumber(math.Abs(numArg.GetNumber()))
+					return vm.NewNumber(math.Abs(numArg.GetNumber())), true
 				}),
-				"acos": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"acos": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg
+						return numArg, false
 					}
 
-					return vm.NewNumber(math.Acos(numArg.GetNumber()))
+					return vm.NewNumber(math.Acos(numArg.GetNumber())), true
 				}),
-				"acosh": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"acosh": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg
+						return numArg, false
 					}
 
-					return vm.NewNumber(math.Acosh(numArg.GetNumber()))
+					return vm.NewNumber(math.Acosh(numArg.GetNumber())), true
 				}),
-				"asin": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"asin": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg
+						return numArg, false
 					}
 
-					return vm.NewNumber(math.Asin(numArg.GetNumber()))
+					return vm.NewNumber(math.Asin(numArg.GetNumber())), true
 				}),
-				"asinh": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"asinh": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg
+						return numArg, false
 					}
 
-					return vm.NewNumber(math.Asinh(numArg.GetNumber()))
+					return vm.NewNumber(math.Asinh(numArg.GetNumber())), true
 				}),
-				"atan": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"atan": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg
+						return numArg, false
 					}
 
-					return vm.NewNumber(math.Atan(numArg.GetNumber()))
+					return vm.NewNumber(math.Atan(numArg.GetNumber())), true
 				}),
-				"atanh": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"atanh": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg
+						return numArg, false
 					}
 
-					return vm.NewNumber(math.Atanh(numArg.GetNumber()))
+					return vm.NewNumber(math.Atanh(numArg.GetNumber())), true
 				}),
-				"cbrt": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"cbrt": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg
+						return numArg, false
 					}
 
-					return vm.NewNumber(math.Cbrt(numArg.GetNumber()))
+					return vm.NewNumber(math.Cbrt(numArg.GetNumber())), true
 				}),
-				"ceil": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"ceil": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg
+						return numArg, false
 					}
 
-					return vm.NewNumber(math.Ceil(numArg.GetNumber()))
+					return vm.NewNumber(math.Ceil(numArg.GetNumber())), true
 				}),
-				"cos": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"cos": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg
+						return numArg, false
 					}
 
-					return vm.NewNumber(math.Cos(numArg.GetNumber()))
+					return vm.NewNumber(math.Cos(numArg.GetNumber())), true
 				}),
-				"cosh": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"cosh": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg
+						return numArg, false
 					}
 
-					return vm.NewNumber(math.Cosh(numArg.GetNumber()))
+					return vm.NewNumber(math.Cosh(numArg.GetNumber())), true
 				}),
-				"exp": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"exp": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg
+						return numArg, false
 					}
 
-					return vm.NewNumber(math.Exp(numArg.GetNumber()))
+					return vm.NewNumber(math.Exp(numArg.GetNumber())), true
 				}),
-				"floor": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"floor": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg
+						return numArg, false
 					}
 
-					return vm.NewNumber(math.Floor(numArg.GetNumber()))
+					return vm.NewNumber(math.Floor(numArg.GetNumber())), true
 				}),
-				"log": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"log": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg
+						return numArg, false
 					}
 
-					return vm.NewNumber(math.Log(numArg.GetNumber()))
+					return vm.NewNumber(math.Log(numArg.GetNumber())), true
 				}),
-				"log10": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"log10": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg
+						return numArg, false
 					}
 
-					return vm.NewNumber(math.Log10(numArg.GetNumber()))
+					return vm.NewNumber(math.Log10(numArg.GetNumber())), true
 				}),
-				"max": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"max": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg1, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg1
+						return numArg1, false
 					}
 
 					numArg2, ok := args.Get(1, vm.ValueTypeNumber)
 					if !ok {
-						return numArg2
+						return numArg2, false
 					}
 
-					return vm.NewNumber(math.Max(numArg1.GetNumber(), numArg2.GetNumber()))
+					return vm.NewNumber(math.Max(numArg1.GetNumber(), numArg2.GetNumber())), true
 				}),
-				"min": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"min": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg1, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg1
+						return numArg1, false
 					}
 
 					numArg2, ok := args.Get(1, vm.ValueTypeNumber)
 					if !ok {
-						return numArg2
+						return numArg2, false
 					}
 
-					return vm.NewNumber(math.Min(numArg1.GetNumber(), numArg2.GetNumber()))
+					return vm.NewNumber(math.Min(numArg1.GetNumber(), numArg2.GetNumber())), true
 				}),
-				"pow": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"pow": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg1, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg1
+						return numArg1, false
 					}
 
 					numArg2, ok := args.Get(1, vm.ValueTypeNumber)
 					if !ok {
-						return numArg2
+						return numArg2, false
 					}
 
-					return vm.NewNumber(math.Pow(numArg1.GetNumber(), numArg2.GetNumber()))
+					return vm.NewNumber(math.Pow(numArg1.GetNumber(), numArg2.GetNumber())), true
 				}),
-				"round": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"round": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg1, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg1
+						return numArg1, false
 					}
 
-					return vm.NewNumber(math.Round(numArg1.GetNumber()))
+					return vm.NewNumber(math.Round(numArg1.GetNumber())), true
 				}),
-				"roundEven": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"roundEven": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg1, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg1
+						return numArg1, false
 					}
 
-					return vm.NewNumber(math.RoundToEven(numArg1.GetNumber()))
+					return vm.NewNumber(math.RoundToEven(numArg1.GetNumber())), true
 				}),
-				"sin": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"sin": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg1, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg1
+						return numArg1, false
 					}
 
-					return vm.NewNumber(math.Sin(numArg1.GetNumber()))
+					return vm.NewNumber(math.Sin(numArg1.GetNumber())), true
 				}),
-				"sinh": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"sinh": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg1, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg1
+						return numArg1, false
 					}
 
-					return vm.NewNumber(math.Sinh(numArg1.GetNumber()))
+					return vm.NewNumber(math.Sinh(numArg1.GetNumber())), true
 				}),
-				"sqrt": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"sqrt": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg1, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg1
+						return numArg1, false
 					}
 
-					return vm.NewNumber(math.Sqrt(numArg1.GetNumber()))
+					return vm.NewNumber(math.Sqrt(numArg1.GetNumber())), true
 				}),
-				"tan": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"tan": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg1, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg1
+						return numArg1, false
 					}
 
-					return vm.NewNumber(math.Tan(numArg1.GetNumber()))
+					return vm.NewNumber(math.Tan(numArg1.GetNumber())), true
 				}),
-				"tanh": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+				"tanh": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg1, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
-						return numArg1
+						return numArg1, false
 					}
 
-					return vm.NewNumber(math.Tanh(numArg1.GetNumber()))
+					return vm.NewNumber(math.Tanh(numArg1.GetNumber())), true
 				}),
 			},
 		)

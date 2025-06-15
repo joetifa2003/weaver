@@ -68,15 +68,14 @@ func main() {
 					executor := vm.NewExecutor(builtin.StdReg)
 
 					v := vm.New(executor)
-					val := v.Run(
-						vm.Frame{
-							Instructions: instructions,
+
+					val, _ := v.RunFunction(
+						vm.NewFunction(vm.FunctionValue{
 							NumVars:      vars,
-							HaltAfter:    true,
-							Path:         absPath,
+							Instructions: instructions,
 							Constants:    constants,
-						},
-						0,
+							Path:         absPath,
+						}),
 					)
 					if val.VType == vm.ValueTypeError {
 						fmt.Println(val.String())

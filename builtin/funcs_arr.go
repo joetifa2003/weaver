@@ -5,13 +5,13 @@ import (
 )
 
 func registerBuiltinFuncsArr(builder *vm.RegistryBuilder) {
-	builder.RegisterFunc("makeArr", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+	builder.RegisterFunc("makeArr", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 		length := 0
 		capacity := 0
 
 		lengthArg, ok := args.Get(0)
 		if !ok {
-			return lengthArg
+			return lengthArg, false
 		}
 
 		length = int(lengthArg.GetNumber())
@@ -19,68 +19,77 @@ func registerBuiltinFuncsArr(builder *vm.RegistryBuilder) {
 		if args.Len() > 1 {
 			capacityArg, ok := args.Get(1)
 			if !ok {
-				return capacityArg
+				return capacityArg, false
 			}
 			capacity = int(capacityArg.GetNumber())
-			return vm.NewArray(make([]vm.Value, length, capacity))
+			return vm.NewArray(make([]vm.Value, length, capacity)), true
 		}
 
-		return vm.NewArray(make([]vm.Value, length))
+		return vm.NewArray(make([]vm.Value, length)), true
 	})
 
-	builder.RegisterFunc("push", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+	builder.RegisterFunc("push", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 		arrArg, ok := args.Get(0, vm.ValueTypeArray)
 		if !ok {
-			return arrArg
+			return arrArg, false
 		}
 
 		val, ok := args.Get(1)
 		if !ok {
-			return val
+			return val, false
 		}
 
 		arr := arrArg.GetArray()
 		*arr = append(*arr, val)
-		return arrArg
+		return arrArg, true
 	})
 
-	builder.RegisterFunc("map", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+	builder.RegisterFunc("map", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 		arrArg, ok := args.Get(0, vm.ValueTypeArray)
 		if !ok {
-			return arrArg
+			return arrArg, false
 		}
 
 		fnArg, ok := args.Get(1, vm.ValueTypeFunction)
 		if !ok {
-			return fnArg
+			return fnArg, false
 		}
 
 		arr := *arrArg.GetArray()
 		newArr := make([]vm.Value, len(arr))
 		for i, val := range arr {
-			newArr[i] = v.RunFunction(fnArg, val)
+			mapped, ok := v.RunFunction(fnArg, val)
+			if !ok {
+				return mapped, false
+			}
+
+			newArr[i] = mapped
 		}
 
 		var result vm.Value
 		result.SetArray(newArr)
-		return result
+		return result, true
 	})
 
-	builder.RegisterFunc("filter", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+	builder.RegisterFunc("filter", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 		arrArg, ok := args.Get(0, vm.ValueTypeArray)
 		if !ok {
-			return arrArg
+			return arrArg, false
 		}
 
 		fnArg, ok := args.Get(1, vm.ValueTypeFunction)
 		if !ok {
-			return fnArg
+			return fnArg, false
 		}
 
 		arr := *arrArg.GetArray()
 		newArr := make([]vm.Value, 0)
 		for _, val := range arr {
-			r := v.RunFunction(fnArg, val)
+			r, ok := v.RunFunction(fnArg, val)
+			if !ok {
+				return r, false
+			}
+
 			if r.IsTruthy() {
 				newArr = append(newArr, val)
 			}
@@ -88,26 +97,29 @@ func registerBuiltinFuncsArr(builder *vm.RegistryBuilder) {
 
 		var result vm.Value
 		result.SetArray(newArr)
-		return result
+		return result, true
 	})
 
-	builder.RegisterFunc("contains", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+	builder.RegisterFunc("contains", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 		arrArg, ok := args.Get(0, vm.ValueTypeArray)
 		if !ok {
-			return arrArg
+			return arrArg, false
 		}
 
 		f, ok := args.Get(1)
 		if !ok {
-			return f
+			return f, false
 		}
 
 		arr := *arrArg.GetArray()
 		if f.VType == vm.ValueTypeFunction {
 			for _, val := range arr {
-				r := v.RunFunction(f, val)
+				r, ok := v.RunFunction(f, val)
+				if !ok {
+					return r, false
+				}
 				if r.IsTruthy() {
-					return vm.NewBool(true)
+					return vm.NewBool(true), true
 				}
 			}
 		} else {
@@ -115,34 +127,35 @@ func registerBuiltinFuncsArr(builder *vm.RegistryBuilder) {
 			for _, val := range arr {
 				val.Equal(&f, &isEqual)
 				if isEqual.IsTruthy() {
-					return vm.NewBool(true)
+					return vm.NewBool(true), true
 				}
 			}
 		}
 
-		return vm.NewBool(false)
+		return vm.NewBool(false), true
 	})
 
-	builder.RegisterFunc("find", func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+	builder.RegisterFunc("find", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 		arrArg, ok := args.Get(0, vm.ValueTypeArray)
 		if !ok {
-			return arrArg
+			return arrArg, false
 		}
 
 		f, ok := args.Get(1)
 		if !ok {
-			return f
+			return f, false
 		}
 
 		arr := *arrArg.GetArray()
 		if f.VType == vm.ValueTypeFunction {
 			for _, val := range arr {
-				r := v.RunFunction(f, val)
-				if r.IsError() {
-					return r
+				r, ok := v.RunFunction(f, val)
+				if !ok {
+					return r, false
 				}
+
 				if r.IsTruthy() {
-					return val
+					return val, true
 				}
 			}
 		} else {
@@ -150,11 +163,11 @@ func registerBuiltinFuncsArr(builder *vm.RegistryBuilder) {
 			for _, val := range arr {
 				val.Equal(&f, &isEqual)
 				if isEqual.IsTruthy() {
-					return val
+					return val, true
 				}
 			}
 		}
 
-		return vm.Value{}
+		return vm.Value{}, true
 	})
 }

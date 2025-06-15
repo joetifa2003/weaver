@@ -154,26 +154,26 @@ func (v *Value) SetLock(l *sync.Mutex) {
 	v.VType = ValueTypeLock
 	v.nonPrimitive = unsafe.Pointer(&Lock{
 		Mutex: l,
-		lock: func(v *VM, args NativeFunctionArgs) Value {
+		lock: func(v *VM, args NativeFunctionArgs) (Value, bool) {
 			if len(args) > 0 {
 				fnArg, ok := args.Get(0, ValueTypeFunction)
 				if !ok {
-					return fnArg
+					return fnArg, false
 				}
 
 				l.Lock()
 				defer l.Unlock()
 				v.RunFunction(fnArg)
 
-				return Value{}
+				return Value{}, true
 			}
 
 			l.Lock()
-			return Value{}
+			return Value{}, true
 		},
-		unlock: func(v *VM, args NativeFunctionArgs) Value {
+		unlock: func(v *VM, args NativeFunctionArgs) (Value, bool) {
 			l.Unlock()
-			return Value{}
+			return Value{}, true
 		},
 	})
 }
@@ -321,7 +321,7 @@ func CheckValueType(val Value, types ...ValueType) (Value, bool) {
 	return NewError(fmt.Sprintf("invalid argument type, expected %v", types), Value{}), false
 }
 
-type NativeFunction func(v *VM, args NativeFunctionArgs) Value
+type NativeFunction func(v *VM, args NativeFunctionArgs) (Value, bool)
 
 func (v *Value) GetNativeFunction() NativeFunction {
 	return *(*NativeFunction)(v.nonPrimitive)
@@ -335,6 +335,12 @@ func (v *Value) SetNativeFunction(f NativeFunction) {
 func NewString(s string) Value {
 	val := Value{}
 	val.SetString(s)
+	return val
+}
+
+func NewFunction(f FunctionValue) Value {
+	val := Value{}
+	val.SetFunction(f)
 	return val
 }
 

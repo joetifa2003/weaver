@@ -15,11 +15,11 @@ func registerHTTPModule(builder *vm.RegistryBuilder) {
 
 	builder.RegisterModule("http", func() vm.Value {
 		m := map[string]vm.Value{
-			"request": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"request": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				// Get the options object
 				optionsArg, ok := args.Get(0, vm.ValueTypeObject)
 				if !ok {
-					return optionsArg
+					return optionsArg, false
 				}
 
 				options := optionsArg.GetObject()
@@ -27,69 +27,69 @@ func registerHTTPModule(builder *vm.RegistryBuilder) {
 				// Get required URL
 				urlVal, ok := options["url"]
 				if !ok {
-					return vm.NewError("[http.request]: missing required field 'url'", vm.Value{})
+					return vm.NewError("[http.request]: missing required field 'url'", vm.Value{}), false
 				}
 				url, ok := vm.CheckValueType(urlVal, vm.ValueTypeString)
 				if !ok {
-					return url
+					return url, false
 				}
 
 				// Get required method
 				methodVal, ok := options["method"]
 				if !ok {
-					return vm.NewError("[http.request]: missing required field 'method'", vm.Value{})
+					return vm.NewError("[http.request]: missing required field 'method'", vm.Value{}), false
 				}
 				method, ok := vm.CheckValueType(methodVal, vm.ValueTypeString)
 				if !ok {
-					return method
+					return method, false
 				}
 
 				// Create and make the request
 				req, err, ok := createRequest(strings.ToUpper(method.GetString()), url.GetString(), vm.NativeFunctionArgs{optionsArg})
 				if !ok {
-					return err
+					return err, false
 				}
 
 				return makeRequest(req)
 			}),
 
-			"newRouter": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"newRouter": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				router := chi.NewRouter()
-				return vm.NewNativeObject(router, makeRouterMethods(router))
+				return vm.NewNativeObject(router, makeRouterMethods(router)), true
 			}),
 
-			"listenAndServe": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			"listenAndServe": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				addrArg, ok := args.Get(0, vm.ValueTypeString)
 				if !ok {
-					return addrArg
+					return addrArg, false
 				}
 
 				routerArg, ok := args.Get(1, vm.ValueTypeNativeObject)
 				if !ok {
-					return routerArg
+					return routerArg, false
 				}
 
 				router := routerArg.GetNativeObject().Obj.(*chi.Mux)
 
 				err := http.ListenAndServe(addrArg.GetString(), router)
 				if err != nil {
-					return vm.NewErrFromErr(err)
+					return vm.NewErrFromErr(err), false
 				}
 
-				return vm.Value{}
+				return vm.Value{}, true
 			}),
 		}
 
 		for _, method := range []string{"get", "post", "put", "delete"} {
-			m[method] = vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+			m[method] = vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				urlArg, ok := args.Get(0, vm.ValueTypeString)
 				if !ok {
-					return urlArg
+					return urlArg, false
 				}
 
 				req, err, ok := createRequest(strings.ToUpper(method), urlArg.GetString(), args)
 				if !ok {
-					return err
+					return err, false
 				}
 
 				return makeRequest(req)
@@ -143,23 +143,23 @@ func createRequest(method string, url string, args vm.NativeFunctionArgs) (*http
 	return req, vm.Value{}, true
 }
 
-func makeRequest(req *http.Request) vm.Value {
+func makeRequest(req *http.Request) (vm.Value, bool) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return vm.NewError(err.Error(), vm.Value{})
+		return vm.NewError(err.Error(), vm.Value{}), false
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return vm.NewError(err.Error(), vm.Value{})
+		return vm.NewError(err.Error(), vm.Value{}), false
 	}
 
 	return createResponseObject(resp, body)
 }
 
-func createResponseObject(resp *http.Response, body []byte) vm.Value {
+func createResponseObject(resp *http.Response, body []byte) (vm.Value, bool) {
 	headers := make(map[string]vm.Value)
 	for key, values := range resp.Header {
 		headers[key] = vm.NewString(strings.Join(values, ", "))
@@ -172,81 +172,81 @@ func createResponseObject(resp *http.Response, body []byte) vm.Value {
 		"body":       vm.NewString(string(body)),
 	})
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-		return obj
+		return obj, true
 	}
 
-	return vm.NewError("[http]: non 2xx response", obj)
+	return vm.NewError("[http]: non 2xx response", obj), false
 }
 
 func makeRouterMethods(router *chi.Mux) map[string]vm.Value {
 	return map[string]vm.Value{
-		"get": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+		"get": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 			pathArg, ok := args.Get(0, vm.ValueTypeString)
 			if !ok {
-				return pathArg
+				return pathArg, false
 			}
 
 			handlerArg, ok := args.Get(1, vm.ValueTypeFunction)
 			if !ok {
-				return handlerArg
+				return handlerArg, false
 			}
 
 			router.Get(pathArg.GetString(), func(w http.ResponseWriter, r *http.Request) {
 				runHandler(v, handlerArg, r, w)
 			})
 
-			return vm.Value{}
+			return vm.Value{}, true
 		}),
-		"post": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+		"post": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 			pathArg, ok := args.Get(0, vm.ValueTypeString)
 			if !ok {
-				return pathArg
+				return pathArg, false
 			}
 
 			handlerArg, ok := args.Get(1, vm.ValueTypeFunction)
 			if !ok {
-				return handlerArg
+				return handlerArg, false
 			}
 
 			router.Post(pathArg.GetString(), func(w http.ResponseWriter, r *http.Request) {
 				runHandler(v, handlerArg, r, w)
 			})
 
-			return vm.Value{}
+			return vm.Value{}, true
 		}),
-		"put": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+		"put": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 			pathArg, ok := args.Get(0, vm.ValueTypeString)
 			if !ok {
-				return pathArg
+				return pathArg, false
 			}
 
 			handlerArg, ok := args.Get(1, vm.ValueTypeFunction)
 			if !ok {
-				return handlerArg
+				return handlerArg, false
 			}
 
 			router.Put(pathArg.GetString(), func(w http.ResponseWriter, r *http.Request) {
 				runHandler(v, handlerArg, r, w)
 			})
 
-			return vm.Value{}
+			return vm.Value{}, true
 		}),
-		"delete": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+		"delete": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 			pathArg, ok := args.Get(0, vm.ValueTypeString)
 			if !ok {
-				return pathArg
+				return pathArg, false
 			}
 
 			handlerArg, ok := args.Get(1, vm.ValueTypeFunction)
 			if !ok {
-				return handlerArg
+				return handlerArg, false
 			}
 
 			router.Delete(pathArg.GetString(), func(w http.ResponseWriter, r *http.Request) {
 				runHandler(v, handlerArg, r, w)
 			})
 
-			return vm.Value{}
+			return vm.Value{}, true
 		}),
 	}
 }
@@ -263,7 +263,7 @@ func runHandler(v *vm.VM, handlerArg vm.Value, req *http.Request, w http.Respons
 	}
 
 	task := runFunc(v, handlerArg, makeRequestObject(req), makeResponseObject(&response))
-	val := task.Wait()
+	val, _ := task.Wait()
 	if val.IsError() {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		fmt.Println(val.String())
@@ -298,59 +298,59 @@ func makeRequestObject(req *http.Request) vm.Value {
 		"method": vm.NewString(req.Method),
 		"url":    vm.NewString(req.URL.String()),
 		"path":   vm.NewString(req.URL.Path),
-		"getQuery": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+		"getQuery": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 			keyArg, ok := args.Get(0, vm.ValueTypeString)
 			if !ok {
-				return keyArg
+				return keyArg, false
 			}
 
-			return vm.NewString(req.URL.Query().Get(keyArg.GetString()))
+			return vm.NewString(req.URL.Query().Get(keyArg.GetString())), true
 		}),
-		"getFormValue": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+		"getFormValue": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 			keyArg, ok := args.Get(0, vm.ValueTypeString)
 			if !ok {
-				return keyArg
+				return keyArg, false
 			}
 
-			return vm.NewString(req.FormValue(keyArg.GetString()))
+			return vm.NewString(req.FormValue(keyArg.GetString())), true
 		}),
-		"getParam": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+		"getParam": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 			keyArg, ok := args.Get(0, vm.ValueTypeString)
 			if !ok {
-				return keyArg
+				return keyArg, false
 			}
 
-			return vm.NewString(chi.URLParam(req, keyArg.GetString()))
+			return vm.NewString(chi.URLParam(req, keyArg.GetString())), true
 		}),
 	})
 }
 
 func makeResponseObject(resp *response) vm.Value {
 	return vm.NewObject(map[string]vm.Value{
-		"setHeader": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+		"setHeader": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 			keyArg, ok := args.Get(0, vm.ValueTypeString)
 			if !ok {
-				return keyArg
+				return keyArg, false
 			}
 
 			valArg, ok := args.Get(1, vm.ValueTypeString)
 			if !ok {
-				return valArg
+				return valArg, false
 			}
 
 			resp.headers[keyArg.GetString()] = valArg.GetString()
 
-			return vm.Value{}
+			return vm.Value{}, true
 		}),
-		"setStatus": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) vm.Value {
+		"setStatus": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 			statusArg, ok := args.Get(0, vm.ValueTypeNumber)
 			if !ok {
-				return statusArg
+				return statusArg, false
 			}
 
 			resp.status = int(statusArg.GetNumber())
 
-			return vm.Value{}
+			return vm.Value{}, true
 		}),
 	})
 }

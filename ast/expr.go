@@ -171,3 +171,15 @@ type ReturnExpr struct {
 }
 
 func (t ReturnExpr) expr() {}
+
+type RaiseExpr struct {
+	Expr Expr
+}
+
+func (t RaiseExpr) expr() {}
+
+type TryExpr struct {
+	Expr Expr
+}
+
+func (t TryExpr) expr() {}

@@ -1,0 +1,16 @@
+# VarCount: 5
+v0_local = @import("http")
+v1_local = @import("io")
+v2_local = @import("json")
+v3_local = @import("strings")
+v4_local = v0_local["newRouter"]()
+v4_local["get"]("/user/{id}", @frame(vars:4, params:1, freeVars:2) {
+	v1_local = v0_local["getParam"]("id")
+	v2_local = f0_free["parse"](f1_free["readFile"]("./main.json"))
+	v3_local = @find(v2_local, @frame(vars:1, params:1, freeVars:1) {
+	return (v0_local["id"] == @number(f0_free))
+})
+	return v3_local
+})
+@echo("starting server on port 8080")
+v0_local["listenAndServe"](":8080", v4_local)

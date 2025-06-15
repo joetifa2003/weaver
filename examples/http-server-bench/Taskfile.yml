@@ -1,0 +1,34 @@
+version: '3'
+tasks:
+  gen-node-bench:
+    dir: node
+    cmds:
+      - ../load_test.sh 'node main.js' 3000
+
+  gen-node-bench-pm2:
+    dir: node-pm2
+    cmds:
+      - ../load_test.sh 'pm2 start main.js -i 16 --no-daemon' 3001 --pm2
+
+  gen-go-bench:
+    dir: go
+    cmds:
+      - go build .
+      - ../load_test.sh './bench-http' 3002
+
+  gen-weaver-bench:
+    dir: weaver
+    cmds:
+      - ../load_test.sh 'weaver run main.wvr' 8080
+
+  plot:
+    cmds:
+      - python3 genplot.py weaver go node node-pm2
+
+  gen-report:
+    cmds:
+      - task: gen-node-bench-pm2
+      - task: gen-node-bench
+      - task: gen-go-bench
+      - task: gen-weaver-bench
+      - task: plot

@@ -10,7 +10,7 @@ func registerFiberModule(builder *vm.RegistryBuilder) {
 	builder.RegisterModule("fiber", func() vm.Value {
 		return vm.NewObject(
 			map[string]vm.Value{
-				"run": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"run": vm.NewNativeFunction("run", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					fnArg, ok := args.Get(0, vm.ValueTypeFunction)
 					if !ok {
 						return fnArg, false
@@ -19,7 +19,7 @@ func registerFiberModule(builder *vm.RegistryBuilder) {
 					return vm.NewTask(runFunc(v, fnArg)), true
 				}),
 
-				"wait": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"wait": vm.NewNativeFunction("wait", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					taskArg, ok := args.Get(0, vm.ValueTypeTask, vm.ValueTypeArray)
 					if !ok {
 						return taskArg, false
@@ -30,7 +30,7 @@ func registerFiberModule(builder *vm.RegistryBuilder) {
 					} else {
 						vals := make([]vm.Value, 0, len(*taskArg.GetArray()))
 						for _, task := range *taskArg.GetArray() {
-							if err, ok := vm.CheckValueType(task, vm.ValueTypeTask); !ok {
+							if err, ok := vm.CheckValueType("wait", task, vm.ValueTypeTask); !ok {
 								return err, false
 							}
 							val, ok := waitForTask(task)
@@ -44,7 +44,7 @@ func registerFiberModule(builder *vm.RegistryBuilder) {
 					}
 				}),
 
-				"cancel": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"cancel": vm.NewNativeFunction("cancel", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					taskArg, ok := args.Get(0, vm.ValueTypeTask)
 					if !ok {
 						return taskArg, false
@@ -56,15 +56,15 @@ func registerFiberModule(builder *vm.RegistryBuilder) {
 					return vm.Value{}, true
 				}),
 
-				"newLock": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"newLock": vm.NewNativeFunction("newLock", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					l := vm.Value{}
 					l.SetLock(&sync.Mutex{})
 					return l, true
 				}),
 
-				"newChannel": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"newChannel": vm.NewNativeFunction("newChannel", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					var buffer int
-					if len(args) > 0 {
+					if len(args.Args) > 0 {
 						bufferArg, ok := args.Get(0, vm.ValueTypeNumber)
 						if !ok {
 							return bufferArg, false
@@ -76,7 +76,7 @@ func registerFiberModule(builder *vm.RegistryBuilder) {
 					return val, true
 				}),
 
-				"send": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"send": vm.NewNativeFunction("send", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					chArg, ok := args.Get(0, vm.ValueTypeChannel)
 					if !ok {
 						return chArg, false
@@ -93,7 +93,7 @@ func registerFiberModule(builder *vm.RegistryBuilder) {
 					return valArg, true
 				}),
 
-				"close": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"close": vm.NewNativeFunction("close", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					chArg, ok := args.Get(0, vm.ValueTypeChannel)
 					if !ok {
 						return chArg, false
@@ -105,7 +105,7 @@ func registerFiberModule(builder *vm.RegistryBuilder) {
 					return vm.Value{}, true
 				}),
 
-				"recv": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"recv": vm.NewNativeFunction("recv", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					chArg, ok := args.Get(0, vm.ValueTypeChannel)
 					if !ok {
 						return chArg, false
@@ -116,7 +116,7 @@ func registerFiberModule(builder *vm.RegistryBuilder) {
 					return val, true
 				}),
 
-				"onRecv": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"onRecv": vm.NewNativeFunction("onRecv", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					chArg, ok := args.Get(0, vm.ValueTypeChannel)
 					if !ok {
 						return chArg, false

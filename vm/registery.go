@@ -22,8 +22,9 @@ func NewRegBuilderFrom(other *Registry) *RegistryBuilder {
 		modules: ds.NewConcMap[string, func() Value](),
 	}
 
-	for k, f := range other.funcs.Iter() {
-		r.RegisterFunc(k, f.GetNativeFunction())
+	for _, f := range other.funcs.Iter() {
+		fn := f.GetNativeFunction()
+		r.RegisterFunc(fn.Name, fn.Fn)
 	}
 
 	for k, v := range other.modules.Iter() {
@@ -51,9 +52,8 @@ func (r *RegistryBuilder) RemoveModule(name string) func() Value {
 	return v
 }
 
-func (r *RegistryBuilder) RegisterFunc(name string, f NativeFunction) *RegistryBuilder {
-	val := Value{}
-	val.SetNativeFunction(f)
+func (r *RegistryBuilder) RegisterFunc(name string, f NativeFunctionImpl) *RegistryBuilder {
+	val := NewNativeFunction(name, f)
 	r.funcs.Set(name, val)
 	return r
 }

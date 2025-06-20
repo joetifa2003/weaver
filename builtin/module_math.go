@@ -25,7 +25,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 				"ninf":    vm.NewNumber(math.Inf(-1)),
 				"nan":     vm.NewNumber(math.NaN()),
 
-				"abs": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"abs": vm.NewNativeFunction("abs", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg, false
@@ -33,7 +33,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewNumber(math.Abs(numArg.GetNumber())), true
 				}),
-				"acos": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"acos": vm.NewNativeFunction("acos", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg, false
@@ -41,7 +41,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewNumber(math.Acos(numArg.GetNumber())), true
 				}),
-				"acosh": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"acosh": vm.NewNativeFunction("acosh", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg, false
@@ -49,7 +49,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewNumber(math.Acosh(numArg.GetNumber())), true
 				}),
-				"asin": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"asin": vm.NewNativeFunction("asin", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg, false
@@ -57,7 +57,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewNumber(math.Asin(numArg.GetNumber())), true
 				}),
-				"asinh": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"asinh": vm.NewNativeFunction("asinh", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg, false
@@ -65,7 +65,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewNumber(math.Asinh(numArg.GetNumber())), true
 				}),
-				"atan": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"atan": vm.NewNativeFunction("atan", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg, false
@@ -73,7 +73,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewNumber(math.Atan(numArg.GetNumber())), true
 				}),
-				"atanh": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"atanh": vm.NewNativeFunction("atanh", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg, false
@@ -81,7 +81,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewNumber(math.Atanh(numArg.GetNumber())), true
 				}),
-				"cbrt": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"cbrt": vm.NewNativeFunction("cbrt", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg, false
@@ -89,7 +89,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewNumber(math.Cbrt(numArg.GetNumber())), true
 				}),
-				"ceil": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"ceil": vm.NewNativeFunction("ceil", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg, false
@@ -97,7 +97,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewNumber(math.Ceil(numArg.GetNumber())), true
 				}),
-				"cos": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"cos": vm.NewNativeFunction("cos", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg, false
@@ -105,7 +105,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewNumber(math.Cos(numArg.GetNumber())), true
 				}),
-				"cosh": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"cosh": vm.NewNativeFunction("cosh", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg, false
@@ -113,7 +113,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewNumber(math.Cosh(numArg.GetNumber())), true
 				}),
-				"exp": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"exp": vm.NewNativeFunction("exp", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg, false
@@ -121,7 +121,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewNumber(math.Exp(numArg.GetNumber())), true
 				}),
-				"floor": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"floor": vm.NewNativeFunction("floor", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg, false
@@ -129,7 +129,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewNumber(math.Floor(numArg.GetNumber())), true
 				}),
-				"log": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"log": vm.NewNativeFunction("log", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg, false
@@ -137,7 +137,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewNumber(math.Log(numArg.GetNumber())), true
 				}),
-				"log10": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"log10": vm.NewNativeFunction("log10", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg, false
@@ -145,7 +145,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewNumber(math.Log10(numArg.GetNumber())), true
 				}),
-				"max": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"max": vm.NewNativeFunction("max", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg1, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg1, false
@@ -158,7 +158,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewNumber(math.Max(numArg1.GetNumber(), numArg2.GetNumber())), true
 				}),
-				"min": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"min": vm.NewNativeFunction("min", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg1, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg1, false
@@ -171,7 +171,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewNumber(math.Min(numArg1.GetNumber(), numArg2.GetNumber())), true
 				}),
-				"pow": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"pow": vm.NewNativeFunction("pow", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg1, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg1, false
@@ -184,7 +184,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewNumber(math.Pow(numArg1.GetNumber(), numArg2.GetNumber())), true
 				}),
-				"round": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"round": vm.NewNativeFunction("round", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg1, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg1, false
@@ -192,7 +192,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewNumber(math.Round(numArg1.GetNumber())), true
 				}),
-				"roundEven": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"roundEven": vm.NewNativeFunction("roundEven", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg1, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg1, false
@@ -200,7 +200,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewNumber(math.RoundToEven(numArg1.GetNumber())), true
 				}),
-				"sin": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"sin": vm.NewNativeFunction("sin", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg1, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg1, false
@@ -208,7 +208,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewNumber(math.Sin(numArg1.GetNumber())), true
 				}),
-				"sinh": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"sinh": vm.NewNativeFunction("sinh", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg1, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg1, false
@@ -216,7 +216,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewNumber(math.Sinh(numArg1.GetNumber())), true
 				}),
-				"sqrt": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"sqrt": vm.NewNativeFunction("sqrt", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg1, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg1, false
@@ -224,7 +224,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewNumber(math.Sqrt(numArg1.GetNumber())), true
 				}),
-				"tan": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"tan": vm.NewNativeFunction("tan", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg1, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg1, false
@@ -232,7 +232,7 @@ func registerMathModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewNumber(math.Tan(numArg1.GetNumber())), true
 				}),
-				"tanh": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"tanh": vm.NewNativeFunction("tanh", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					numArg1, ok := args.Get(0, vm.ValueTypeNumber)
 					if !ok {
 						return numArg1, false

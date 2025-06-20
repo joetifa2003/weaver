@@ -1,0 +1,164 @@
+# VarCount: 14
+v0_local = @import("rl")
+v1_local = @import("fiber")
+v2_local = 5
+v3_local = 1024
+v4_local = 1024
+v5_local = @int((v4_local / v2_local))
+v6_local = @int((v3_local / v2_local))
+v7_local = 10
+v8_local = @makeArr(v5_local)
+{
+	v9_local = 0
+	loop {
+		if (!((v9_local < v5_local))) break
+		{
+			v8_local[v9_local] = @makeArr(v6_local)
+		}
+		v9_local++
+	}
+}
+{
+	v9_local = 0
+	loop {
+		if (!((v9_local < v5_local))) break
+		{
+			{
+				v10_local = 0
+				loop {
+					if (!((v10_local < v6_local))) break
+					{
+						v8_local[v9_local][v10_local] = (@rand() > 0.800000)
+					}
+					v10_local++
+				}
+			}
+		}
+		v9_local++
+	}
+}
+v9_local = @frame(vars:7, params:2, freeVars:3) {
+	v2_local = 0
+	{
+		v3_local = -(1)
+		loop {
+			if (!((v3_local <= 1))) break
+			{
+				{
+					v4_local = -(1)
+					loop {
+						if (!((v4_local <= 1))) break
+						{
+							if (((v3_local == 0) && (v4_local == 0))) {
+								continue
+							}
+							v5_local = ((v0_local + v3_local + f0_free) % f0_free)
+							v6_local = ((v1_local + v4_local + f1_free) % f1_free)
+							if (f2_free[v5_local][v6_local]) {
+								v2_local++
+							}
+						}
+						v4_local++
+					}
+				}
+			}
+			v3_local++
+		}
+	}
+	return v2_local
+}
+v10_local = @frame(vars:3, params:3, freeVars:4) {
+	return f0_free["run"](@frame(vars:3, params:0, freeVars:6) {
+	{
+		v0_local = f0_free
+		loop {
+			if (!((v0_local < f1_free))) break
+			{
+				{
+					v1_local = 0
+					loop {
+						if (!((v1_local < f2_free))) break
+						{
+							v2_local = f3_free(v0_local, v1_local)
+							if (f4_free[v0_local][v1_local]) {
+								f5_free[v0_local][v1_local] = ((v2_local == 2) || (v2_local == 3))
+							} else {
+								f5_free[v0_local][v1_local] = (v2_local == 3)
+							}
+						}
+						v1_local++
+					}
+				}
+			}
+			v0_local++
+		}
+	}
+})
+}
+v11_local = @frame(vars:5, params:0, freeVars:5) {
+	v0_local = @makeArr(f0_free)
+	{
+		v1_local = 0
+		loop {
+			if (!((v1_local < f0_free))) break
+			{
+				v0_local[v1_local] = @makeArr(f1_free)
+			}
+			v1_local++
+		}
+	}
+	v1_local = @int((f0_free / f2_free))
+	if ((v1_local < 1)) {
+		v1_local = 1
+	}
+	v2_local = []
+	{
+		v3_local = 0
+		loop {
+			if (!((v3_local < f0_free))) break
+			{
+				v4_local = (v3_local + v1_local)
+				if ((v4_local > f0_free)) {
+					v4_local = f0_free
+				}
+				@push(v2_local, f3_free(v3_local, v4_local, v0_local))
+			}
+			v3_local = (v3_local + v1_local)
+		}
+	}
+	f4_free["wait"](v2_local)
+	return v0_local
+}
+v0_local["initWindow"](v3_local, v4_local, "Game of Life")
+loop {
+	if (!(!(v0_local["windowShouldClose"]()))) break
+	{
+		v8_local_ref = v11_local()
+		v0_local["beginDrawing"]()
+		v0_local["clearBackground"](v0_local["colorRayWhite"])
+		{
+			v12_local = 0
+			loop {
+				if (!((v12_local < v5_local))) break
+				{
+					{
+						v13_local = 0
+						loop {
+							if (!((v13_local < v6_local))) break
+							{
+								if (v8_local[v12_local][v13_local]) {
+									v0_local["drawRectangle"]((v13_local * v2_local), (v12_local * v2_local), v2_local, v2_local, v0_local["colorBlack"])
+								}
+							}
+							v13_local++
+						}
+					}
+				}
+				v12_local++
+			}
+		}
+		v0_local["drawFps"](10, 10)
+		v0_local["endDrawing"]()
+	}
+}
+v0_local["closeWindow"]()

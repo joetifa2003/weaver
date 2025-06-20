@@ -468,8 +468,11 @@ func (v *VM) Run(frame Frame, args int) bool {
 				v.pushFrame(frame, numArgs)
 			case ValueTypeNativeFunction:
 				fn := callee.GetNativeFunction()
-				args := v.stack[argsBegin : argsBegin+numArgs]
-				r, ok := fn(v, args)
+				args := NativeFunctionArgs{
+					Args: v.stack[argsBegin : argsBegin+numArgs],
+					Name: fn.Name,
+				}
+				r, ok := fn.Fn(v, args)
 				v.sp = calleeIdx
 				v.stack[v.sp] = r
 				v.curFrame.ip += 2

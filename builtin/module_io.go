@@ -14,7 +14,7 @@ func registerIOModule(builder *vm.RegistryBuilder) {
 	builder.RegisterModule("io", func() vm.Value {
 		return vm.NewObject(
 			map[string]vm.Value{
-				"println": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"println": vm.NewNativeFunction("println", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					val, ok := args.Get(0)
 					if !ok {
 						return val, false
@@ -23,7 +23,7 @@ func registerIOModule(builder *vm.RegistryBuilder) {
 					fmt.Println(val.String())
 					return vm.Value{}, true
 				}),
-				"print": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"print": vm.NewNativeFunction("print", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					val, ok := args.Get(0)
 					if !ok {
 						return val, false
@@ -32,7 +32,7 @@ func registerIOModule(builder *vm.RegistryBuilder) {
 					fmt.Print(val.String())
 					return vm.Value{}, true
 				}),
-				"readFile": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"readFile": vm.NewNativeFunction("readFile", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					arg1, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
 						return arg1, false
@@ -46,7 +46,7 @@ func registerIOModule(builder *vm.RegistryBuilder) {
 
 					return vm.NewString(string(file)), true
 				}),
-				"writeFile": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"writeFile": vm.NewNativeFunction("writeFile", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					pathArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
 						return pathArg, false
@@ -62,7 +62,7 @@ func registerIOModule(builder *vm.RegistryBuilder) {
 					}
 					return vm.Value{}, true
 				}),
-				"exists": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"exists": vm.NewNativeFunction("exists", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					pathArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
 						return pathArg, false
@@ -71,7 +71,7 @@ func registerIOModule(builder *vm.RegistryBuilder) {
 					_, err := os.Stat(pathArg.GetString())
 					return vm.NewBool(!os.IsNotExist(err)), true
 				}),
-				"mkdir": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"mkdir": vm.NewNativeFunction("mkdir", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					pathArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
 						return pathArg, false
@@ -83,7 +83,7 @@ func registerIOModule(builder *vm.RegistryBuilder) {
 					}
 					return vm.Value{}, true
 				}),
-				"remove": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"remove": vm.NewNativeFunction("remove", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					pathArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
 						return pathArg, false
@@ -95,7 +95,7 @@ func registerIOModule(builder *vm.RegistryBuilder) {
 					}
 					return vm.Value{}, true
 				}),
-				"rename": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"rename": vm.NewNativeFunction("rename", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					oldArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
 						return oldArg, false
@@ -111,9 +111,9 @@ func registerIOModule(builder *vm.RegistryBuilder) {
 					}
 					return vm.Value{}, true
 				}),
-				"join": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
-					paths := make([]string, len(args))
-					for i, arg := range args {
+				"join": vm.NewNativeFunction("join", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+					paths := make([]string, len(args.Args))
+					for i, arg := range args.Args {
 						if arg.IsError() {
 							return arg, false
 						}
@@ -121,28 +121,28 @@ func registerIOModule(builder *vm.RegistryBuilder) {
 					}
 					return vm.NewString(filepath.Join(paths...)), true
 				}),
-				"dirname": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"dirname": vm.NewNativeFunction("dirname", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					pathArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
 						return pathArg, false
 					}
 					return vm.NewString(filepath.Dir(pathArg.GetString())), true
 				}),
-				"basename": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"basename": vm.NewNativeFunction("basename", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					pathArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
 						return pathArg, false
 					}
 					return vm.NewString(filepath.Base(pathArg.GetString())), true
 				}),
-				"extname": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"extname": vm.NewNativeFunction("extname", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					pathArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
 						return pathArg, false
 					}
 					return vm.NewString(filepath.Ext(pathArg.GetString())), true
 				}),
-				"readDir": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"readDir": vm.NewNativeFunction("readDir", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					pathArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
 						return pathArg, false
@@ -159,7 +159,7 @@ func registerIOModule(builder *vm.RegistryBuilder) {
 					}
 					return vm.NewArray(results), true
 				}),
-				"size": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"size": vm.NewNativeFunction("size", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					pathArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
 						return pathArg, false
@@ -171,7 +171,7 @@ func registerIOModule(builder *vm.RegistryBuilder) {
 					}
 					return vm.NewNumber(float64(info.Size())), true
 				}),
-				"isDir": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"isDir": vm.NewNativeFunction("isDir", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					pathArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
 						return pathArg, false
@@ -183,7 +183,7 @@ func registerIOModule(builder *vm.RegistryBuilder) {
 					}
 					return vm.NewBool(info.IsDir()), true
 				}),
-				"modTime": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"modTime": vm.NewNativeFunction("modTime", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					pathArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
 						return pathArg, false
@@ -195,7 +195,7 @@ func registerIOModule(builder *vm.RegistryBuilder) {
 					}
 					return vm.NewNumber(float64(info.ModTime().Unix())), true
 				}),
-				"exec": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				"exec": vm.NewNativeFunction("exec", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 					cmdArg, ok := args.Get(0, vm.ValueTypeString)
 					if !ok {
 						return cmdArg, false

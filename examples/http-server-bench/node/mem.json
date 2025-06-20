@@ -1,824 +1,824 @@
 [
   {
-    "timestamp": "2025-06-17T03:13:49.307028",
-    "elapsed": 2.5033950805664062e-05,
-    "memory_mb": 61.23828125,
+    "timestamp": "2025-06-17T20:56:15.823081",
+    "elapsed": 3.814697265625e-05,
+    "memory_mb": 61.5078125,
     "cpu_percent": 0.0,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:49.532303",
-    "elapsed": 0.2181863784790039,
-    "memory_mb": 61.23828125,
+    "timestamp": "2025-06-17T20:56:16.046987",
+    "elapsed": 0.22133684158325195,
+    "memory_mb": 61.5078125,
     "cpu_percent": 0.0,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:49.750068",
-    "elapsed": 0.44323110580444336,
-    "memory_mb": 61.23828125,
+    "timestamp": "2025-06-17T20:56:16.267257",
+    "elapsed": 0.44523143768310547,
+    "memory_mb": 61.5078125,
     "cpu_percent": 0.0,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:49.967560",
-    "elapsed": 0.6609601974487305,
-    "memory_mb": 61.23828125,
+    "timestamp": "2025-06-17T20:56:16.490817",
+    "elapsed": 0.665747880935669,
+    "memory_mb": 61.5078125,
     "cpu_percent": 0.0,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:50.185324",
-    "elapsed": 0.8784966468811035,
-    "memory_mb": 61.23828125,
+    "timestamp": "2025-06-17T20:56:16.711319",
+    "elapsed": 0.8890864849090576,
+    "memory_mb": 61.5078125,
     "cpu_percent": 0.0,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:50.305709",
-    "elapsed": 1.096226692199707,
-    "memory_mb": 61.23828125,
+    "timestamp": "2025-06-17T20:56:16.834096",
+    "elapsed": 1.1095960140228271,
+    "memory_mb": 61.5078125,
     "cpu_percent": 0.0,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:50.427723",
-    "elapsed": 1.2165772914886475,
-    "memory_mb": 61.23828125,
+    "timestamp": "2025-06-17T20:56:16.957906",
+    "elapsed": 1.232508897781372,
+    "memory_mb": 61.5078125,
     "cpu_percent": 0.0,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:50.554225",
-    "elapsed": 1.3386118412017822,
-    "memory_mb": 61.23828125,
+    "timestamp": "2025-06-17T20:56:17.082201",
+    "elapsed": 1.3561317920684814,
+    "memory_mb": 61.5078125,
     "cpu_percent": 0.0,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:50.679322",
-    "elapsed": 1.4650967121124268,
-    "memory_mb": 61.23828125,
+    "timestamp": "2025-06-17T20:56:17.202903",
+    "elapsed": 1.4804105758666992,
+    "memory_mb": 61.5078125,
     "cpu_percent": 0.0,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:50.803561",
-    "elapsed": 1.590217113494873,
-    "memory_mb": 61.23828125,
+    "timestamp": "2025-06-17T20:56:17.326357",
+    "elapsed": 1.601081132888794,
+    "memory_mb": 61.5078125,
     "cpu_percent": 0.0,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:50.927085",
-    "elapsed": 1.7144207954406738,
-    "memory_mb": 61.23828125,
+    "timestamp": "2025-06-17T20:56:17.450295",
+    "elapsed": 1.7245657444000244,
+    "memory_mb": 61.5078125,
     "cpu_percent": 0.0,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:51.053952",
-    "elapsed": 1.8379428386688232,
-    "memory_mb": 61.23828125,
+    "timestamp": "2025-06-17T20:56:17.571357",
+    "elapsed": 1.848496437072754,
+    "memory_mb": 61.5078125,
     "cpu_percent": 0.0,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:51.177870",
-    "elapsed": 1.9648399353027344,
-    "memory_mb": 63.4609375,
-    "cpu_percent": 8.1,
+    "timestamp": "2025-06-17T20:56:17.692561",
+    "elapsed": 1.9695758819580078,
+    "memory_mb": 62.05078125,
+    "cpu_percent": 0.0,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:51.298241",
-    "elapsed": 2.0886924266815186,
-    "memory_mb": 70.29296875,
-    "cpu_percent": 108.0,
+    "timestamp": "2025-06-17T20:56:17.816282",
+    "elapsed": 2.090731382369995,
+    "memory_mb": 70.21875,
+    "cpu_percent": 72.7,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:51.419679",
-    "elapsed": 2.2090651988983154,
-    "memory_mb": 78.515625,
-    "cpu_percent": 90.6,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:51.541385",
-    "elapsed": 2.3305015563964844,
-    "memory_mb": 82.4375,
-    "cpu_percent": 139.7,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:51.664214",
-    "elapsed": 2.4522268772125244,
-    "memory_mb": 96.7109375,
-    "cpu_percent": 130.3,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:51.784756",
-    "elapsed": 2.5750486850738525,
-    "memory_mb": 104.01953125,
-    "cpu_percent": 132.7,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:51.905274",
-    "elapsed": 2.69558048248291,
-    "memory_mb": 109.9921875,
-    "cpu_percent": 174.2,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:52.026104",
-    "elapsed": 2.8160979747772217,
-    "memory_mb": 118.60546875,
-    "cpu_percent": 132.4,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:52.147207",
-    "elapsed": 2.9369399547576904,
-    "memory_mb": 119.46484375,
-    "cpu_percent": 165.2,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:52.269641",
-    "elapsed": 3.058032512664795,
-    "memory_mb": 120.2265625,
-    "cpu_percent": 130.7,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:52.393366",
-    "elapsed": 3.180466413497925,
-    "memory_mb": 120.06640625,
-    "cpu_percent": 121.2,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:52.514509",
-    "elapsed": 3.3041880130767822,
-    "memory_mb": 123.921875,
-    "cpu_percent": 123.8,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:52.634973",
-    "elapsed": 3.425344228744507,
-    "memory_mb": 124.6953125,
-    "cpu_percent": 116.2,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:52.757509",
-    "elapsed": 3.545809268951416,
-    "memory_mb": 125.2109375,
-    "cpu_percent": 122.4,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:52.877657",
-    "elapsed": 3.6683292388916016,
-    "memory_mb": 125.2109375,
-    "cpu_percent": 116.5,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:52.999774",
-    "elapsed": 3.788494110107422,
-    "memory_mb": 125.2109375,
-    "cpu_percent": 122.8,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:53.120487",
-    "elapsed": 3.910611391067505,
-    "memory_mb": 125.984375,
-    "cpu_percent": 116.0,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:53.240366",
-    "elapsed": 4.031310558319092,
-    "memory_mb": 126.2421875,
-    "cpu_percent": 108.4,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:53.362098",
-    "elapsed": 4.151198387145996,
-    "memory_mb": 125.84765625,
-    "cpu_percent": 123.2,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:53.482481",
-    "elapsed": 4.272919416427612,
-    "memory_mb": 125.84765625,
-    "cpu_percent": 132.9,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:53.601973",
-    "elapsed": 4.393301963806152,
-    "memory_mb": 125.84765625,
-    "cpu_percent": 117.2,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:53.723025",
-    "elapsed": 4.5128092765808105,
-    "memory_mb": 125.84765625,
-    "cpu_percent": 115.7,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:53.845652",
-    "elapsed": 4.6338629722595215,
-    "memory_mb": 125.84765625,
-    "cpu_percent": 122.3,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:53.966147",
-    "elapsed": 4.756476879119873,
-    "memory_mb": 126.359375,
-    "cpu_percent": 116.2,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:54.086060",
-    "elapsed": 4.876967906951904,
-    "memory_mb": 126.359375,
-    "cpu_percent": 116.7,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:54.209901",
-    "elapsed": 4.996888637542725,
-    "memory_mb": 126.359375,
-    "cpu_percent": 113.0,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:54.330076",
-    "elapsed": 5.1207263469696045,
-    "memory_mb": 126.875,
-    "cpu_percent": 116.5,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:54.453331",
-    "elapsed": 5.2408998012542725,
-    "memory_mb": 127.390625,
+    "timestamp": "2025-06-17T20:56:17.939558",
+    "elapsed": 2.2144386768341064,
+    "memory_mb": 79.125,
     "cpu_percent": 121.7,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:54.575575",
-    "elapsed": 5.364154815673828,
-    "memory_mb": 127.390625,
-    "cpu_percent": 114.5,
+    "timestamp": "2025-06-17T20:56:18.060084",
+    "elapsed": 2.3377268314361572,
+    "memory_mb": 91.18359375,
+    "cpu_percent": 149.3,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:54.699671",
-    "elapsed": 5.486404657363892,
-    "memory_mb": 127.390625,
-    "cpu_percent": 128.9,
+    "timestamp": "2025-06-17T20:56:18.179622",
+    "elapsed": 2.4582419395446777,
+    "memory_mb": 96.6640625,
+    "cpu_percent": 133.8,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:54.820419",
-    "elapsed": 5.610504150390625,
-    "memory_mb": 127.390625,
-    "cpu_percent": 115.9,
+    "timestamp": "2025-06-17T20:56:18.300051",
+    "elapsed": 2.57777738571167,
+    "memory_mb": 100.14453125,
+    "cpu_percent": 124.6,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:54.940231",
-    "elapsed": 5.7312469482421875,
-    "memory_mb": 127.390625,
-    "cpu_percent": 108.5,
+    "timestamp": "2025-06-17T20:56:18.419040",
+    "elapsed": 2.698207139968872,
+    "memory_mb": 109.86328125,
+    "cpu_percent": 176.5,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:55.062872",
-    "elapsed": 5.851052284240723,
-    "memory_mb": 127.390625,
-    "cpu_percent": 138.6,
+    "timestamp": "2025-06-17T20:56:18.542933",
+    "elapsed": 2.817199230194092,
+    "memory_mb": 116.11328125,
+    "cpu_percent": 177.6,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:55.185874",
-    "elapsed": 5.973700284957886,
-    "memory_mb": 127.6484375,
-    "cpu_percent": 113.8,
+    "timestamp": "2025-06-17T20:56:18.663898",
+    "elapsed": 2.9410877227783203,
+    "memory_mb": 119.42578125,
+    "cpu_percent": 132.3,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:55.307335",
-    "elapsed": 6.096698760986328,
-    "memory_mb": 127.6484375,
-    "cpu_percent": 115.3,
+    "timestamp": "2025-06-17T20:56:18.782909",
+    "elapsed": 3.062055826187134,
+    "memory_mb": 119.97265625,
+    "cpu_percent": 126.0,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:55.426289",
-    "elapsed": 6.218158006668091,
-    "memory_mb": 127.6484375,
-    "cpu_percent": 126.1,
+    "timestamp": "2025-06-17T20:56:18.902597",
+    "elapsed": 3.18107533454895,
+    "memory_mb": 119.97265625,
+    "cpu_percent": 117.0,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:55.546212",
-    "elapsed": 6.337110757827759,
-    "memory_mb": 127.58203125,
-    "cpu_percent": 125.1,
+    "timestamp": "2025-06-17T20:56:19.021855",
+    "elapsed": 3.3007516860961914,
+    "memory_mb": 122.28515625,
+    "cpu_percent": 125.8,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:55.672925",
-    "elapsed": 6.457041025161743,
-    "memory_mb": 127.58203125,
-    "cpu_percent": 110.5,
+    "timestamp": "2025-06-17T20:56:19.141961",
+    "elapsed": 3.4199728965759277,
+    "memory_mb": 123.31640625,
+    "cpu_percent": 124.9,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:13:55.793890",
-    "elapsed": 6.583765268325806,
-    "memory_mb": 127.58203125,
-    "cpu_percent": 115.7,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:55.915081",
-    "elapsed": 6.7047107219696045,
-    "memory_mb": 127.58203125,
-    "cpu_percent": 123.8,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:56.037477",
-    "elapsed": 6.825909852981567,
-    "memory_mb": 127.58203125,
-    "cpu_percent": 122.6,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:56.174158",
-    "elapsed": 6.948322057723999,
-    "memory_mb": 127.58203125,
-    "cpu_percent": 109.7,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:56.297092",
-    "elapsed": 7.084979772567749,
-    "memory_mb": 127.58203125,
-    "cpu_percent": 122.0,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:56.418635",
-    "elapsed": 7.207915544509888,
-    "memory_mb": 127.58203125,
-    "cpu_percent": 115.2,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:56.540326",
-    "elapsed": 7.329457998275757,
-    "memory_mb": 127.58203125,
-    "cpu_percent": 115.0,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:56.660442",
-    "elapsed": 7.451145172119141,
-    "memory_mb": 127.58203125,
-    "cpu_percent": 133.2,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:56.782589",
-    "elapsed": 7.571264982223511,
-    "memory_mb": 127.58203125,
-    "cpu_percent": 114.6,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:56.903177",
-    "elapsed": 7.693413496017456,
-    "memory_mb": 127.58203125,
-    "cpu_percent": 116.1,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:57.026316",
-    "elapsed": 7.8140175342559814,
-    "memory_mb": 127.58203125,
-    "cpu_percent": 113.7,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:57.149004",
-    "elapsed": 7.937138557434082,
-    "memory_mb": 127.58203125,
-    "cpu_percent": 114.1,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:57.269507",
-    "elapsed": 8.059826374053955,
-    "memory_mb": 127.58203125,
-    "cpu_percent": 116.2,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:57.392116",
-    "elapsed": 8.180340766906738,
-    "memory_mb": 127.58203125,
-    "cpu_percent": 122.4,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:57.513225",
-    "elapsed": 8.302943706512451,
-    "memory_mb": 127.58203125,
-    "cpu_percent": 123.8,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:57.635211",
-    "elapsed": 8.424050569534302,
-    "memory_mb": 127.58203125,
-    "cpu_percent": 114.8,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:57.756501",
-    "elapsed": 8.546049118041992,
-    "memory_mb": 127.58203125,
-    "cpu_percent": 123.7,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:57.878042",
-    "elapsed": 8.667323350906372,
-    "memory_mb": 127.58203125,
-    "cpu_percent": 123.4,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:57.999010",
-    "elapsed": 8.788878440856934,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 115.7,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:58.120819",
-    "elapsed": 8.909832954406738,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 114.9,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:58.242328",
-    "elapsed": 9.031640768051147,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 115.2,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:58.363754",
-    "elapsed": 9.153156995773315,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 123.6,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:58.484073",
-    "elapsed": 9.27458930015564,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 116.3,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:58.604116",
-    "elapsed": 9.394900560379028,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 116.6,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:58.725139",
-    "elapsed": 9.514939546585083,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 123.9,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:58.845731",
-    "elapsed": 9.635976076126099,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 124.4,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:58.982163",
-    "elapsed": 9.756557941436768,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 110.0,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:59.103632",
-    "elapsed": 9.89300012588501,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 123.5,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:59.225968",
-    "elapsed": 10.014455795288086,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 122.6,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:59.347301",
-    "elapsed": 10.136789798736572,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 115.4,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:59.467846",
-    "elapsed": 10.258122205734253,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 116.1,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:59.590588",
-    "elapsed": 10.378684282302856,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 130.4,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:59.714703",
-    "elapsed": 10.501435995101929,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 112.8,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:59.834923",
-    "elapsed": 10.625524997711182,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 116.5,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:13:59.954322",
-    "elapsed": 10.745746374130249,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 125.6,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:14:00.078547",
-    "elapsed": 10.86514925956726,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 120.7,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:14:00.198094",
-    "elapsed": 10.98936676979065,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 108.7,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:14:00.317258",
-    "elapsed": 11.108915328979492,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 117.5,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:14:00.439812",
-    "elapsed": 11.228087425231934,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 122.4,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:14:00.562556",
-    "elapsed": 11.350655555725098,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 122.2,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:14:00.684315",
-    "elapsed": 11.473383665084839,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 115.0,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:14:00.805968",
-    "elapsed": 11.5951566696167,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 123.3,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:14:00.926782",
-    "elapsed": 11.716792583465576,
-    "memory_mb": 127.83984375,
-    "cpu_percent": 124.2,
-    "process_count": 1,
-    "monitoring_mode": "port"
-  },
-  {
-    "timestamp": "2025-06-17T03:14:01.047135",
-    "elapsed": 11.837606191635132,
-    "memory_mb": 127.83984375,
+    "timestamp": "2025-06-17T20:56:19.262352",
+    "elapsed": 3.5401148796081543,
+    "memory_mb": 123.57421875,
     "cpu_percent": 108.0,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:14:01.167424",
-    "elapsed": 11.957982301712036,
-    "memory_mb": 127.83984375,
+    "timestamp": "2025-06-17T20:56:19.383122",
+    "elapsed": 3.6605064868927,
+    "memory_mb": 123.42578125,
+    "cpu_percent": 124.2,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:19.503947",
+    "elapsed": 3.7812881469726562,
+    "memory_mb": 123.9375,
+    "cpu_percent": 115.9,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:19.624218",
+    "elapsed": 3.902137041091919,
+    "memory_mb": 124.14453125,
     "cpu_percent": 124.7,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:14:01.292383",
-    "elapsed": 12.078320264816284,
-    "memory_mb": 128.09375,
-    "cpu_percent": 16.0,
+    "timestamp": "2025-06-17T20:56:19.744761",
+    "elapsed": 4.022384405136108,
+    "memory_mb": 124.66015625,
+    "cpu_percent": 124.4,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:14:01.413054",
-    "elapsed": 12.203250885009766,
-    "memory_mb": 128.09375,
+    "timestamp": "2025-06-17T20:56:19.866598",
+    "elapsed": 4.142924785614014,
+    "memory_mb": 124.66015625,
+    "cpu_percent": 123.1,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:19.988139",
+    "elapsed": 4.264753341674805,
+    "memory_mb": 124.66015625,
+    "cpu_percent": 115.2,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:20.108334",
+    "elapsed": 4.386296033859253,
+    "memory_mb": 125.6875,
+    "cpu_percent": 124.8,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:20.229029",
+    "elapsed": 4.506483316421509,
+    "memory_mb": 125.6875,
+    "cpu_percent": 116.0,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:20.349350",
+    "elapsed": 4.627206802368164,
+    "memory_mb": 125.6875,
+    "cpu_percent": 124.7,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:20.468886",
+    "elapsed": 4.747518062591553,
+    "memory_mb": 125.9453125,
+    "cpu_percent": 117.1,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:20.589321",
+    "elapsed": 4.8670408725738525,
+    "memory_mb": 125.9453125,
+    "cpu_percent": 116.2,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:20.710050",
+    "elapsed": 4.987475872039795,
+    "memory_mb": 125.9453125,
+    "cpu_percent": 124.2,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:20.831633",
+    "elapsed": 5.108217239379883,
+    "memory_mb": 125.9453125,
+    "cpu_percent": 115.2,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:20.951254",
+    "elapsed": 5.229793071746826,
+    "memory_mb": 125.9453125,
+    "cpu_percent": 125.4,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:21.071572",
+    "elapsed": 5.349428415298462,
+    "memory_mb": 125.9453125,
+    "cpu_percent": 116.4,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:21.208287",
+    "elapsed": 5.469729661941528,
+    "memory_mb": 125.9453125,
+    "cpu_percent": 117.1,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:21.328047",
+    "elapsed": 5.606449365615845,
+    "memory_mb": 125.9453125,
+    "cpu_percent": 125.2,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:21.448876",
+    "elapsed": 5.726227521896362,
+    "memory_mb": 125.9453125,
+    "cpu_percent": 115.9,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:21.568979",
+    "elapsed": 5.847032070159912,
+    "memory_mb": 125.9453125,
+    "cpu_percent": 116.6,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:21.688521",
+    "elapsed": 5.9671337604522705,
+    "memory_mb": 125.9453125,
+    "cpu_percent": 125.5,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:21.809168",
+    "elapsed": 6.086674690246582,
+    "memory_mb": 125.9453125,
+    "cpu_percent": 116.0,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:21.929865",
+    "elapsed": 6.207325458526611,
+    "memory_mb": 126.203125,
+    "cpu_percent": 124.3,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:22.050347",
+    "elapsed": 6.3280322551727295,
+    "memory_mb": 126.4609375,
+    "cpu_percent": 124.5,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:22.171998",
+    "elapsed": 6.448533773422241,
+    "memory_mb": 126.4609375,
+    "cpu_percent": 115.1,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:22.291220",
+    "elapsed": 6.5701634883880615,
+    "memory_mb": 126.4609375,
+    "cpu_percent": 117.4,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:22.410823",
+    "elapsed": 6.689375877380371,
+    "memory_mb": 126.4609375,
+    "cpu_percent": 125.4,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:22.532715",
+    "elapsed": 6.808983564376831,
+    "memory_mb": 126.4609375,
+    "cpu_percent": 114.9,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:22.654096",
+    "elapsed": 6.930881023406982,
+    "memory_mb": 126.4609375,
+    "cpu_percent": 115.3,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:22.775295",
+    "elapsed": 7.052261590957642,
+    "memory_mb": 126.4609375,
+    "cpu_percent": 115.5,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:22.894606",
+    "elapsed": 7.173458814620972,
+    "memory_mb": 126.4609375,
+    "cpu_percent": 117.3,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:23.024049",
+    "elapsed": 7.292770624160767,
+    "memory_mb": 126.4609375,
+    "cpu_percent": 123.6,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:23.144708",
+    "elapsed": 7.422213554382324,
+    "memory_mb": 126.4609375,
+    "cpu_percent": 132.6,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:23.265080",
+    "elapsed": 7.542865991592407,
+    "memory_mb": 126.4609375,
+    "cpu_percent": 108.0,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:23.386256",
+    "elapsed": 7.663233518600464,
+    "memory_mb": 126.4609375,
+    "cpu_percent": 115.5,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:23.505561",
+    "elapsed": 7.784411907196045,
+    "memory_mb": 126.4609375,
+    "cpu_percent": 117.3,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:23.625987",
+    "elapsed": 7.903714895248413,
+    "memory_mb": 126.4609375,
+    "cpu_percent": 132.9,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:23.747986",
+    "elapsed": 8.024147748947144,
+    "memory_mb": 126.4609375,
+    "cpu_percent": 106.6,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:23.869606",
+    "elapsed": 8.146153926849365,
+    "memory_mb": 126.4609375,
+    "cpu_percent": 123.3,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:23.989491",
+    "elapsed": 8.267762899398804,
+    "memory_mb": 126.4609375,
+    "cpu_percent": 116.8,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:24.110027",
+    "elapsed": 8.387648105621338,
+    "memory_mb": 126.4609375,
+    "cpu_percent": 116.2,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:24.230865",
+    "elapsed": 8.508186340332031,
+    "memory_mb": 126.4609375,
+    "cpu_percent": 115.9,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:24.351400",
+    "elapsed": 8.629054069519043,
+    "memory_mb": 126.4609375,
+    "cpu_percent": 132.7,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:24.472133",
+    "elapsed": 8.749556303024292,
+    "memory_mb": 126.4609375,
+    "cpu_percent": 116.0,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:24.593914",
+    "elapsed": 8.870300531387329,
+    "memory_mb": 126.4609375,
+    "cpu_percent": 115.0,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:24.715072",
+    "elapsed": 8.992067337036133,
+    "memory_mb": 126.71875,
+    "cpu_percent": 123.8,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:24.835524",
+    "elapsed": 9.113226890563965,
+    "memory_mb": 126.71875,
+    "cpu_percent": 116.2,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:24.956843",
+    "elapsed": 9.233690738677979,
+    "memory_mb": 126.71875,
+    "cpu_percent": 123.6,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:25.077926",
+    "elapsed": 9.354998588562012,
+    "memory_mb": 126.71875,
+    "cpu_percent": 115.6,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:25.201887",
+    "elapsed": 9.476089477539062,
+    "memory_mb": 126.71875,
+    "cpu_percent": 129.1,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:25.324640",
+    "elapsed": 9.60004472732544,
+    "memory_mb": 126.71875,
+    "cpu_percent": 114.0,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:25.447910",
+    "elapsed": 9.722797155380249,
+    "memory_mb": 126.71875,
+    "cpu_percent": 113.6,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:25.568737",
+    "elapsed": 9.846070766448975,
+    "memory_mb": 126.71875,
+    "cpu_percent": 124.2,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:25.689236",
+    "elapsed": 9.96690845489502,
+    "memory_mb": 126.9765625,
+    "cpu_percent": 116.2,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:25.810324",
+    "elapsed": 10.087406635284424,
+    "memory_mb": 126.9765625,
+    "cpu_percent": 123.9,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:25.930983",
+    "elapsed": 10.20853567123413,
+    "memory_mb": 126.9765625,
+    "cpu_percent": 107.7,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:26.050838",
+    "elapsed": 10.329164266586304,
+    "memory_mb": 126.9765625,
+    "cpu_percent": 133.5,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:26.170932",
+    "elapsed": 10.448993682861328,
+    "memory_mb": 126.9765625,
+    "cpu_percent": 124.9,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:26.290749",
+    "elapsed": 10.569096803665161,
+    "memory_mb": 126.9765625,
+    "cpu_percent": 108.5,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:26.410021",
+    "elapsed": 10.688904047012329,
+    "memory_mb": 126.9765625,
+    "cpu_percent": 125.8,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:26.530627",
+    "elapsed": 10.808202505111694,
+    "memory_mb": 126.9765625,
+    "cpu_percent": 116.1,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:26.652179",
+    "elapsed": 10.928784608840942,
+    "memory_mb": 126.9765625,
+    "cpu_percent": 115.2,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:26.772015",
+    "elapsed": 11.050333738327026,
+    "memory_mb": 126.9765625,
+    "cpu_percent": 133.5,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:26.891886",
+    "elapsed": 11.170184850692749,
+    "memory_mb": 126.9765625,
+    "cpu_percent": 100.1,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:27.012364",
+    "elapsed": 11.290040493011475,
+    "memory_mb": 126.9765625,
+    "cpu_percent": 124.5,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:27.135506",
+    "elapsed": 11.410487174987793,
+    "memory_mb": 126.9765625,
+    "cpu_percent": 121.8,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:27.256391",
+    "elapsed": 11.533661603927612,
+    "memory_mb": 126.9765625,
+    "cpu_percent": 115.8,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:27.378618",
+    "elapsed": 11.654560804367065,
+    "memory_mb": 126.9765625,
+    "cpu_percent": 130.9,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:27.498431",
+    "elapsed": 11.776782035827637,
+    "memory_mb": 126.9765625,
+    "cpu_percent": 116.8,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:27.618690",
+    "elapsed": 11.896586418151855,
+    "memory_mb": 126.9765625,
+    "cpu_percent": 124.7,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:27.743128",
+    "elapsed": 12.016883611679077,
+    "memory_mb": 127.234375,
+    "cpu_percent": 72.3,
+    "process_count": 1,
+    "monitoring_mode": "port"
+  },
+  {
+    "timestamp": "2025-06-17T20:56:27.867488",
+    "elapsed": 12.14156436920166,
+    "memory_mb": 127.234375,
     "cpu_percent": 0.0,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:14:01.536411",
-    "elapsed": 12.324161529541016,
-    "memory_mb": 128.09375,
+    "timestamp": "2025-06-17T20:56:27.988976",
+    "elapsed": 12.265909194946289,
+    "memory_mb": 127.234375,
     "cpu_percent": 0.0,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:14:01.660838",
-    "elapsed": 12.447628021240234,
-    "memory_mb": 128.09375,
+    "timestamp": "2025-06-17T20:56:28.111987",
+    "elapsed": 12.38718032836914,
+    "memory_mb": 127.234375,
     "cpu_percent": 0.0,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:14:01.784105",
-    "elapsed": 12.571722745895386,
-    "memory_mb": 128.09375,
+    "timestamp": "2025-06-17T20:56:28.231978",
+    "elapsed": 12.510160207748413,
+    "memory_mb": 127.234375,
     "cpu_percent": 0.0,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:14:01.907978",
-    "elapsed": 12.694998025894165,
-    "memory_mb": 128.09375,
+    "timestamp": "2025-06-17T20:56:28.355073",
+    "elapsed": 12.630170822143555,
+    "memory_mb": 127.234375,
     "cpu_percent": 0.0,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:14:02.035072",
-    "elapsed": 12.819212675094604,
-    "memory_mb": 128.12109375,
+    "timestamp": "2025-06-17T20:56:28.478860",
+    "elapsed": 12.753596782684326,
+    "memory_mb": 127.234375,
     "cpu_percent": 0.0,
     "process_count": 1,
     "monitoring_mode": "port"
   },
   {
-    "timestamp": "2025-06-17T03:14:02.160106",
-    "elapsed": 12.94600224494934,
-    "memory_mb": 128.12109375,
+    "timestamp": "2025-06-17T20:56:28.608941",
+    "elapsed": 12.877293109893799,
+    "memory_mb": 127.234375,
     "cpu_percent": 0.0,
     "process_count": 1,
     "monitoring_mode": "port"

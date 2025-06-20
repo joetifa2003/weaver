@@ -12,7 +12,7 @@ func registerModuleRL(builder *vm.RegistryBuilder) {
 
 	builder.RegisterModule("rl", func() vm.Value {
 		m := map[string]vm.Value{
-			"initWindow": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+			"initWindow": vm.NewNativeFunction("initWindow", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				widthArg, ok := args.Get(0, vm.ValueTypeNumber)
 				if !ok {
 					return widthArg, false
@@ -33,10 +33,10 @@ func registerModuleRL(builder *vm.RegistryBuilder) {
 				rl.InitWindow(int32(width), int32(height), title)
 				return vm.Value{}, true
 			}),
-			"windowShouldClose": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+			"windowShouldClose": vm.NewNativeFunction("windowShouldClose", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				return vm.NewBool(rl.WindowShouldClose()), false
 			}),
-			"setTargetFPS": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+			"setTargetFPS": vm.NewNativeFunction("setTargetFPS", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				fpsArg, ok := args.Get(0, vm.ValueTypeNumber)
 				if !ok {
 					return fpsArg, false
@@ -44,19 +44,19 @@ func registerModuleRL(builder *vm.RegistryBuilder) {
 				rl.SetTargetFPS(int32(fpsArg.GetNumber()))
 				return vm.Value{}, true
 			}),
-			"closeWindow": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+			"closeWindow": vm.NewNativeFunction("closeWindow", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				rl.CloseWindow()
 				return vm.Value{}, true
 			}),
-			"beginDrawing": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+			"beginDrawing": vm.NewNativeFunction("beginDrawing", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				rl.BeginDrawing()
 				return vm.Value{}, true
 			}),
-			"endDrawing": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+			"endDrawing": vm.NewNativeFunction("endDrawing", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				rl.EndDrawing()
 				return vm.Value{}, true
 			}),
-			"clearBackground": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+			"clearBackground": vm.NewNativeFunction("clearBackground", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				colorArg, ok := args.Get(0, vm.ValueTypeNativeObject)
 				if !ok {
 					return colorArg, false
@@ -65,7 +65,7 @@ func registerModuleRL(builder *vm.RegistryBuilder) {
 				rl.ClearBackground(color)
 				return vm.Value{}, true
 			}),
-			"drawRectangle": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+			"drawRectangle": vm.NewNativeFunction("drawRectangle", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				posXArg, ok := args.Get(0, vm.ValueTypeNumber)
 				if !ok {
 					return posXArg, false
@@ -96,7 +96,7 @@ func registerModuleRL(builder *vm.RegistryBuilder) {
 				rl.DrawRectangle(int32(posX), int32(posY), int32(width), int32(height), color)
 				return vm.Value{}, true
 			}),
-			"drawFps": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+			"drawFps": vm.NewNativeFunction("drawFps", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				posXArg, ok := args.Get(0, vm.ValueTypeNumber)
 				if !ok {
 					return posXArg, false
@@ -108,21 +108,21 @@ func registerModuleRL(builder *vm.RegistryBuilder) {
 				rl.DrawFPS(int32(posXArg.GetNumber()), int32(posYArg.GetNumber()))
 				return vm.Value{}, true
 			}),
-			"isKeyPressed": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+			"isKeyPressed": vm.NewNativeFunction("isKeyPressed", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				keyArg, ok := args.Get(0, vm.ValueTypeNumber)
 				if !ok {
 					return keyArg, false
 				}
 				return vm.NewBool(rl.IsKeyPressed(int32(keyArg.GetNumber()))), true
 			}),
-			"isKeyDown": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+			"isKeyDown": vm.NewNativeFunction("isKeyDown", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				keyArg, ok := args.Get(0, vm.ValueTypeNumber)
 				if !ok {
 					return keyArg, false
 				}
 				return vm.NewBool(rl.IsKeyDown(int32(keyArg.GetNumber()))), true
 			}),
-			"getFrameTime": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+			"getFrameTime": vm.NewNativeFunction("getFrameTime", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				return vm.NewNumber(float64(rl.GetFrameTime())), true
 			}),
 		}

@@ -15,7 +15,7 @@ func registerBuiltinFuncs(builder *vm.RegistryBuilder) {
 		if !ok {
 			return msgArg, false
 		}
-		if len(args) == 1 {
+		if len(args.Args) == 1 {
 			return vm.NewError(msgArg.GetString(), vm.Value{}), true
 		}
 

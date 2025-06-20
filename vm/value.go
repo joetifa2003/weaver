@@ -146,16 +146,16 @@ func (v *Value) GetTask() *ExecutorTask {
 
 type Lock struct {
 	*sync.Mutex
-	lock   NativeFunction
-	unlock NativeFunction
+	lock   Value
+	unlock Value
 }
 
 func (v *Value) SetLock(l *sync.Mutex) {
 	v.VType = ValueTypeLock
 	v.nonPrimitive = unsafe.Pointer(&Lock{
 		Mutex: l,
-		lock: func(v *VM, args NativeFunctionArgs) (Value, bool) {
-			if len(args) > 0 {
+		lock: NewNativeFunction("lock", func(v *VM, args NativeFunctionArgs) (Value, bool) {
+			if len(args.Args) > 0 {
 				fnArg, ok := args.Get(0, ValueTypeFunction)
 				if !ok {
 					return fnArg, false
@@ -170,11 +170,11 @@ func (v *Value) SetLock(l *sync.Mutex) {
 
 			l.Lock()
 			return Value{}, true
-		},
-		unlock: func(v *VM, args NativeFunctionArgs) (Value, bool) {
+		}),
+		unlock: NewNativeFunction("unlock", func(v *VM, args NativeFunctionArgs) (Value, bool) {
 			l.Unlock()
 			return Value{}, true
-		},
+		}),
 	})
 }
 
@@ -299,29 +299,37 @@ func (v *Value) GetNativeObject() *NativeObject {
 	return (*NativeObject)(v.nonPrimitive)
 }
 
-type NativeFunctionArgs []Value
+type NativeFunctionArgs struct {
+	Args []Value
+	Name string
+}
 
 func (a NativeFunctionArgs) Get(i int, types ...ValueType) (Value, bool) {
-	if i >= len(a) {
+	if i >= len(a.Args) {
 		return NewError("invalid number of arguments", Value{}), false
 	}
 
-	return CheckValueType(a[i], types...)
+	return CheckValueType(a.Name, a.Args[i], types...)
 }
 
 func (a NativeFunctionArgs) Len() int {
-	return len(a)
+	return len(a.Args)
 }
 
-func CheckValueType(val Value, types ...ValueType) (Value, bool) {
+func CheckValueType(name string, val Value, types ...ValueType) (Value, bool) {
 	if val.VType.Is(types...) {
 		return val, true
 	}
 
-	return NewError(fmt.Sprintf("invalid argument type, expected %v", types), Value{}), false
+	return NewError(fmt.Sprintf("[%s]: invalid argument type, expected %v, got %v", name, types, val.VType), Value{}), false
 }
 
-type NativeFunction func(v *VM, args NativeFunctionArgs) (Value, bool)
+type NativeFunction struct {
+	Name string
+	Fn   NativeFunctionImpl
+}
+
+type NativeFunctionImpl func(v *VM, args NativeFunctionArgs) (Value, bool)
 
 func (v *Value) GetNativeFunction() NativeFunction {
 	return *(*NativeFunction)(v.nonPrimitive)
@@ -356,9 +364,9 @@ func NewTask(t *ExecutorTask) Value {
 	return val
 }
 
-func NewNativeFunction(f NativeFunction) Value {
+func NewNativeFunction(name string, f NativeFunctionImpl) Value {
 	val := Value{}
-	val.SetNativeFunction(f)
+	val.SetNativeFunction(NativeFunction{Name: name, Fn: f})
 	return val
 }
 
@@ -701,10 +709,10 @@ func (v *Value) Index(idx *Value, res *Value) {
 		case ValueTypeString:
 			switch idx.GetString() {
 			case "lock":
-				res.SetNativeFunction(lock.lock)
+				res.Set(lock.lock)
 				return
 			case "unlock":
-				res.SetNativeFunction(lock.unlock)
+				res.Set(lock.unlock)
 				return
 			}
 		}

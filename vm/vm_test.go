@@ -747,7 +747,7 @@ func TestVM(t *testing.T) {
 						Constants:    constants,
 					}),
 				)
-				val := task.Wait()
+				val, _ := task.Wait()
 				if val.IsError() {
 					t.Error(val.GetError())
 				}

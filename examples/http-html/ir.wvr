@@ -1,0 +1,35 @@
+# VarCount: 8
+v0_local = @import("http")
+v1_local = @import("html")
+v2_local = []
+v3_local = 0
+v4_local = @frame(vars:1, params:1, freeVars:2) {
+	@push(f0_free, {id: f1_free, text: v0_local})
+	return f1_free++
+}
+v4_local("Todo 1")
+v4_local("Todo 2")
+v5_local = v0_local["newRouter"]()
+v6_local = @frame(vars:1, params:1, freeVars:1) {
+	return f0_free["html"](f0_free["head"](f0_free["script"](f0_free["setAttr"]("src", "https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4")), f0_free["script"](f0_free["setAttr"]("src", "https://unpkg.com/htmx.org@2.0.4"))), f0_free["body"](f0_free["setAttr"]("hx-boost", "true"), f0_free["withClass"]("bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen py-8"), v0_local))
+}
+v7_local = @frame(vars:1, params:1, freeVars:1) {
+	return f0_free["div"](f0_free["withClass"]("flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200"), f0_free["div"](f0_free["withClass"]("flex-1 text-gray-800 font-medium"), v0_local["text"]), f0_free["button"](f0_free["setAttr"]("hx-delete", ("/delete/" + @string(v0_local["id"]))), f0_free["setAttr"]("hx-target", "#todos-wrapper"), f0_free["withClass"]("ml-4 px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-md transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"), "Delete"))
+}
+v5_local["get"]("/", @frame(vars:2, params:2, freeVars:4) {
+	v1_local["setHeader"]("Content-Type", "text/html")
+	return f0_free["render"](f1_free(f0_free["div"](f0_free["withClass"]("max-w-md mx-auto bg-white rounded-xl shadow-lg p-6"), f0_free["div"](f0_free["withClass"]("mb-6"), f0_free["h1"](f0_free["withClass"]("text-2xl font-bold text-gray-800 text-center mb-2"), "Todo List"), f0_free["p"](f0_free["withClass"]("text-gray-600 text-center text-sm"), "Stay organized and productive")), f0_free["div"](f0_free["withClass"]("mb-6"), f0_free["input"](f0_free["setAttr"]("name", "todo-input"), f0_free["setAttr"]("type", "text"), f0_free["setAttr"]("placeholder", "Add a new todo..."), f0_free["setAttr"]("hx-post", "/add"), f0_free["setAttr"]("hx-target", "#todos-wrapper"), f0_free["setAttr"]("hx-on::after-request", "this.value = ''"), f0_free["withClass"]("w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 placeholder-gray-400"))), f0_free["div"](f0_free["setAttr"]("id", "todos-wrapper"), f0_free["withClass"]("space-y-3"), @map(f2_free, f3_free)))))
+})
+v5_local["post"]("/add", @frame(vars:2, params:2, freeVars:3) {
+	f0_free = @push(f0_free, {id: (@len(f0_free) + 1), text: v0_local["getFormValue"]("todo-input")})
+	return f1_free["render"](f1_free["div"](f1_free["withClass"]("space-y-3"), @map(f0_free, f2_free)))
+})
+v5_local["delete"]("/delete/{id}", @frame(vars:3, params:2, freeVars:3) {
+	v2_local = v0_local["getParam"]("id")
+	f0_free = @filter(f0_free, @frame(vars:1, params:1, freeVars:1) {
+	return (v0_local["id"] != @number(f0_free))
+})
+	return f1_free["render"](f1_free["div"](f1_free["withClass"]("space-y-3"), @map(f0_free, f2_free)))
+})
+@echo("starting server on port 8080")
+v0_local["listenAndServe"](":8080", v5_local)

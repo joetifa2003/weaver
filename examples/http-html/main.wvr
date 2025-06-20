@@ -106,4 +106,5 @@ router.delete("/delete/{id}", |req, res| {
   ) |> h.render();
 });
 
+echo("starting server on port 8080");
 http.listenAndServe(":8080", router);

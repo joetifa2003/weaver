@@ -170,4 +170,25 @@ func registerBuiltinFuncsArr(builder *vm.RegistryBuilder) {
 
 		return vm.Value{}, true
 	})
+
+	builder.RegisterFunc("each", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+		arrArg, ok := args.Get(0, vm.ValueTypeArray)
+		if !ok {
+			return arrArg, false
+		}
+
+		fnArg, ok := args.Get(1, vm.ValueTypeFunction)
+		if !ok {
+			return fnArg, false
+		}
+
+		arr := *arrArg.GetArray()
+		for _, val := range arr {
+			r, ok := v.RunFunction(fnArg, val)
+			if !ok {
+				return r, false
+			}
+		}
+		return vm.Value{}, true
+	})
 }

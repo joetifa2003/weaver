@@ -164,7 +164,7 @@ var htmlTags = [...]string{
 func registerHtmlModule(builder *vm.RegistryBuilder) {
 	builder.RegisterModule("html", func() vm.Value {
 		m := map[string]vm.Value{
-			"withClass": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+			"withClass": vm.NewNativeFunction("withClass", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				classArg, ok := args.Get(0, vm.ValueTypeString)
 				if !ok {
 					return classArg, false
@@ -174,7 +174,7 @@ func registerHtmlModule(builder *vm.RegistryBuilder) {
 
 				return vm.NewNativeObject(&WithClass{Class: classStr}, nil), true
 			}),
-			"setAttr": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+			"setAttr": vm.NewNativeFunction("setAttr", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				keyArg, ok := args.Get(0, vm.ValueTypeString)
 				if !ok {
 					return keyArg, false
@@ -187,7 +187,7 @@ func registerHtmlModule(builder *vm.RegistryBuilder) {
 
 				return vm.NewNativeObject(&SetAttr{Key: keyArg.GetString(), Value: valArg.GetString()}, nil), true
 			}),
-			"render": vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+			"render": vm.NewNativeFunction("render", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
 				elArg, ok := args.Get(0)
 				if !ok {
 					return elArg, false
@@ -203,15 +203,15 @@ func registerHtmlModule(builder *vm.RegistryBuilder) {
 		}
 
 		for _, tag := range htmlTags {
-			m[tag] = vm.NewNativeFunction(func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
-				children := make([]Element, 0, len(args))
+			m[tag] = vm.NewNativeFunction("tag", func(v *vm.VM, args vm.NativeFunctionArgs) (vm.Value, bool) {
+				children := make([]Element, 0, len(args.Args))
 
 				tag := &Tag{
 					Name:  tag,
 					Attrs: map[string]string{},
 				}
 
-				for _, arg := range args {
+				for _, arg := range args.Args {
 					el, ok := handleElement(v, arg)
 					if !ok {
 						return vm.NewError("invalid argument type", vm.Value{}), false

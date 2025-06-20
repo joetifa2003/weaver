@@ -8,7 +8,7 @@ tasks:
   gen-node-bench-pm2:
     dir: node-pm2
     cmds:
-      - ../load_test.sh 'pm2 start main.js -i 16 --no-daemon' 3001 --pm2
+      - ../load_test.sh 'pm2 start main.js -i 1 --no-daemon' 3001 --pm2
 
   gen-go-bench:
     dir: go

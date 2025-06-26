@@ -22,6 +22,7 @@ remoteAssets: true
 colorSchema: dark
 addons:
   - slidev-component-spotlight
+  - slidev-addon-excalidraw
 ---
 
 # Weaver
@@ -32,6 +33,8 @@ Simple scripting language for the joy of coding.
 "Hello World!"
     |> echo()
 ```
+
+
 
 ---
 layout: cover
@@ -564,3 +567,9 @@ match response {
     }
 }
 ```
+
+---
+clicks: 20
+---
+
+<Fibers />

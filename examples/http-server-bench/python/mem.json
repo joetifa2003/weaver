@@ -1,0 +1,970 @@
+[
+  {
+    "timestamp": "2025-06-27T15:48:48.240843",
+    "elapsed": 0.09423518180847168,
+    "memory_mb": 492.34375,
+    "cpu_percent": 0.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:48.443614",
+    "elapsed": 0.29889965057373047,
+    "memory_mb": 492.34375,
+    "cpu_percent": 0.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:48.646385",
+    "elapsed": 0.5016353130340576,
+    "memory_mb": 492.34375,
+    "cpu_percent": 0.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:48.849569",
+    "elapsed": 0.7044169902801514,
+    "memory_mb": 492.34375,
+    "cpu_percent": 0.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:49.052374",
+    "elapsed": 0.9076035022735596,
+    "memory_mb": 492.34765625,
+    "cpu_percent": 0.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:49.153554",
+    "elapsed": 1.1103990077972412,
+    "memory_mb": 492.34765625,
+    "cpu_percent": 0.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:49.254738",
+    "elapsed": 1.211533546447754,
+    "memory_mb": 492.34765625,
+    "cpu_percent": 0.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:49.355834",
+    "elapsed": 1.312718391418457,
+    "memory_mb": 492.34765625,
+    "cpu_percent": 0.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:49.457444",
+    "elapsed": 1.4138562679290771,
+    "memory_mb": 492.34765625,
+    "cpu_percent": 0.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:49.560254",
+    "elapsed": 1.5154926776885986,
+    "memory_mb": 492.34765625,
+    "cpu_percent": 0.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:49.663710",
+    "elapsed": 1.618762731552124,
+    "memory_mb": 492.34765625,
+    "cpu_percent": 0.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:49.766749",
+    "elapsed": 1.721728801727295,
+    "memory_mb": 492.34765625,
+    "cpu_percent": 0.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:49.869771",
+    "elapsed": 1.8248400688171387,
+    "memory_mb": 492.34765625,
+    "cpu_percent": 0.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:49.972824",
+    "elapsed": 1.9278395175933838,
+    "memory_mb": 492.34765625,
+    "cpu_percent": 0.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:50.074462",
+    "elapsed": 2.0308332443237305,
+    "memory_mb": 500.984375,
+    "cpu_percent": 519.5,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:50.176386",
+    "elapsed": 2.1324551105499268,
+    "memory_mb": 501.83203125,
+    "cpu_percent": 992.6999999999999,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:50.278040",
+    "elapsed": 2.234379768371582,
+    "memory_mb": 502.9296875,
+    "cpu_percent": 943.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:50.381941",
+    "elapsed": 2.338251829147339,
+    "memory_mb": 502.9296875,
+    "cpu_percent": 991.5999999999999,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:50.484375",
+    "elapsed": 2.4407002925872803,
+    "memory_mb": 502.9296875,
+    "cpu_percent": 1064.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:50.586033",
+    "elapsed": 2.542353391647339,
+    "memory_mb": 502.9296875,
+    "cpu_percent": 1003.6999999999999,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:50.691843",
+    "elapsed": 2.6481359004974365,
+    "memory_mb": 502.9296875,
+    "cpu_percent": 1002.0000000000002,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:50.794543",
+    "elapsed": 2.750819683074951,
+    "memory_mb": 502.9296875,
+    "cpu_percent": 1022.4,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:50.897182",
+    "elapsed": 2.8534927368164062,
+    "memory_mb": 502.9296875,
+    "cpu_percent": 1013.2,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:50.998896",
+    "elapsed": 2.955195665359497,
+    "memory_mb": 502.9296875,
+    "cpu_percent": 1042.3,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:51.100932",
+    "elapsed": 3.0572669506073,
+    "memory_mb": 503.0546875,
+    "cpu_percent": 970.2,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:51.203015",
+    "elapsed": 3.159346103668213,
+    "memory_mb": 503.0546875,
+    "cpu_percent": 1068.1,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:51.306448",
+    "elapsed": 3.26263165473938,
+    "memory_mb": 503.0546875,
+    "cpu_percent": 1054.4,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:51.408131",
+    "elapsed": 3.3644275665283203,
+    "memory_mb": 503.0546875,
+    "cpu_percent": 973.0999999999999,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:51.510732",
+    "elapsed": 3.4669501781463623,
+    "memory_mb": 503.0546875,
+    "cpu_percent": 1033.7,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:51.612799",
+    "elapsed": 3.5691354274749756,
+    "memory_mb": 503.0546875,
+    "cpu_percent": 1017.8000000000001,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:51.714973",
+    "elapsed": 3.6712682247161865,
+    "memory_mb": 503.0546875,
+    "cpu_percent": 1037.5,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:51.820464",
+    "elapsed": 3.7767961025238037,
+    "memory_mb": 503.0546875,
+    "cpu_percent": 1023.5999999999997,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:51.922653",
+    "elapsed": 3.87895131111145,
+    "memory_mb": 503.0546875,
+    "cpu_percent": 929.5,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:52.025648",
+    "elapsed": 3.981963872909546,
+    "memory_mb": 503.0546875,
+    "cpu_percent": 844.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:52.127913",
+    "elapsed": 4.084192752838135,
+    "memory_mb": 503.0546875,
+    "cpu_percent": 978.2000000000002,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:52.230206",
+    "elapsed": 4.186509132385254,
+    "memory_mb": 503.0546875,
+    "cpu_percent": 879.8,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:52.332211",
+    "elapsed": 4.288506984710693,
+    "memory_mb": 503.0546875,
+    "cpu_percent": 960.4,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:52.433888",
+    "elapsed": 4.390205144882202,
+    "memory_mb": 503.0546875,
+    "cpu_percent": 1003.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:52.539908",
+    "elapsed": 4.496166706085205,
+    "memory_mb": 503.0546875,
+    "cpu_percent": 896.1000000000003,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:52.641600",
+    "elapsed": 4.597906827926636,
+    "memory_mb": 503.0546875,
+    "cpu_percent": 973.5,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:52.743741",
+    "elapsed": 4.700039625167847,
+    "memory_mb": 503.0546875,
+    "cpu_percent": 978.4000000000002,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:52.846307",
+    "elapsed": 4.802560806274414,
+    "memory_mb": 503.0546875,
+    "cpu_percent": 994.9999999999998,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:52.950212",
+    "elapsed": 4.9065093994140625,
+    "memory_mb": 503.07421875,
+    "cpu_percent": 904.4000000000001,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:53.052897",
+    "elapsed": 5.009230852127075,
+    "memory_mb": 503.1328125,
+    "cpu_percent": 954.0000000000001,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:53.154618",
+    "elapsed": 5.110881328582764,
+    "memory_mb": 503.44921875,
+    "cpu_percent": 954.0999999999999,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:53.256755",
+    "elapsed": 5.213050365447998,
+    "memory_mb": 503.5234375,
+    "cpu_percent": 1007.8,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:53.358933",
+    "elapsed": 5.315187215805054,
+    "memory_mb": 503.5546875,
+    "cpu_percent": 978.7000000000003,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:53.460698",
+    "elapsed": 5.417351007461548,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 980.7999999999998,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:53.562548",
+    "elapsed": 5.518810749053955,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 904.9,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:53.664280",
+    "elapsed": 5.620528936386108,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1003.0000000000001,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:53.766075",
+    "elapsed": 5.722262382507324,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 952.5000000000001,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:53.867841",
+    "elapsed": 5.824118137359619,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1011.8999999999999,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:53.972223",
+    "elapsed": 5.928515911102295,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 814.4,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:54.074888",
+    "elapsed": 6.031238794326782,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 895.8,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:54.176835",
+    "elapsed": 6.133155584335327,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 961.6000000000001,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:54.279018",
+    "elapsed": 6.235209703445435,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1038.3,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:54.380701",
+    "elapsed": 6.336997985839844,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 992.4999999999999,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:54.484144",
+    "elapsed": 6.4404296875,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1014.9000000000001,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:54.586962",
+    "elapsed": 6.543248653411865,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1030.9999999999998,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:54.688582",
+    "elapsed": 6.6449596881866455,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 954.8,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:54.792321",
+    "elapsed": 6.748025894165039,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1025.5,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:54.894470",
+    "elapsed": 6.850776195526123,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 994.9000000000001,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:54.996764",
+    "elapsed": 6.95291805267334,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 968.3000000000002,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:55.103940",
+    "elapsed": 7.057681083679199,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 949.6999999999999,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:55.205642",
+    "elapsed": 7.161921262741089,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 936.8,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:55.307871",
+    "elapsed": 7.264150857925415,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1017.6,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:55.409691",
+    "elapsed": 7.3659844398498535,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1021.1999999999998,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:55.511511",
+    "elapsed": 7.4676666259765625,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1011.8000000000001,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:55.613384",
+    "elapsed": 7.569652557373047,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1020.3000000000002,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:55.718100",
+    "elapsed": 7.674433469772339,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 983.1999999999999,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:55.819818",
+    "elapsed": 7.77608060836792,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 983.0999999999999,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:55.922792",
+    "elapsed": 7.879116058349609,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1039.5,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:56.024516",
+    "elapsed": 7.980798721313477,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1022.3999999999999,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:56.126188",
+    "elapsed": 8.082502126693726,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1012.7,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:56.227883",
+    "elapsed": 8.184171915054321,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 983.3999999999999,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:56.329555",
+    "elapsed": 8.28586196899414,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1013.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:56.431566",
+    "elapsed": 8.387757539749146,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1058.8,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:56.533286",
+    "elapsed": 8.489566802978516,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 982.9,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:56.634924",
+    "elapsed": 8.591263771057129,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1042.5,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:56.736607",
+    "elapsed": 8.692904233932495,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 993.4000000000001,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:56.838696",
+    "elapsed": 8.794986724853516,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1009.4,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:56.941113",
+    "elapsed": 8.897416830062866,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1102.8999999999999,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:57.043704",
+    "elapsed": 9.000007629394531,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 955.2,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:57.145778",
+    "elapsed": 9.102076053619385,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1038.8,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:57.247920",
+    "elapsed": 9.20423674583435,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1027.5,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:57.350308",
+    "elapsed": 9.306631803512573,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 927.9,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:57.453381",
+    "elapsed": 9.409684419631958,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1038.6000000000001,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:57.555118",
+    "elapsed": 9.511435270309448,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 992.3999999999999,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:57.658818",
+    "elapsed": 9.614971160888672,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 994.5999999999999,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:57.760933",
+    "elapsed": 9.717227935791016,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1017.5,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:57.863104",
+    "elapsed": 9.819368839263916,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1027.5,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:57.965172",
+    "elapsed": 9.92149806022644,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1057.9999999999998,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:58.066893",
+    "elapsed": 10.023149728775024,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1032.5,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:58.168606",
+    "elapsed": 10.124895095825195,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1071.5,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:58.270314",
+    "elapsed": 10.226596117019653,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1052.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:58.378587",
+    "elapsed": 10.334866046905518,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1025.3,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:58.480687",
+    "elapsed": 10.43700385093689,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1047.6999999999998,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:58.582804",
+    "elapsed": 10.539083242416382,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1038.5999999999997,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:58.684437",
+    "elapsed": 10.640786170959473,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1032.5,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:58.786932",
+    "elapsed": 10.743304252624512,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 995.0999999999997,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:58.889460",
+    "elapsed": 10.84574842453003,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1004.8999999999999,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:58.991183",
+    "elapsed": 10.947457551956177,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1032.3,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:59.092877",
+    "elapsed": 11.049164772033691,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1032.4,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:59.196054",
+    "elapsed": 11.15222454071045,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1008.5999999999999,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:59.298261",
+    "elapsed": 11.254558801651001,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 958.3000000000001,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:59.399963",
+    "elapsed": 11.35624361038208,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1041.9999999999998,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:59.501632",
+    "elapsed": 11.457947015762329,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1042.8000000000002,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:59.606492",
+    "elapsed": 11.562798738479614,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 953.8000000000002,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:59.709197",
+    "elapsed": 11.665560960769653,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1002.9,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:59.812105",
+    "elapsed": 11.768389225006104,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1000.8,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:48:59.917698",
+    "elapsed": 11.873379230499268,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 995.6999999999997,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:49:00.020328",
+    "elapsed": 11.976633310317993,
+    "memory_mb": 503.56640625,
+    "cpu_percent": 1080.4000000000003,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:49:00.124379",
+    "elapsed": 12.079407691955566,
+    "memory_mb": 503.5703125,
+    "cpu_percent": 9.7,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:49:00.227177",
+    "elapsed": 12.182434797286987,
+    "memory_mb": 503.5703125,
+    "cpu_percent": 0.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:49:00.330146",
+    "elapsed": 12.285259485244751,
+    "memory_mb": 503.5703125,
+    "cpu_percent": 0.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:49:00.432953",
+    "elapsed": 12.388217210769653,
+    "memory_mb": 503.5703125,
+    "cpu_percent": 0.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:49:00.535885",
+    "elapsed": 12.490970611572266,
+    "memory_mb": 503.5703125,
+    "cpu_percent": 0.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:49:00.638733",
+    "elapsed": 12.593933343887329,
+    "memory_mb": 503.5703125,
+    "cpu_percent": 0.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:49:00.741612",
+    "elapsed": 12.696826457977295,
+    "memory_mb": 503.5703125,
+    "cpu_percent": 0.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:49:00.844378",
+    "elapsed": 12.799675464630127,
+    "memory_mb": 503.5703125,
+    "cpu_percent": 0.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  },
+  {
+    "timestamp": "2025-06-27T15:49:00.947087",
+    "elapsed": 12.902425289154053,
+    "memory_mb": 503.5703125,
+    "cpu_percent": 0.0,
+    "process_count": 19,
+    "monitoring_mode": "gunicorn"
+  }
+]

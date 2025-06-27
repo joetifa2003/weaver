@@ -189,7 +189,7 @@ def plot_comparisons(dir_data_dict, output_dir='plots'):
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig(f'{output_dir}/rps_comparison.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'{output_dir}/rps_comparison.svg', bbox_inches='tight')
     plt.close()
   
     # Plot Mean Latency over time
@@ -207,7 +207,7 @@ def plot_comparisons(dir_data_dict, output_dir='plots'):
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig(f'{output_dir}/mean_latency_comparison.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'{output_dir}/mean_latency_comparison.svg', bbox_inches='tight')
     plt.close()
   
     # Plot P95 Latency over time
@@ -225,7 +225,7 @@ def plot_comparisons(dir_data_dict, output_dir='plots'):
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig(f'{output_dir}/p95_latency_comparison.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'{output_dir}/p95_latency_comparison.svg', bbox_inches='tight')
     plt.close()
   
     # Plot P99 Latency over time
@@ -243,7 +243,7 @@ def plot_comparisons(dir_data_dict, output_dir='plots'):
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig(f'{output_dir}/p99_latency_comparison.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'{output_dir}/p99_latency_comparison.svg', bbox_inches='tight')
     plt.close()
     
     # Plot Memory Usage over time
@@ -261,7 +261,7 @@ def plot_comparisons(dir_data_dict, output_dir='plots'):
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig(f'{output_dir}/memory_comparison.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'{output_dir}/memory_comparison.svg', bbox_inches='tight')
     plt.close()
     
     # Plot CPU Usage over time
@@ -279,7 +279,7 @@ def plot_comparisons(dir_data_dict, output_dir='plots'):
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig(f'{output_dir}/cpu_comparison.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'{output_dir}/cpu_comparison.svg', bbox_inches='tight')
     plt.close()
     
     # Create summary bar chart
@@ -332,9 +332,13 @@ def create_summary_chart(dir_data_dict, output_dir, color_map):
     ax1.tick_params(axis='x', rotation=45)
     
     # Add value labels on bars
-    for bar, value in zip(bars1, avg_rps):
-        ax1.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(avg_rps)*0.01,
-                f'{value:.0f}', ha='center', va='bottom')
+    if any(r > 0 for r in avg_rps):
+        min_rps = min(r for r in avg_rps if r > 0)
+        for bar, value in zip(bars1, avg_rps):
+            if value > 0:
+                multiplier = value / min_rps
+                ax1.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(avg_rps)*0.01,
+                        f'{value:.0f} ({multiplier:.2f}x)', ha='center', va='bottom')
     
     # Average Mean Latency
     bars2 = ax2.bar(languages, avg_latency, color=colors)
@@ -342,9 +346,13 @@ def create_summary_chart(dir_data_dict, output_dir, color_map):
     ax2.set_ylabel('Latency (ms)')
     ax2.tick_params(axis='x', rotation=45)
 
-    for bar, value in zip(bars2, avg_latency):
-        ax2.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(avg_latency)*0.01,
-                f'{value:.2f}', ha='center', va='bottom')
+    if any(l > 0 for l in avg_latency):
+        min_latency = min(l for l in avg_latency if l > 0)
+        for bar, value in zip(bars2, avg_latency):
+            if value > 0:
+                multiplier = value / min_latency
+                ax2.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(avg_latency)*0.01,
+                        f'{value:.2f}ms ({multiplier:.2f}x)', ha='center', va='bottom')
 
     # Average P99 Latency
     bars3 = ax3.bar(languages, avg_p99_latency, color=colors)
@@ -352,9 +360,13 @@ def create_summary_chart(dir_data_dict, output_dir, color_map):
     ax3.set_ylabel('P99 Latency (ms)')
     ax3.tick_params(axis='x', rotation=45)
 
-    for bar, value in zip(bars3, avg_p99_latency):
-        ax3.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(avg_p99_latency)*0.01,
-                f'{value:.2f}', ha='center', va='bottom')
+    if any(l > 0 for l in avg_p99_latency):
+        min_p99_latency = min(l for l in avg_p99_latency if l > 0)
+        for bar, value in zip(bars3, avg_p99_latency):
+            if value > 0:
+                multiplier = value / min_p99_latency
+                ax3.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(avg_p99_latency)*0.01,
+                        f'{value:.2f}ms ({multiplier:.2f}x)', ha='center', va='bottom')
 
     # Average Memory
     bars4 = ax4.bar(languages, avg_memory, color=colors)
@@ -362,10 +374,13 @@ def create_summary_chart(dir_data_dict, output_dir, color_map):
     ax4.set_ylabel('Memory (MB)')
     ax4.tick_params(axis='x', rotation=45)
 
-    for bar, value in zip(bars4, avg_memory):
-        if value > 0:
-            ax4.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(avg_memory)*0.01,
-                    f'{value:.1f}', ha='center', va='bottom')
+    if any(m > 0 for m in avg_memory):
+        min_memory = min(m for m in avg_memory if m > 0)
+        for bar, value in zip(bars4, avg_memory):
+            if value > 0:
+                multiplier = value / min_memory
+                ax4.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(avg_memory)*0.01,
+                        f'{value:.1f}MB ({multiplier:.2f}x)', ha='center', va='bottom')
 
     # Average CPU
     bars5 = ax5.bar(languages, avg_cpu, color=colors)
@@ -373,16 +388,19 @@ def create_summary_chart(dir_data_dict, output_dir, color_map):
     ax5.set_ylabel('CPU (%)')
     ax5.tick_params(axis='x', rotation=45)
 
-    for bar, value in zip(bars5, avg_cpu):
-        if value > 0:
-            ax5.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(avg_cpu)*0.01,
-                    f'{value:.1f}', ha='center', va='bottom')
+    if any(c > 0 for c in avg_cpu):
+        min_cpu = min(c for c in avg_cpu if c > 0)
+        for bar, value in zip(bars5, avg_cpu):
+            if value > 0:
+                multiplier = value / min_cpu
+                ax5.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(avg_cpu)*0.01,
+                        f'{value:.1f} ({multiplier:.2f}x)', ha='center', va='bottom')
 
     # Hide the 6th subplot since we only have 5 metrics
     ax6.axis('off')
 
     plt.tight_layout()
-    plt.savefig(f'{output_dir}/summary_comparison.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'{output_dir}/summary_comparison.svg', bbox_inches='tight')
     plt.close()
 
 def main():

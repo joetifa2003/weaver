@@ -251,11 +251,6 @@ add := |a, b| a + b
 add(1, 2)  // 3
 ```
 
-```weaver
-add := |a, b| a + b
-add(1)  // error: illegal operands number + nil (missing argument)
-```
-
 ````
 
 <v-click>
@@ -288,15 +283,17 @@ echo(filter(arr, |n| n % 2 == 0)) // [2, 4]
 ```
 
 ```weaver
-[1, 2, 3, 4] |> filter(|n| n % 2 == 0) |> echo() // [2, 4]
+echo(filter([1, 2, 3, 4], |n| n % 2 == 0)) // [2, 4]
 ```
 
 ```weaver
-[1, 2, 3, 4]
-    |> filter(|n| n % 2 == 0)
-    |> echo() // [2, 4]
+// What if we want to read it from left to right?
+echo(filter([1, 2, 3, 4], |n| n % 2 == 0)) // [2, 4]
 ```
 
+```weaver
+[1, 2, 3, 4] |> filter(|n| n % 2 == 0) |> echo() // [2, 4]
+```
 ````
 
 </v-click>
@@ -437,7 +434,7 @@ match x {
     ..10 => {},
     // matches any number greater or equal to 5
     5.. => {},
-    // matches array with two elements, where each element matches the pattern
+    // matches array with at least two elements, where each element matches the pattern
     [<pattern>, <pattern>] => {},
     // matches object with "key" matching the pattern and "other" matching the pattern
     { key: <pattern>, other: <pattern> } => {},
@@ -481,41 +478,42 @@ match x {
 
 ## Error Handling
 
-Weaver has a unique approach to error handling. Errors are values, just like numbers or strings. When a function returns an error, it's *automatically propagated* up the call stack unless explicitly handled. This is different from languages like JavaScript that use exceptions and `try/catch` blocks.
+Errors are values, just like numbers or strings. When a function raises an error, it's *automatically propagated* up the call stack unless explicitly handled. This is different from languages like JavaScript that use exceptions and `try/catch` blocks.
 
 ```weaver
 // Example: Automatic error propagation
 divide := |a, b| {
-    return b == 0 ? error("Division by zero", {divisor: b}) | a / b;
+    if (b == 0) {
+      raise error("Division by zero", {divisor: b});
+    }
+
+    return a / b;
 };
 
 result := divide(10, 0)
 echo(result) // This line will NOT execute
 ```
 
-In the example above, `divide(10, 0)` returns an error. Because we didn't handle it explicitly, the error is automatically returned, and the `echo(result)` line is never reached.
-
-You can opt-out of automatic propagation using the `!` operator:
+You can opt-out of automatic propagation using the `try` keyword:
 
 ```weaver
 // Example: Opting out of automatic propagation
-result := divide(10, 0)!
+result := try divide(10, 0)
 echo("This line WILL execute")
 echo(result) // Prints the error value
 ```
 
-By adding `!` after the function call, we tell Weaver that we want to handle the potential error ourselves.  `result` will now contain the error value.
+By adding `try` before the expression (function call), we tell Weaver that we want to handle the potential error ourselves. `result` will now contain the error value.
 
 ---
 
 We can then use pattern matching to handle the error:
 
 ```weaver
-// Example: Handling errors with pattern matching
-result := divide(10, 0)!
+result := try divide(10, 0)
 match result {
     error(msg, data) => {
-        echo("Error: " + msg);          // Prints "Error: Division by zero"
+        echo("Error: " + msg);                    // Prints "Division by zero"
         echo("Divisor: " + string(data.divisor)); // Prints "Divisor: 0"
     },
     n => echo("Result: " + string(n)), // This won't execute in this case
@@ -525,8 +523,7 @@ match result {
 Here's a more realistic example, fetching data from a URL:
 
 ```weaver
-// Example: Real-world HTTP request
-response := http:get("https://example.com/api/data")!
+response := try http:get("https://example.com/api/data")!
 match response {
     error(msg, data) => {
         echo("HTTP request failed: " + msg);
@@ -569,7 +566,7 @@ match response {
 ```
 
 ---
-clicks: 20
+clicks: 18
 ---
 
 <Fibers />

@@ -3,32 +3,53 @@ tasks:
   gen-node-bench:
     dir: node
     cmds:
-      - ../load_test.sh 'node main.js' 3000
-
-  gen-node-bench-pm2:
-    dir: node-pm2
-    cmds:
-      - ../load_test.sh 'pm2 start main.js -i 1 --no-daemon' 3001 --pm2
-
-  gen-go-bench:
-    dir: go
-    cmds:
-      - go build .
-      - ../load_test.sh './bench-http' 3002
+      - ../load_test.sh 'pm2 start main.js -i {{.CPUs}} --no-daemon' 3001 --pm2
 
   gen-weaver-bench:
     dir: weaver
+    env:
+      GOMAXPROCS: '{{.CPUs}}'
     cmds:
       - ../load_test.sh 'weaver run main.wvr' 8080
 
+  gen-python-bench:
+    dir: python
+    cmds:
+      - ../load_test.sh 'pipenv run gunicorn --workers {{.CPUs}} --bind 0.0.0.0:3003 main:app' 3003 --gunicorn
+
   plot:
     cmds:
-      - python3 genplot.py weaver go node node-pm2
+      - python3 genplot.py weaver node python --output-dir {{.OUT}}
+
+  bench:
+    cmds:
+      - task: gen-node-bench
+        vars:
+          CPUs: '{{.CPUs}}'
+      - task: gen-weaver-bench
+        vars:
+          CPUs: '{{.CPUs}}'
+      - task: gen-python-bench
+        vars:
+          CPUs: '{{.CPUs}}'
 
   gen-report:
     cmds:
-      - task: gen-node-bench-pm2
-      - task: gen-node-bench
-      - task: gen-go-bench
-      - task: gen-weaver-bench
+      # - task: bench
+      #   vars:
+      #     CPUs: 1 
+      # - task: plot
+      #   vars:
+      #     OUT: plots-cpu-1
+      # - task: bench
+      #   vars:
+      #     CPUs: 8 
+      # - task: plot
+      #   vars:
+      #     OUT: plots-cpu-8
+      - task: bench
+        vars:
+          CPUs: 16
       - task: plot
+        vars:
+          OUT: plots-cpu-16

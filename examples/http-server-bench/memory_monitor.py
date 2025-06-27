@@ -8,11 +8,12 @@ import subprocess
 from datetime import datetime
 
 class MemoryMonitor:
-    def __init__(self, port, output_file, interval=1, pm2_mode=False):
+    def __init__(self, port, output_file, interval=1, pm2_mode=False, gunicorn_mode=False):
         self.port = port
         self.output_file = output_file
         self.interval = interval
         self.pm2_mode = pm2_mode
+        self.gunicorn_mode = gunicorn_mode
         self.monitoring_data = []
         self.start_time = time.time()
         self.running = True
@@ -60,6 +61,32 @@ class MemoryMonitor:
         
         return pids
     
+    def find_gunicorn_processes(self):
+        """Find Gunicorn master and worker processes by iterating through all processes."""
+        gunicorn_pids = set()
+        target_port_str = str(self.port)
+        
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+            try:
+                # Check if it's a gunicorn process
+                if 'gunicorn' in proc.name().lower() or any('gunicorn' in s.lower() for s in proc.cmdline()):
+                    # Check if it's listening on the target port
+                    for conn in proc.connections(kind='inet'):
+                        if conn.laddr.port == self.port:
+                            gunicorn_pids.add(proc.pid)
+                            break # Found a connection on the port, no need to check other connections for this process
+                    # Also check if the command line explicitly contains the bind address with the port
+                    if not gunicorn_pids or proc.pid not in gunicorn_pids:
+                        for arg in proc.cmdline():
+                            if target_port_str in arg and ('--bind' in arg or '-b' in arg):
+                                gunicorn_pids.add(proc.pid)
+                                break
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                continue
+        
+        print(f"DEBUG: Found Gunicorn PIDs: {list(gunicorn_pids)}")
+        return list(gunicorn_pids)
+
     def find_pm2_pids(self, app_name=None):
         try:
             result = subprocess.run(['pm2', 'jlist'], capture_output=True, text=True, timeout=5)
@@ -80,21 +107,25 @@ class MemoryMonitor:
 
     def monitor_memory(self):
         """Monitor memory and CPU usage based on mode (port-based or pm2)"""
-        if self.pm2_mode:
+        if self.gunicorn_mode:
+            print(f"Monitoring memory and CPU usage for Gunicorn processes on port {self.port}...")
+        elif self.pm2_mode:
             print(f"Monitoring memory and CPU usage for all Node.js processes managed by pm2...")
         else:
             print(f"Monitoring memory and CPU usage for processes on port {self.port}...")
+
+        # Get PIDs based on monitoring mode
+        if self.gunicorn_mode:
+            pids = self.find_gunicorn_processes()
+        elif self.pm2_mode:
+            pids = self.find_pm2_pids()
+        else:
+            pids = self.find_port_processes()
         
         try:
             while self.running:
                 current_time = time.time()
                 elapsed = current_time - self.start_time
-                
-                # Get PIDs based on monitoring mode
-                if self.pm2_mode:
-                    pids = self.find_pm2_pids()
-                else:
-                    pids = self.find_port_processes()
                 
                 total_memory_mb = 0
                 total_cpu_percent = 0
@@ -139,14 +170,16 @@ class MemoryMonitor:
                         'memory_mb': total_memory_mb,
                         'cpu_percent': total_cpu_percent,
                         'process_count': process_count,
-                        'monitoring_mode': 'pm2' if self.pm2_mode else 'port'
+                        'monitoring_mode': 'gunicorn' if self.gunicorn_mode else ('pm2' if self.pm2_mode else 'port')
                     }
                     self.monitoring_data.append(data_point)
                     
-                    mode_desc = "Node.js processes (pm2)" if self.pm2_mode else f"processes on port {self.port}"
+                    mode_desc = "Gunicorn processes" if self.gunicorn_mode else ("Node.js processes (pm2)" if self.pm2_mode else f"processes on port {self.port}")
                     print(f"Time: {elapsed:.1f}s, Memory: {total_memory_mb:.2f}MB, CPU: {total_cpu_percent:.2f}%, {mode_desc}: {process_count}")
                 elif elapsed > 2:  # Only warn after initial startup period
-                    if self.pm2_mode:
+                    if self.gunicorn_mode:
+                        print(f"Time: {elapsed:.1f}s, No Gunicorn processes found on port {self.port}")
+                    elif self.pm2_mode:
                         print(f"Time: {elapsed:.1f}s, No Node.js processes found managed by pm2")
                     else:
                         print(f"Time: {elapsed:.1f}s, No processes found on port {self.port}")
@@ -169,10 +202,11 @@ def main():
     parser.add_argument('output_file', help='Output JSON file')
     parser.add_argument('--interval', type=float, default=0.1, help='Monitoring interval in seconds (default: 1.0)')
     parser.add_argument('--pm2', action='store_true', help='Monitor all Node.js processes managed by pm2 instead of port-based monitoring')
+    parser.add_argument('--gunicorn', action='store_true', help='Monitor Gunicorn master and worker processes')
     
     args = parser.parse_args()
     
-    monitor = MemoryMonitor(args.port, args.output_file, args.interval, args.pm2)
+    monitor = MemoryMonitor(args.port, args.output_file, args.interval, args.pm2, args.gunicorn)
     monitor.monitor_memory()
 
 if __name__ == "__main__":

@@ -38,7 +38,7 @@
       "patterns": [
         {
           "name": "keyword.control.weaver",
-          "match": "\\b(if|else|for|while|match|return|break|continue|in)\\b"
+          "match": "\\b(if|else|for|while|match|return|break|continue|in|try|raise)\\b"
         }
       ]
     },

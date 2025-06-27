@@ -11,16 +11,25 @@ fi
 START_COMMAND="$1"
 PORT="$2"
 PM2_MODE=false
+GUNICORN_MODE=false
 
-# Check for optional --pm2 argument
-if [ $# -eq 3 ]; then
-    if [ "$3" == "--pm2" ]; then
-        PM2_MODE=true
-    else
-        echo "Invalid argument: $3"
-        echo "Usage: $0 <start_command> <port> [--pm2]"
-        exit 1
-    fi
+# Check for optional arguments
+if [ $# -ge 3 ]; then
+    for arg in "$@"; do
+        case $arg in
+            --pm2)
+                PM2_MODE=true
+                ;;
+            --gunicorn)
+                GUNICORN_MODE=true
+                ;;
+            -*) # Handle other potential flags if needed
+                echo "Invalid argument: $arg"
+                echo "Usage: $0 <start_command> <port> [--pm2] [--gunicorn]"
+                exit 1
+                ;;
+        esac
+    done
 fi
 
 # Function to stop the server by port
@@ -92,6 +101,9 @@ echo "Starting memory monitoring..."
 if [ "$PM2_MODE" == true ]; then
     echo "Running memory monitor in PM2 mode"
     python3 ../memory_monitor.py $PORT mem.json --pm2 &
+elif [ "$GUNICORN_MODE" == true ]; then
+    echo "Running memory monitor in Gunicorn mode"
+    python3 ../memory_monitor.py $PORT mem.json --gunicorn &
 else
     echo "Running memory monitor in port mode"
     python3 ../memory_monitor.py $PORT mem.json &

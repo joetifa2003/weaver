@@ -41,12 +41,12 @@ tasks:
       # - task: plot
       #   vars:
       #     OUT: plots-cpu-1
-      # - task: bench
-      #   vars:
-      #     CPUs: 8 
-      # - task: plot
-      #   vars:
-      #     OUT: plots-cpu-8
+      - task: bench
+        vars:
+          CPUs: 8 
+      - task: plot
+        vars:
+          OUT: plots-cpu-8
       - task: bench
         vars:
           CPUs: 16

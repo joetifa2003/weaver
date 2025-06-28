@@ -5,11 +5,8 @@ const app = express();
 
 app.get("/user/:id", async (req, res) => {
   const { id } = req.params;
-  const users = await fs
-    .readFile("./main.json")
-    .then((b) => b.toString())
-    .then((s) => JSON.parse(s));
-
+  const usersFile = await fs.readFile("./main.json");
+  const users = JSON.parse(usersFile.toString());
   const user = users.find((u) => u.id === Number(id));
   res.json(user);
 });

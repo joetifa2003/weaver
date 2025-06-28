@@ -290,9 +290,8 @@ def create_summary_chart(dir_data_dict, output_dir, color_map):
     languages = []
     avg_rps = []
     avg_latency = []
-    avg_p99_latency = []
+    avg_p95_latency = []
     avg_memory = []
-    avg_cpu = []
     colors = []
     
     for dirname, (stats_data, memory_data) in dir_data_dict.items():
@@ -303,27 +302,24 @@ def create_summary_chart(dir_data_dict, output_dir, color_map):
             # Calculate averages
             rps_values = [point['rps'] for point in stats_data]
             latency_values = [point['mean_latency'] for point in stats_data]
-            p99_latency_values = [point['p99_latency'] for point in stats_data]
+            p95_latency_values = [point['p95_latency'] for point in stats_data]  # Changed from p99 to p95
             
             avg_rps.append(np.mean(rps_values))
             avg_latency.append(np.mean(latency_values))
-            avg_p99_latency.append(np.mean(p99_latency_values))
+            avg_p95_latency.append(np.mean(p95_latency_values))  # Changed from p99 to p95
             
             if memory_data:
                 memory_values = [point['memory_mb'] for point in memory_data]
-                cpu_values = [point['cpu_percent'] for point in memory_data]
                 avg_memory.append(np.mean(memory_values))
-                avg_cpu.append(np.mean(cpu_values))
             else:
                 avg_memory.append(0)
-                avg_cpu.append(0)
     
     if not languages:
         print("No data available for summary chart")
         return
     
-    # Create subplots for summary (2x3 grid)
-    fig, ((ax1, ax2, ax3), (ax4, ax5, ax6)) = plt.subplots(2, 3, figsize=(18, 12))
+    # Create subplots for summary (2x2 grid)
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(12, 10))
     
     # Average RPS
     bars1 = ax1.bar(languages, avg_rps, color=colors)
@@ -354,18 +350,18 @@ def create_summary_chart(dir_data_dict, output_dir, color_map):
                 ax2.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(avg_latency)*0.01,
                         f'{value:.2f}ms ({multiplier:.2f}x)', ha='center', va='bottom')
 
-    # Average P99 Latency
-    bars3 = ax3.bar(languages, avg_p99_latency, color=colors)
-    ax3.set_title('Average P99 Latency')
-    ax3.set_ylabel('P99 Latency (ms)')
+    # Average P95 Latency (changed from P99)
+    bars3 = ax3.bar(languages, avg_p95_latency, color=colors)
+    ax3.set_title('Average P95 Latency')  # Changed title from P99 to P95
+    ax3.set_ylabel('P95 Latency (ms)')  # Changed ylabel from P99 to P95
     ax3.tick_params(axis='x', rotation=45)
 
-    if any(l > 0 for l in avg_p99_latency):
-        min_p99_latency = min(l for l in avg_p99_latency if l > 0)
-        for bar, value in zip(bars3, avg_p99_latency):
+    if any(l > 0 for l in avg_p95_latency):
+        min_p95_latency = min(l for l in avg_p95_latency if l > 0)
+        for bar, value in zip(bars3, avg_p95_latency):
             if value > 0:
-                multiplier = value / min_p99_latency
-                ax3.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(avg_p99_latency)*0.01,
+                multiplier = value / min_p95_latency
+                ax3.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(avg_p95_latency)*0.01,
                         f'{value:.2f}ms ({multiplier:.2f}x)', ha='center', va='bottom')
 
     # Average Memory
@@ -382,25 +378,8 @@ def create_summary_chart(dir_data_dict, output_dir, color_map):
                 ax4.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(avg_memory)*0.01,
                         f'{value:.1f}MB ({multiplier:.2f}x)', ha='center', va='bottom')
 
-    # Average CPU
-    bars5 = ax5.bar(languages, avg_cpu, color=colors)
-    ax5.set_title('Average CPU Usage')
-    ax5.set_ylabel('CPU (%)')
-    ax5.tick_params(axis='x', rotation=45)
-
-    if any(c > 0 for c in avg_cpu):
-        min_cpu = min(c for c in avg_cpu if c > 0)
-        for bar, value in zip(bars5, avg_cpu):
-            if value > 0:
-                multiplier = value / min_cpu
-                ax5.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(avg_cpu)*0.01,
-                        f'{value:.1f} ({multiplier:.2f}x)', ha='center', va='bottom')
-
-    # Hide the 6th subplot since we only have 5 metrics
-    ax6.axis('off')
-
     plt.tight_layout()
-    plt.savefig(f'{output_dir}/summary_comparison.svg', bbox_inches='tight')
+    plt.savefig(f'{output_dir}/summary_comparison.png', bbox_inches='tight')
     plt.close()
 
 def main():

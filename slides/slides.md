@@ -23,6 +23,7 @@ colorSchema: dark
 addons:
   - slidev-component-spotlight
   - slidev-addon-excalidraw
+download: true
 ---
 
 # Weaver
@@ -33,8 +34,6 @@ Simple scripting language for the joy of coding.
 "Hello World!"
     |> echo()
 ```
-
-
 
 ---
 layout: cover
@@ -185,7 +184,9 @@ greet() // Hello unknown
 
 ## Type Coercion
 
-Also there is no type coercion, so you must be explicit about the conversion of types, This is a deliberate design decision to avoid mistakes of other languages, like the enfamous javascript examples below.
+Weaver is dynamically typed, like the other scripting languages, but it's *strongly typed*.
+
+There is no type coercion, so you must be explicit about the conversion of types, This is a deliberate design decision to avoid mistakes of other languages, like the enfamous JavaScript examples below.
 
 ````md magic-move
 ```js
@@ -231,7 +232,7 @@ In other words: What you see is what you get.
 
 ## Functions
 
-Functions are the core of the language, they are "first class", that is they can be passed around and used as values.
+Functions are first class, they can be passed around and used as values.
 
 There are no special syntax for functions, you just assign a function value to a variable and call it.
 
@@ -240,14 +241,13 @@ There are no special syntax for functions, you just assign a function value to a
 add := |a, b| {
     return a + b;
 }
+
+add(1, 2)  // 3
 ```
 
 ```weaver
 add := |a, b| a + b
-```
 
-```weaver
-add := |a, b| a + b
 add(1, 2)  // 3
 ```
 
@@ -385,6 +385,8 @@ match arr {
 
 ---
 
+### Match Statement
+
 ```weaver
 n := 15
 match n {
@@ -421,6 +423,7 @@ for student in students {
 ---
 
 ```weaver
+// Match Statement Overview
 match x {
     // matches string "foo"
     "foo" => {},
@@ -449,6 +452,8 @@ match x {
 }
 ```
 
+---
+layout: cover
 ---
 
 ### Match Patterns
@@ -523,11 +528,11 @@ match result {
 Here's a more realistic example, fetching data from a URL:
 
 ```weaver
-response := try http:get("https://example.com/api/data")!
+response := try http.get("https://example.com/api/data")
 match response {
-    error(msg, data) => {
+    error(msg, { statusCode }) => {
         echo("HTTP request failed: " + msg);
-        echo("Status code: " + string(data.statusCode));
+        echo("Status code: " + string(statusCode));
     },
     res => {
         echo("Response body:")
@@ -539,34 +544,248 @@ match response {
 This approach makes error handling explicit and integrates seamlessly with Weaver's pattern matching.
 
 ---
+layout: cover
+---
+### Error Handling Example
 
-**Comparison with `try/catch` (JavaScript):**
+You can also use "truthyness" to handle errors:
+
+For example using `try/catch` in JavaScript:
 
 ```javascript
-// JavaScript try/catch example
+let user = null;
 try {
-  let response = await fetch("https://example.com/api/data");
-  let data = await response.json();
-  console.log(data);
+    user = await fetchUser();
 } catch (error) {
-  console.error("An error occurred:", error);
+    user = { name: "Unknown" };
 }
+```
+
+You can write the same thing like this in Weaver:
+
+```weaver
+user := try fetchUser() || { name: "Unknown" }
+```
+
+---
+
+### Fibers
+
+Weaver is a multi-threaded language, with support for non-blocking I/O operations.
+
+You may have noticed that in the example, there is no `await` or `async` keyword, that's because Weaver is built on the notion of "Green Threads", which are lightweight threads that are managed by the runtime, and handles non-blocking IO without explicit yield points with `await`.
+
+```javascript [JavaScript]
+const buyItem = async (itemID, userID, discountID) => {
+    const item = await getItem(itemID);
+    const itemWithDiscount = await applyDiscount(item, discount);
+    const user = await getUser(userID);
+    await pay(user, itemWithDiscount);
+    return itemWithDiscount;
+}
+```
+
+```weaver [Weaver]
+buyItem := |itemID, userID, discountID| {
+    item := getItem(itemID) |> applyDiscount(discountID)
+    user := getUser(userID)
+    pay(user, item)
+    return item
+}
+```
+
+---
+
+### Fibers
+
+Fibers consists of: Instructions (bytecode), Data (variables and constants), and the instruction pointer (IP).
+
+Every code in the program is running inside a fiber, code in the top level is running on the main fiber, and you can start new fibers that run concurrently with the main fiber.
+
+<div class="grid grid-cols-2 gap-4">
+
+
+```weaver
+fiber := import("fiber")
+io := import("io")
+
+paths := ["foo.txt", "bar.txt"]
+
+f1 := fiber.run(|| io.readFile(paths[0]))
+
+f2 := fiber.run(|| io.readFile(paths[1]))
+
+echo("main fiber")
+
+files := fiber.wait([f1, f2])
+
+echo(files[0]) // foo.txt
+echo(files[1]) // bar.txt
+
+// output:
+// main fiber
+// contents of foo.txt
+// contents of bar.txt
+```
+
+<v-click>
+````md magic-move {lines: true}
+```weaver
+fiber := import("fiber")
+
+f1 := fiber.run(|| sleep(1000))
+f2 := fiber.run(|| sleep(1000))
+
+echo("main fiber")
+
+// How much time to run this program?
+```
+```weaver
+fiber := import("fiber")
+
+f1 := fiber.run(|| sleep(1000))
+f2 := fiber.run(|| sleep(1000))
+
+echo("main fiber")
+
+// 0ms
 ```
 
 ```weaver
-response := http:get("https://example.com/api/data")!
-match response {
-    error(msg, { status }) => {
-        echo("An error occurred: " + msg);
-    },
-    { body } => {
-        echo(body)
-    }
-}
+fiber := import("fiber")
+
+f1 := fiber.run(|| sleep(1000))
+f2 := fiber.run(|| sleep(1000))
+
+echo("main fiber")
+
+fiber.wait([f1, f2])
+
+// How about now?
 ```
+
+```weaver
+fiber := import("fiber")
+
+f1 := fiber.run(|| sleep(1000))
+f2 := fiber.run(|| sleep(1000))
+
+echo("main fiber")
+
+fiber.wait([f1, f2])
+
+// 1000ms
+```
+````
+</v-click>
+</div>
 
 ---
 clicks: 18
 ---
 
 <Fibers />
+
+---
+
+### Fibers In Action, Benchmarks
+
+A simple HTTP server with one endpoint reading a JSON file and returning a user by ID.
+
+<div class="grid grid-cols-2 gap-2">
+```weaver [Weaver]
+http := import("http");
+io := import("io");
+json := import("json");
+
+router := http.newRouter();
+
+router.get("/user/{id}", |req| {
+    id := req.getParam("id");
+    users := io.readFile("./main.json") 
+             |> json.parse();
+    user := users |> find(|user| {
+      return user.id == number(id)
+    });
+
+    return user;
+});
+
+echo("starting server on port 8080");
+http.listenAndServe(":8080", router);
+```
+
+```javascript [JavaScript]
+import express from "express";
+import fs from "fs/promises";
+
+const app = express();
+
+app.get("/user/:id", async (req, res) => {
+  const { id } = req.params
+  const usersFile = await fs.readFile("./main.json")
+  const users = JSON.parse(usersFile.toString())
+  const user = users.find((u) => {
+    return u.id === Number(id)
+  });
+  res.json(user)
+});
+
+
+
+console.log("Server running on port 3001");
+app.listen(3001);
+```
+</div>
+
+---
+layout: full
+---
+
+### Fibers In Action, Benchmarks
+
+Ran on a Lenovo Legion 5 pro with Ryzen 5 5800H (16 cores) and 32GB RAM.
+
+<img src="./assets/http-bench/summary_comparison.svg" class="h-[90%] mx-auto" />
+
+---
+layout: full
+---
+
+### Fibers In Action, Benchmarks
+
+Ran on a Lenovo Legion 5 pro with Ryzen 5 5800H (16 cores) and 32GB RAM.
+
+<img src="./assets/http-bench/memory_comparison.svg" class="h-[90%] mx-auto" />
+
+---
+layout: full
+---
+
+### Fibers In Action, Benchmarks
+
+Ran on a Lenovo Legion 5 pro with Ryzen 5 5800H (16 cores) and 32GB RAM.
+
+<img src="./assets/http-bench/mean_latency_comparison.svg" class="h-[90%] mx-auto" />
+
+---
+layout: full
+---
+
+### Fibers In Action, Benchmarks
+
+Ran on a Lenovo Legion 5 pro with Ryzen 5 5800H (16 cores) and 32GB RAM.
+
+<img src="./assets/http-bench/p95_latency_comparison.svg" class="h-[90%] mx-auto" />
+
+---
+
+### Fibers In Action, Benchmarks
+
+How are we using 16 cores while JavaScript is single threaded in this benchmark?
+
+We are using pm2 to run the server in cluster mode, so for each of the cpu cores, we run a separate instance of the server, and then load balance the requests between them, this explains the big memory usage difference between weaver and Node.js.
+
+On the other hand, Weaver is multi-threaded, and for each request it creates a new fiber, so it's using all the cores within a single process, and fibers share the same memory space, so the memory usage is much lower.
+
+<img src="./assets/http-bench/fibers-vs-node.svg" class="h-[70%] mx-auto" />

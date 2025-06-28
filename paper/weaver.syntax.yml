@@ -18,7 +18,7 @@ contexts:
     - include: match-statements
 
   keywords:
-    - match: \b(if|else|for|while|match|return|break|continue)\b
+    - match: \b(if|else|for|while|match|return|break|continue|in|try|raise|nil)\b
       scope: keyword.control.weaver
 
   constants:

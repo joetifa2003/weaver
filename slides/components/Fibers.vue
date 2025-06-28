@@ -343,6 +343,25 @@ watch(ctx.$clicks, (clicks, oldClicks) => {
 </script>
 
 <template>
+  <div class="flex flex-row gap-2 position-fixed top-0">
+    <div class="flex flex-row gap-2 items-center">
+      <div class="h-[8px] w-[8px] bg-accent" />
+      <p class="text-size-xs!">Queued</p>
+    </div>
+    <div class="flex flex-row gap-2 items-center">
+      <div class="h-[8px] w-[8px] bg-blue" />
+      <p class="text-size-xs!">Running</p>
+    </div>
+    <div class="flex flex-row gap-2 items-center">
+      <div class="h-[8px] w-[8px] bg-green" />
+      <p class="text-size-xs!">Finished</p>
+    </div>
+    <div class="flex flex-row gap-2 items-center">
+      <div class="h-[8px] w-[8px] bg-yellow" />
+      <p class="text-size-xs!">Waiting on I/O</p>
+    </div>
+  </div>
+
   <div class="flex flex-row w-full h-full justify-between">
 
     <div class="b-4 b-accent flex flex-col p-2 h-full w-[200px]">
@@ -382,6 +401,5 @@ watch(ctx.$clicks, (clicks, oldClicks) => {
         </motion.div>
       </div>
     </div>
-
   </div>
 </template>

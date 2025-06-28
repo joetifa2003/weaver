@@ -1,16 +1,5 @@
 #import "@preview/zebraw:0.4.3": *
 
-#show: zebraw
-#show raw: set text(
-  font: "0xProto Nerd Font Mono", 
-  spacing: 100% + 0pt, 
-  tracking: 0pt,
-  ligatures: true,
-)
-#set raw(syntaxes: ("./weaver.syntax.yml"))
-#show heading: set text(10pt, weight: 600)
-#set heading(numbering: "1.")
-
 #let logo_width = 3cm
 
 // Header with logos
@@ -91,14 +80,15 @@
 
 #pagebreak()
 
-= Table of Contents
-#outline()
-
-#pagebreak()
-
 = Abstract
 
-Weaver is a new scripting language designed to provide a simple, expressive, and predictable programming experience. It addresses common pain points in existing scripting languages, such as implicit type coercion, verbose asynchronous code, and inconsistent error handling. Weaver combines dynamic typing with a strong type system, a functional programming style, and a modern concurrency model based on lightweight green threads (Fibers). Benchmarks show Weaver offers both simplicity and high performance, making it suitable for demanding applications.
+The proliferation of scripting languages like Python and JavaScript has simplified many programming tasks. However, they often introduce complexities such as implicit type coercion and verbose asynchronous code, which can lead to subtle bugs and reduced readability. This paper introduces Weaver, a novel scripting language designed to address these shortcomings. Weaver's core philosophy is to provide a simple, expressive, and predictable programming experience, combining the convenience of dynamic typing with the safety of a strong type system.
+
+Key features of Weaver include the absence of type coercion, first-class functions, a powerful pipe operator for elegant data flow, and comprehensive pattern matching capabilities. These features encourage a functional programming style that is both concise and easy to reason about.
+
+Furthermore, Weaver incorporates a modern concurrency model based on lightweight green threads, called Fibers. This allows for writing non-blocking, concurrent code in a simple, sequential style, eliminating the need for `async/await` syntax. Benchmarks demonstrate that this approach not only simplifies code but also yields significant performance and memory efficiency improvements compared to established runtimes like Node.js.
+
+By integrating these features, Weaver aims to fill a gap in the current landscape of scripting languages, offering a tool that is both a joy to use and powerful enough for demanding applications.
 
 #pagebreak()
 
@@ -129,74 +119,29 @@ The development of Weaver is guided by a set of core principles aimed at address
 
 #pagebreak()
 
-= Related Work
-
-Weaver is designed in response to the strengths and weaknesses of popular scripting languages, particularly Node.js (JavaScript) and Python. This section compares Weaver to these languages across several dimensions:
-
-== Syntax and Readability
-- Python is known for its clean, readable syntax, but can become verbose for functional or asynchronous code.
-- Node.js (JavaScript) offers flexibility but often suffers from callback hell and inconsistent idioms.
-- Weaver aims for concise, functional, and readable code, with a pipe operator and first-class functions to encourage clear data flow.
-
-== Type System
-- Python and JavaScript are dynamically typed, with Python offering optional type hints and JavaScript suffering from implicit type coercion.
-- Weaver is dynamically typed but enforces no implicit type coercion, reducing subtle bugs and making code more predictable.
-
-== Error Handling
-- Python uses exceptions, which can be caught with try/except blocks, but error handling is often separated from main logic.
-- Node.js uses exceptions and error-first callbacks, leading to inconsistent patterns.
-- Weaver treats errors as values, integrates error handling with pattern matching, and allows for concise, explicit error management.
-
-== Concurrency Model
-- Node.js uses an event loop and async/await, but requires explicit handling of asynchronous code and can be hard to reason about.
-- Python offers threads, asyncio, and multiprocessing, but concurrency is often complex and error-prone.
-- Weaver uses lightweight green threads (Fibers), allowing concurrent code to be written in a simple, sequential style without explicit async/await.
-
-== Pattern Matching
-- Python and JavaScript have limited pattern matching (Python 3.10+ adds match/case, JS has destructuring).
-- Weaver offers comprehensive pattern matching for values, types, destructuring, and guards, making complex control flow more expressive.
-
-== Performance
-- Node.js is fast for I/O-bound tasks but can be memory-intensive when scaling across cores.
-- Python is slower for concurrency and high-performance workloads.
-- Weaver is designed for high concurrency and low memory usage, as shown in benchmarks.
+= Table of Contents
+#outline()
 
 #pagebreak()
 
-= Design Decisions and Architecture
-
-Weaver's design is driven by the goal of balancing simplicity, expressiveness, and performance. This section outlines the rationale behind key language and runtime features:
-
-== No Implicit Type Coercion
-- Prevents subtle bugs and makes code more predictable, inspired by issues in JavaScript.
-
-== Pipe Operator and First-Class Functions
-- Encourages functional programming and readable data flow, reducing boilerplate and nesting.
-
-== Pattern Matching
-- Provides a unified, expressive way to handle control flow, data destructuring, and error handling.
-
-== Error Handling as Values
-- Integrates error management into the main logic, avoiding the pitfalls of exceptions and callback-based error handling.
-
-== Fibers and Concurrency Model
-- Uses green threads for lightweight, scalable concurrency, allowing simple sequential code for asynchronous tasks.
-
-== Multi-Threaded Runtime
-- Leverages all CPU cores efficiently, with fibers sharing memory for low overhead.
-
-== Standard Library
-- Ships with practical modules for common tasks, enabling productivity out of the box.
-
-These decisions are informed by the strengths and weaknesses observed in existing scripting languages and are intended to make Weaver both powerful and approachable.
-
-#pagebreak()
+#show: zebraw
+#show raw: set text(
+  font: "0xProto Nerd Font Mono", 
+  spacing: 100% + 0pt, 
+  tracking: 0pt,
+  ligatures: true,
+)
+#set raw(syntaxes: ("./weaver.syntax.yml"))
+#show heading: set text(10pt, weight: 600)
+#set heading(numbering: "1.")
 
 = Introduction
 
-Scripting languages like Python and JavaScript have made programming more accessible, but they often introduce complexity through implicit type coercion, inconsistent error handling, and convoluted asynchronous code. Weaver was created to address these issues by offering a language that is easy to learn, highly readable, and predictable in behavior.
+Weaver is a scripting language that allows users to write and execute code in a simple and intuitive way. It is designed to be easy to learn and use, with a focus on simplicity and readability.
 
-Weaver's design is motivated by the desire to combine the convenience of dynamic typing with the safety of a strong type system, and to encourage a functional, composable programming style. The language aims to fill the gap left by current scripting languages, providing a tool that is both practical for everyday tasks and robust enough for complex applications.
+It's designed to fill in the gap in the current dynamic scripting languages, like Python, Javascript, Bash etc..
+
+Everything is plain objects and functions, most of the code is just concatenating functions together to solve problems.
 
 #figure(
 ```weaver
@@ -219,9 +164,9 @@ arr
 
 Weaver is a dynamically typed language, which means that variables can hold values of different types. The type of a value is determined at runtime, based on the value itself.
 
-== Values and Types
+== Values
 
-Weaver has the typical types of expressions as shown in Figure 1. What stands out more is the fact that functions are first class citizens in Weaver, and can be passed around as values anywhere.
+Weaver has the typical types of expressions as shown in @fig:expressions, What stands out more is the fact that functions are first class citizens in Weaver, and can be passed around as values anywhere.
 
 #figure(
 ```weaver
@@ -238,7 +183,7 @@ nil                     // nil
   caption: [Weaver expressions.],
 ) <fig:expressions>
 
-There is only one type in Weaver that indicates the absence of a value, it is `nil`, unlike languages like JavaScript, which has `null` and `undefined`, which are both similar but also quite different.
+There is only one type in Weaver that indicates the absence of a value, it is `nil`.
 
 == Binary Operations
 
@@ -273,16 +218,16 @@ add(1, 2)         // 3     (number)
 
 Weaver boolean operators work with boolean expressions `true` and `false` as well as any other value in the language. Values that are considered "falsy" are `nil`, `error`, and `false`. Everything else is "truthy".
 
-The `||` operator returns the first "truthy" value, and `&&` returns the first "falsy" value.
+The `||` operator returns the first "truthy" value, and `&&` returns the first "falsy" value (or the last value if all are truthy).
 
 #figure(
 ```weaver
 // Examples of truthy and falsy values
-if (true)  { echo("true is truthy!") }  // Prints
-if (0)     { echo("0 is truthy!") }     // Prints
-if ("")    { echo("'' is truthy!") }    // Prints
-if (nil)   { echo("nil is truthy!") }   // Does not print
-if (false) { echo("false is truthy!") } // Does not print
+if true  { echo("true is truthy!") }  // Prints
+if 0     { echo("0 is truthy!") }     // Prints
+if ""    { echo("'' is truthy!") }    // Prints
+if nil   { echo("nil is truthy!") }   // Does not print
+if false { echo("false is truthy!") } // Does not print
 
 // Or operator (||) returns the first truthy value
 nil || "foo"  // "foo" (string)
@@ -297,8 +242,7 @@ true && "foo"  // "foo" (string)
   caption: [Truthy and Falsy values in Weaver.],
 ) <fig:truthy-falsy>
 
-This is often used to provide default values for function arguments:
-
+This is often used to provide default values:
 ```weaver
 greet := |name| echo("Hello " + (name || "unknown"));
 greet("John") // Hello John
@@ -507,16 +451,13 @@ for item in arr {
 
 Weaver provides powerful pattern matching capabilities that allow developers to write expressive and concise code. Pattern matching can be used to match values against specific patterns and execute corresponding code blocks. The syntax follows the form:
 
-#figure(
 ```weaver
 match expression {
   pattern1 => { /* code to execute if pattern1 matches */ },
   pattern2 => { /* code to execute if pattern2 matches */ },
   _ => { /* default case if no patterns match */ }
 }
-```,
-  caption: [Pattern matching syntax.],
-)
+```
 
 Match cases are evaluated in order, from top to bottom, until a match is found.
 
@@ -524,7 +465,6 @@ Match cases are evaluated in order, from top to bottom, until a match is found.
 
 Weaver supports matching against literal values including integers, floats, strings, and booleans:
 
-#figure(
 ```weaver
 x := "foo"
 match x {
@@ -533,73 +473,42 @@ match x {
     "foo" => echo("finally foo is matched"),
     _ => echo("if nothing else matches"),
 }
-```,
-  caption: [Basic pattern matching.],
-)
+```
 
 === Type Matching
 
 Patterns can match based on value types using type predicates:
 
-#figure(
 ```weaver
 match value {
   string(s) => echo("got string: " + s),
   number(n) => echo("got number: " + string(n)),
   _ => echo("other type")
 }
-```,
-  caption: [Type matching.],
-)
-
-#pagebreak()
+```
 
 === Destructuring
 
 Weaver supports destructuring of arrays and objects in patterns:
 
-#figure(
 ```weaver
 // Array destructuring
 match [1, 2, 3] {
   [a, b, c] => echo(a + b + c), // 6
   _ => echo("no match")
 }
-// output:
-// 6
 
 // Object destructuring
 match {name: "Alice", age: 30} {
   {name: n, age: a} => echo(n + " is " + string(a)), // Alice is 30
   _ => echo("no match")
 }
-
-// output:
-// Alice is 30
-
-arr := [1, 2, 3, 4]
-match arr {
-    [1, 2] => {
-        echo("arr starts with [1, 2]");
-    },
-    [2, 3] => {
-        echo("arr starts with [2, 3]");
-    },
-    _ => {
-        echo("otherwise");
-    } 
-}
-// output:
-// arr starts with [1, 2]
-```,
-  caption: [Data structures pattern matching.],
-)
+```
 
 === Nested Patterns
 
 Patterns can be nested to match complex data structures:
 
-#figure(
 ```weaver
 students := [
   {name: "Alice", grades: [90, 85]},
@@ -610,41 +519,31 @@ match students[0] {
   {name: "Alice", grades: [math, _]} => echo("Alice's math grade: " + string(math)),
   _ => echo("no match")
 }
-```,
-  caption: [Nested pattern matching.],
-)
+```
 
 === Range Matching
 
 Weaver supports range patterns for numeric values:
 
-#figure(
 ```weaver
 match age {
-  0..17 => echo("child"),     // between 0 and 17 (inclusive)
-  18..64 => echo("adult"),    // between 18 and 64 (inclusive)
-  65.. => echo("senior"),     // greater than 65 (inclusive)
-  ..0 => echo("invalid age"), // less than 0 (inclusive)
+  0..17 => echo("child"),
+  18..64 => echo("adult"),
+  65.. => echo("senior"),
+  else => echo("invalid age")
 }
-```,
-  caption: [Range pattern matching.],
-)
+```
 
 === Guards
 
 Additional conditions can be added to patterns using guards:
 
-#figure(
 ```weaver
 match student {
-  {name: n, age: a} if (a >= 18) => echo(n + " is an adult"),
+  {name: n, age: a} if a >= 18 => echo(n + " is an adult"),
   {name: n, age: a} => echo(n + " is a minor")
 }
-```,
-  caption: [Pattern matching with guards.],
-) <fig:guards>
-
-You can put any variable like `n` or `a` shown in @fig:guards, anywhere a pattern is expected, and then you can use them like a normal variable, and also add extra `if` guards to the pattern.
+```
 
 === Overview of Patterns
 
@@ -682,6 +581,7 @@ match x {
 ) <fig:patterns-overview>
 
 Pattern matching in Weaver provides a powerful way to handle complex conditional logic in a readable and maintainable way. The combination of literal matching, type matching, destructuring, and guards makes it suitable for a wide range of use cases.
+
 
 == Error Handling
 
@@ -772,7 +672,6 @@ You can also use "truthyness" to handle errors, since errors are "falsy" values.
 
 For example using `try/catch` in JavaScript:
 
-#figure(
 ```javascript
 let user = null;
 try {
@@ -780,22 +679,15 @@ try {
 } catch (error) {
     user = { name: "Unknown" };
 }
-```,
-  caption: [JavaScript try/catch approach.],
-)
+```
 
 You can write the same thing like this in Weaver:
 
-#figure(
 ```weaver
 user := try fetchUser() || { name: "Unknown" }
-```,
-  caption: [Weaver approach.],
-)
+```
 
-Which reads as "fetch the user, if it fails, return user with name Unknown".
-
-The important distinction here between `try/catch` approach and error as values approach, is that the former treats errors as separate control flow, while the latter treats errors as normal values, which leads to simpler to reason about code.
+This is a very common pattern in Weaver to provide default values in case of an error.
 
 === Fibers
 
@@ -859,14 +751,6 @@ echo(files[1]) // bar.txt
   caption: [Running I/O operations concurrently with fibers.],
 ) <fig:fibers-io>
 
-The fibers scheduler distributes the fibers across the available cores, and when an I/O operation is performed on a fiber, the fiber is removed from the core it's running on and put back on the queue until the I/O operation finished, in the mean time another fiber takes it's place and so on, when the fiber gets the I/O data back from the OS, it continues where it left off, on any available core.
-
-That way you can start thousands of fibers, without worrying about the overhead of context switching in OS threads, and you also don't have to worry about async operations, they are all handled by the fibers scheduler.
-
-Fibers also share the same memory space together, because they are all living in the same process.
-
-#pagebreak()
-
 == Benchmarks
 
 A simple HTTP server with one endpoint reading a JSON file and returning a user by ID.
@@ -897,8 +781,6 @@ http.listenAndServe(":8080", router);
   caption: [HTTP server in Weaver.],
 ) <fig:http-server-weaver>
 
-The Weaver HTTP server by default starts a new fiber for each request, and as a result it's able to handle requests concurrently, and without I/O blocking as showin in @fig:http-server-weaver. 
-
 #figure(
 ```javascript
 // JavaScript (Node.js with Express)
@@ -922,8 +804,6 @@ app.listen(3001);
 ```,
   caption: [HTTP server in JavaScript.],
 ) <fig:http-server-js>
-
-#pagebreak()
 
 The benchmarks were run on a Lenovo Legion 5 pro with Ryzen 5 5800H (16 cores) and 32GB RAM.
 
@@ -952,30 +832,4 @@ The benchmarks were run on a Lenovo Legion 5 pro with Ryzen 5 5800H (16 cores) a
   caption: [Fibers vs Node.js process model.],
 ) <fig:fibers-vs-node>
 
-Weaver is multi-threaded, and for each request it creates a new fiber, so it's using all the cores within a single process, and fibers share the same memory space. On the other hand, to utilize all cores in Node.js, we use `pm2` to run the server in cluster mode which creates a separate process for each core that doesn't share the same memory, each worker has it's own separate memory, and that explains why Node.js is using nearly 30x more memory that weaver (61MB vs 1.8GB), while also handling 4.65x more requests per second, and much better latency numbers.
-
-#pagebreak()
-
-= Future Work and Limitations
-
-While Weaver already provides a robust foundation, several areas remain for future development:
-
-== Language Server Protocol (LSP) Support
-- Currently, Weaver offers editor syntax highlighting, but lacks full LSP integration for features like autocompletion, go-to-definition, and inline diagnostics.
-
-== Standard Library Expansion
-- The standard library covers many common tasks, but ongoing work is needed to broaden its scope and depth.
-
-== Examples and Documentation
-- More real-world examples, comprehensive documentation, and possibly a dedicated book are planned to help users adopt and master Weaver.
-
-== Tooling and Ecosystem
-- Continued investment in tooling, package management, and platform support will further enhance the developer experience.
-
-These efforts will ensure Weaver continues to grow as a practical and modern scripting language.
-
-#pagebreak()
-
-= Conclusion
-
-Weaver demonstrates that a scripting language can be both simple and powerful, combining the flexibility of dynamic typing with the safety and predictability of a strong type system. Its functional style, robust error handling, and modern concurrency model set it apart from existing languages like Python and Node.js. Ongoing work on the standard library, tooling, and documentation will further enhance its usability and reach. Weaver is positioned to become a practical choice for developers seeking clarity, performance, and expressiveness in their everyday programming tasks.
+Weaver is multi-threaded, and for each request it creates a new fiber, so it's using all the cores within a single process, and fibers share the same memory space, so the memory usage is much lower. On the other hand, to utilize all cores in Node.js, we use `pm2` to run the server in cluster mode, which creates a separate process for each core.

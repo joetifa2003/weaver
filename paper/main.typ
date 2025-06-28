@@ -150,7 +150,7 @@ Weaver is designed in response to the strengths and weaknesses of popular script
 == Concurrency Model
 - Node.js is single-threaded, uses an event loop and async/await, but requires explicit handling of asynchronous code and can be hard to reason about.
 - Python offers threads, asyncio, and multiprocessing, but concurrency is crippled by the GIL (Global Interpreter Lock) from full multi-threading potential.
-- Weaver is truly multi-threaded, uses lightweight green threads (Fibers), allowing concurrent code to be written in a simple, sequential style without explicit async/await, while having non-blocking I/O caipablity.
+- Weaver is truly multi-threaded, uses lightweight green threads (Fibers), allowing concurrent code to be written in a simple, sequential style without explicit async/await, while having non-blocking I/O capability.
 
 == Pattern Matching
 - Python and JavaScript have limited pattern matching (Python 3.10+ adds match/case, JS has destructuring).
@@ -216,7 +216,9 @@ Weaver is a dynamically typed language, which means that variables can hold valu
 
 == Values and Types
 
-Weaver has the typical types of expressions as shown in Figure 1. What stands out more is the fact that functions are first class citizens in Weaver, and can be passed around as values anywhere.
+Weaver has the typical types of expressions. 
+
+A notable feature is that functions are first-class citizens in Weaver and can be passed as values anywhere.
 
 #figure(
 ```weaver
@@ -233,7 +235,7 @@ nil                     // nil
   caption: [Weaver expressions.],
 ) <fig:expressions>
 
-There is only one type in Weaver that indicates the absence of a value, it is `nil`, unlike languages like JavaScript, which has `null` and `undefined`, which are both similar but also quite different.
+There is only one type in Weaver that indicates the absence of a value, it is `nil`, unlike JavaScript, which has both `null` and `undefined`—similar but distinct concepts.
 
 == Binary Operations
 
@@ -266,7 +268,7 @@ add(1, 2)         // 3     (number)
 
 == Truthy and Falsy Values
 
-Weaver boolean operators work with boolean expressions `true` and `false` as well as any other value in the language. Values that are considered "falsy" are `nil`, `error`, and `false`. Everything else is "truthy".
+Weaver's boolean operators work with the boolean values `true` and `false`, as well as any other value in the language. Values that are considered "falsy" are `nil`, `error`, and `false`. Everything else is "truthy".
 
 The `||` operator returns the first "truthy" value, and `&&` returns the first "falsy" value.
 
@@ -329,7 +331,7 @@ number(true) + number(false)  == 1
   caption: [Weaver type conversion.],
 ) <fig:weaver-type-conversion>
 
-This makes reading the code much easier, Since what you see is what you get.
+This makes code easier to read, since what you see is what you get.
 
 If operators are used with incorrect types, Weaver will error at runtime.
 
@@ -366,7 +368,7 @@ true + false
 
 Functions are first class, they can be passed around and used as values.
 
-There are no special syntax for functions, you just assign a function value to a variable and call it.
+There is no special syntax for functions; you simply assign a function value to a variable and call it.
 
 #figure(
 ```weaver
@@ -466,7 +468,7 @@ while i < 5 {
   caption: [While loop in Weaver, printing numbers from 0 to 4.],
 ) <fig:while>
 
-For loops are used as an alternative to while loops, typically used when iterating over a collection of items like arrays, @fig:for is another way for writing @fig:while.
+For loops are used as an alternative to while loops, typically used for iterating over collections like arrays. @fig:for provides an alternative to @fig:while.
 
 #figure(
 ```weaver
@@ -632,7 +634,7 @@ Additional conditions can be added to patterns using guards:
 #figure(
 ```weaver
 match student {
-  {name: n, age: a} if (a >= 18) => echo(n + " is an adult"),
+  {name: n, age: a} if a >= 18 => echo(n + " is an adult"),
   {name: n, age: a} => echo(n + " is a minor")
 }
 ```,
@@ -860,9 +862,9 @@ echo(files[1]) // bar.txt
   caption: [Running I/O operations concurrently with fibers.],
 ) <fig:fibers-io>
 
-The fibers scheduler distributes the fibers across the available cores, and when an I/O operation is performed on a fiber, the fiber is removed from the core it's running on and put back on the queue until the I/O operation finished, in the mean time another fiber takes it's place and so on, when the fiber gets the I/O data back from the OS, it continues where it left off, on any available core.
+The fibers scheduler distributes the fibers across the available cores, and when an I/O operation is performed on a fiber, the fiber is removed from the core it's running on and put back on the queue until the I/O operation finished, in the meantime, another fiber takes its place. When the fiber receives the I/O data from the OS, it continues where it left off, on any available core.
 
-That way you can start thousands of fibers, without worrying about the overhead of context switching in OS threads, and the user also don't have to worry about async operations, they are all handled by the fibers scheduler.
+That way you can start thousands of fibers, without worrying about the overhead of context switching in OS threads, and the user also doesn't have to worry about async operations; they are all handled by the fibers scheduler.
 
 Fibers also share the same memory space together, because they are all living in the same process.
 
@@ -961,9 +963,9 @@ Weaver is multi-threaded, and for each request it creates a new fiber, so it's u
 
 Weaver aims to have a comprehensive standard library, which comes by default with the language distribution (Available on: Windows, Linux and MacOS).
 
-The goal of this is to have standard Weaver code, because the consecuince of not having a good standard library is that you have to write the same code over and over again across projects, or install a package from 100s of packages doing the same thing, this is the case with JavaScript.
+The goal of this is to have standard Weaver code, because the consequence of not having a good standard library is that you have to write the same code over and over again across projects, or install a package from 100s of packages doing the same thing, this is the case with JavaScript.
 
-Weaver aims to be familiar, even across code bases, and to have a standard library that is easy to use, and easy to learn.
+Weaver aims to be familiar across codebases and to provide a standard library that is easy to use and learn.
 
 We will highlight some of the standard library modules that are available in Weaver.
 
@@ -1194,7 +1196,7 @@ raylib.closeWindow()
 
 Weaver treats each file as a module, and each module can import other modules.
 
-Modules contains functions and variables, and can be used to organize code.
+Modules contain functions and variables and can be used to organize code.
 
 #figure(
 ```weaver
@@ -1215,7 +1217,7 @@ echo(m.foo(1, 2)) // 3
 
 Modules are imported using the `import` function, and the path to the module is relative to the current file and begins with a `./`.
 
-Standard library is just collection of built-in modules, imported by the same import function.
+The standard library is just a collection of built-in modules, imported using the same import function.
 
 #figure(
 ```weaver

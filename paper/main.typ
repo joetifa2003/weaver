@@ -8,8 +8,10 @@
   ligatures: true,
 )
 #set raw(syntaxes: ("./weaver.syntax.yml"))
-#show heading: set text(10pt, weight: 600)
 #set heading(numbering: "1.")
+#set par(justify: true)
+#show figure.caption: set align(center)
+#show figure.caption: set text(size: 8pt, weight: 600)
 
 #let logo_width = 3cm
 
@@ -20,10 +22,10 @@
     column-gutter: 2cm,
     align: center,
     [
-      #image("logo1.jpg", width: logo_width)
+      #image("assets/logo1.jpg", width: logo_width)
     ],
     [
-      #image("logo2.jpg", width: logo_width)
+      #image("assets/logo2.jpg", width: logo_width)
     ]
   )
 ]
@@ -91,14 +93,15 @@
 
 #pagebreak()
 
-= Table of Contents
-#outline()
+#align(center)[
+  #heading(outlined: false, numbering: none)[Abstract]
+]
+
+Weaver is a new scripting language designed to provide a simple, expressive, and predictable programming experience. It addresses common pain points in existing scripting languages, such as implicit type coercion, verbose asynchronous code, and inconsistent error handling. Weaver combines dynamic typing with a strong type system, a functional programming style, and a modern concurrency model based on lightweight green threads (Fibers). Benchmarks show Weaver offers both simplicity and high performance, making it suitable for demanding applications.
 
 #pagebreak()
 
-= Abstract
-
-Weaver is a new scripting language designed to provide a simple, expressive, and predictable programming experience. It addresses common pain points in existing scripting languages, such as implicit type coercion, verbose asynchronous code, and inconsistent error handling. Weaver combines dynamic typing with a strong type system, a functional programming style, and a modern concurrency model based on lightweight green threads (Fibers). Benchmarks show Weaver offers both simplicity and high performance, making it suitable for demanding applications.
+#outline()
 
 #pagebreak()
 
@@ -163,7 +166,7 @@ Weaver is designed in response to the strengths and weaknesses of popular script
 Weaver's design is driven by the goal of balancing simplicity, expressiveness, and performance. This section outlines the rationale behind key language and runtime features:
 
 == No Implicit Type Coercion
-- Prevents subtle bugs and makes code more predictable, inspired by issues in JavaScript.
+- A strong type system that prevents subtle bugs and makes code more predictable, inspired by issues in JavaScript.
 
 == Pipe Operator and First-Class Functions
 - Encourages functional programming and readable data flow, reducing boilerplate and nesting.
@@ -206,7 +209,7 @@ arr
     |> len()
     |> echo() // [2, 4]
 ```,
-  caption: [Piping functions in Weaver. A core concept for writing readable code.],
+  caption: [Piping functions in Weaver. A core concept for writing readable code],
 ) <fig:piping-functions>
 
 
@@ -232,7 +235,7 @@ true|false              // bool
 |a, b| { return a + b } // function
 nil                     // nil
 ```,
-  caption: [Weaver expressions.],
+  caption: [Weaver expressions],
 ) <fig:expressions>
 
 There is only one type in Weaver that indicates the absence of a value, it is `nil`, unlike JavaScript, which has both `null` and `undefined`—similar but distinct concepts.
@@ -263,7 +266,7 @@ add := |a, b| a + b
 add(1, 2)         // 3     (number)
 1 |> add(2)       // 3     (number)
 ```,
-  caption: [Binary operations in Weaver.],
+  caption: [Binary operations in Weaver],
 ) <fig:binary-ops>
 
 == Truthy and Falsy Values
@@ -291,7 +294,7 @@ nil && true    // nil
 true && nil    // nil
 true && "foo"  // "foo" (string)
 ```,
-  caption: [Truthy and Falsy values in Weaver.],
+  caption: [Truthy and Falsy values in Weaver],
 ) <fig:truthy-falsy>
 
 This is often used to provide default values for function arguments:
@@ -328,7 +331,7 @@ number(true) + number(false)  == 1
 12 / number("6")           == 2
 "foo" + string(15 + 3)  == "foo18"
 ```,
-  caption: [Weaver type conversion.],
+  caption: [Weaver type conversion],
 ) <fig:weaver-type-conversion>
 
 This makes code easier to read, since what you see is what you get.
@@ -361,7 +364,7 @@ true + false
 // illegal operands string == array
 "0" == []
 ```,
-  caption: [Weaver operators with incorrect type operands will error.],
+  caption: [Weaver operators with incorrect type operands will error],
 ) <fig:weaver-errors>
 
 == Functions
@@ -384,7 +387,7 @@ add := |a, b| a + b
 
 add(1, 2)  // 3
 ```,
-  caption: [Defining and calling functions in Weaver.],
+  caption: [Defining and calling functions in Weaver],
 ) <fig:functions>
 
 This allows for expressive and concise code.
@@ -411,7 +414,7 @@ echo(evenNumbers) // [2, 4]
     |> filter(|n| n % 2 == 0)
     |> echo() // [2, 4]
 ```,
-  caption: [Different ways to filter a list in Weaver.],
+  caption: [Different ways to filter a list in Weaver],
 ) <fig:filtering-list>
 
 == Control Flow
@@ -424,7 +427,7 @@ if 5 > 3 {
   echo("5 is greater than 3")
 }
 ```,
-  caption: [If statement in Weaver.],
+  caption: [If statement in Weaver],
 ) <fig:if>
 
 
@@ -440,7 +443,7 @@ if 5 > 3 {
     |> echo()
 }
 ```,
-  caption: [If-else statement in Weaver.],
+  caption: [If-else statement in Weaver],
 ) <fig:if-else>
 
 Weaver also supports a ternary operator for concise conditional expressions:
@@ -451,7 +454,7 @@ n := 1
 what := n % 2 == 0 ? "even" | "odd"
 echo(what) // "odd"
 ```,
-  caption: [Ternary operator in Weaver.],
+  caption: [Ternary operator in Weaver],
 ) <fig:ternary>
 
 
@@ -465,7 +468,7 @@ while i < 5 {
   i += 1
 }
 ```,
-  caption: [While loop in Weaver, printing numbers from 0 to 4.],
+  caption: [While loop in Weaver, printing numbers from 0 to 4],
 ) <fig:while>
 
 For loops are used as an alternative to while loops, typically used for iterating over collections like arrays. @fig:for provides an alternative to @fig:while.
@@ -476,7 +479,7 @@ For loops are used as an alternative to while loops, typically used for iteratin
     echo(i)
   }
 ```,
-  caption: [For loop in Weaver, printing numbers from 0 to 4.],
+  caption: [For loop in Weaver, printing numbers from 0 to 4],
 ) <fig:for>
 
 Weaver also supports a `for-in` loop for iterating over ranges and collections:
@@ -494,11 +497,9 @@ for item in arr {
     echo(item)
 }
 ```,
-  caption: [For-in loop in Weaver.],
+  caption: [For-in loop in Weaver],
 ) <fig:for-in>
 
-
-#set page(columns: 1)
 
 == Pattern Matching <sec:pattern-matching>
 
@@ -512,7 +513,7 @@ match expression {
   _ => { /* default case if no patterns match */ }
 }
 ```,
-  caption: [Pattern matching syntax.],
+  caption: [Pattern matching syntax],
 )
 
 Match cases are evaluated in order, from top to bottom, until a match is found.
@@ -531,7 +532,7 @@ match x {
     _ => echo("if nothing else matches"),
 }
 ```,
-  caption: [Basic pattern matching.],
+  caption: [Basic pattern matching],
 )
 
 === Type Matching
@@ -546,7 +547,7 @@ match value {
   _ => echo("other type")
 }
 ```,
-  caption: [Type matching.],
+  caption: [Type matching],
 )
 
 #pagebreak()
@@ -589,7 +590,7 @@ match arr {
 // output:
 // arr starts with [1, 2]
 ```,
-  caption: [Data structures pattern matching.],
+  caption: [Data structures pattern matching],
 )
 
 === Nested Patterns
@@ -608,7 +609,7 @@ match students[0] {
   _ => echo("no match")
 }
 ```,
-  caption: [Nested pattern matching.],
+  caption: [Nested pattern matching],
 )
 
 === Range Matching
@@ -624,7 +625,7 @@ match age {
   ..0 => echo("invalid age"), // less than 0 (inclusive)
 }
 ```,
-  caption: [Range pattern matching.],
+  caption: [Range pattern matching],
 )
 
 === Guards
@@ -638,7 +639,7 @@ match student {
   {name: n, age: a} => echo(n + " is a minor")
 }
 ```,
-  caption: [Pattern matching with guards.],
+  caption: [Pattern matching with guards],
 ) <fig:guards>
 
 You can put any variable like `n` or `a` shown in @fig:guards, anywhere a pattern is expected, and then you can use them like a normal variable, and also add extra `if` guards to the pattern.
@@ -675,7 +676,7 @@ match x {
     foo => {},
 }
 ```,
-  caption: [Overview of available patterns in Weaver.],
+  caption: [Overview of available patterns in Weaver],
 ) <fig:patterns-overview>
 
 Pattern matching in Weaver provides a powerful way to handle complex conditional logic in a readable and maintainable way. The combination of literal matching, type matching, destructuring, and guards makes it suitable for a wide range of use cases.
@@ -704,7 +705,7 @@ divide := |a, b| {
 result := divide(10, 0)
 echo(result) // This line will NOT execute
 ```,
-  caption: [Creating and propagating errors in Weaver.],
+  caption: [Creating and propagating errors in Weaver],
 ) <fig:creating-propagating-errors>
 
 === Handling Errors
@@ -725,7 +726,7 @@ result := try divide(10, 0)
 echo("This line WILL execute")
 echo(result) // Prints the error value
 ```,
-  caption: [Handling errors with `try` in Weaver.],
+  caption: [Handling errors with `try` in Weaver],
 ) <fig:handling-errors-try>
 
 We can then use pattern matching to handle the error.
@@ -741,7 +742,7 @@ match result {
     n => echo("Result: " + string(n)), // This won't execute in this case
 }
 ```,
-  caption: [Pattern matching on errors in Weaver.],
+  caption: [Pattern matching on errors in Weaver],
 ) <fig:error-pattern-matching>
 
 Here's a more realistic example, fetching data from a URL:
@@ -760,7 +761,7 @@ match response {
     }
 }
 ```,
-  caption: [Handling HTTP errors in Weaver.],
+  caption: [Handling HTTP errors in Weaver],
 ) <fig:http-error-handling>
 
 This approach makes error handling explicit and integrates seamlessly with Weaver's pattern matching.
@@ -778,7 +779,7 @@ try {
     user = { name: "Unknown" };
 }
 ```,
-  caption: [JavaScript try/catch approach.],
+  caption: [JavaScript try/catch approach],
 )
 
 You can write the same thing like this in Weaver:
@@ -787,7 +788,7 @@ You can write the same thing like this in Weaver:
 ```weaver
 user := try fetchUser() || { name: "Unknown" }
 ```,
-  caption: [Weaver approach.],
+  caption: [Weaver approach],
 )
 
 Which reads as "fetch the user, if it fails, return user with name Unknown".
@@ -813,7 +814,7 @@ const buyItem = async (itemID, userID, discountID) => {
     return itemWithDiscount;
 }
 ```,
-  caption: [Asynchronous code in JavaScript with `async/await`.],
+  caption: [Asynchronous code in JavaScript with `async/await`],
 ) <fig:async-js>
 
 #figure(
@@ -826,7 +827,7 @@ buyItem := |itemID, userID, discountID| {
     return item
 }
 ```,
-  caption: [Concurrent code in Weaver without `async/await`.],
+  caption: [Concurrent code in Weaver without `async/await`],
 ) <fig:concurrent-weaver>
 
 Fibers consists of: Instructions (bytecode), Data (variables and constants), and the instruction pointer (IP).
@@ -859,7 +860,7 @@ echo(files[1]) // bar.txt
 // contents of foo.txt
 // contents of bar.txt
 ```,
-  caption: [Running I/O operations concurrently with fibers.],
+  caption: [Running I/O operations concurrently with fibers],
 ) <fig:fibers-io>
 
 The fibers scheduler distributes the fibers across the available cores, and when an I/O operation is performed on a fiber, the fiber is removed from the core it's running on and put back on the queue until the I/O operation finished, in the meantime, another fiber takes its place. When the fiber receives the I/O data from the OS, it continues where it left off, on any available core.
@@ -897,7 +898,7 @@ router.get("/user/{id}", |req| {
 echo("starting server on port 8080");
 http.listenAndServe(":8080", router);
 ```,
-  caption: [HTTP server in Weaver.],
+  caption: [HTTP server in Weaver],
 ) <fig:http-server-weaver>
 
 The Weaver HTTP server by default starts a new fiber for each request, and as a result it's able to handle requests concurrently, and without I/O blocking as showin in @fig:http-server-weaver. 
@@ -923,7 +924,7 @@ app.get("/user/:id", async (req, res) => {
 console.log("Server running on port 3001");
 app.listen(3001);
 ```,
-  caption: [HTTP server in JavaScript.],
+  caption: [HTTP server in JavaScript],
 ) <fig:http-server-js>
 
 #pagebreak()
@@ -932,27 +933,27 @@ The benchmarks were run on a Lenovo Legion 5 pro with Ryzen 5 5800H (16 cores) a
 
 #figure(
   image("./assets/http-bench/summary_comparison.svg", width: 100%),
-  caption: [Benchmark summary comparison.],
+  caption: [Benchmark summary comparison],
 ) <fig:summary-comparison>
 
 #figure(
   image("./assets/http-bench/memory_comparison.svg", width: 100%),
-  caption: [Memory usage comparison.],
+  caption: [Memory usage comparison],
 ) <fig:memory-comparison>
 
 #figure(
   image("./assets/http-bench/mean_latency_comparison.svg", width: 100%),
-  caption: [Mean latency comparison.],
+  caption: [Mean latency comparison],
 ) <fig:mean-latency-comparison>
 
 #figure(
   image("./assets/http-bench/p95_latency_comparison.svg", width: 100%),
-  caption: [P95 latency comparison.],
+  caption: [P95 latency comparison],
 ) <fig:p95-latency-comparison>
 
 #figure(
   image("./assets/http-bench/fibers-vs-node.svg", width: 100%),
-  caption: [Fibers vs Node.js process model.],
+  caption: [Fibers vs Node.js process model],
 ) <fig:fibers-vs-node>
 
 Weaver is multi-threaded, and for each request it creates a new fiber, so it's using all the cores within a single process, and fibers share the same memory space. On the other hand, to utilize all cores in Node.js, we use `pm2` to run the server in cluster mode which creates a separate process for each core that doesn't share the same memory, each worker has it's own separate memory, and that explains why Node.js is using nearly 30x more memory that weaver (61MB vs 1.8GB), while also handling 4.65x more requests per second, and much better latency numbers.
@@ -989,7 +990,7 @@ router.get("/echo/{msg}", |req| {
 echo("starting server on port 8080");
 http.listenAndServe(":8080", router);
 ```,
-  caption: [HTTP server in Weaver.],
+  caption: [HTTP server in Weaver],
 )
 
 #figure(
@@ -1002,7 +1003,7 @@ http.listenAndServe(":8080", router);
 
   echo(user.name);
   ```,
-  caption: [HTTP client in Weaver.],
+  caption: [HTTP client in Weaver],
 )
 
 #pagebreak()
@@ -1029,7 +1030,7 @@ fiber.wait(tasks) // wait for all tasks to finish
 
 echo(count) // could be any number between 0 and 10
 ```,
-  caption: [Fiber module in Weaver.],
+  caption: [Fiber module in Weaver],
 )
 
 #figure(
@@ -1052,7 +1053,7 @@ fiber.wait(tasks) // wait for all tasks to finish
 
 echo(count) // guaranteed to be 10
 ```,
-  caption: [Fiber module in Weaver.],
+  caption: [Fiber module in Weaver],
 )
 
 #pagebreak()
@@ -1073,7 +1074,7 @@ echo(user.age)   // 30
 json.stringify(user) 
   |> echo() // stringify object back to JSON string
 ```,
-  caption: [JSON module in Weaver.],
+  caption: [JSON module in Weaver],
 ) <fig:json>
 
 == IO
@@ -1087,7 +1088,7 @@ content := io.readFile("foo.txt")       // read file
 echo(content)                     
 io.writeFile("foo.txt", "Hello World!") // write file
 ```,
-  caption: [Reading/Writing a file in Weaver.],
+  caption: [Reading/Writing a file in Weaver],
 )
 
 #figure(
@@ -1096,7 +1097,7 @@ io := import("io")
 io.exec("ls")
   |> echo() // prints the output of the command
 ```,
-  caption: [Executing a shell command in Weaver.],
+  caption: [Executing a shell command in Weaver],
 )
 
 And much more OS and filesystem related functionality.
@@ -1129,7 +1130,7 @@ strings.toUpper("foo")
 strings.fmt("Hello {}", "World")
   |> echo() // "Hello World"
 ```,
-  caption: [Strings module in Weaver.],
+  caption: [Strings module in Weaver],
 )
 
 == Time
@@ -1157,7 +1158,7 @@ time.now()
   |> time.inLocation("America/New_York")
   |> echo() // prints current time in New York
 ```,
-  caption: [Time module in Weaver.],
+  caption: [Time module in Weaver],
 )
 
 #pagebreak()
@@ -1182,12 +1183,12 @@ while (raylib.windowShouldClose() == false) {
 
 raylib.closeWindow()
 ```,
-  caption: [Raylib module in Weaver.],
+  caption: [Raylib module in Weaver],
 ) <fig:raylib>
 
 #figure(
   image("./assets/gol.png", width: 80%),
-  caption: [Game of Life in Weaver.],
+  caption: [Game of Life in Weaver],
 ) <fig:summary-comparison>
 
 #pagebreak()
@@ -1212,7 +1213,7 @@ m := import("./foo")
 
 echo(m.foo(1, 2)) // 3
 ```,
-  caption: [Importing a module in Weaver.],
+  caption: [Importing a module in Weaver],
 ) <fig:modules>
 
 Modules are imported using the `import` function, and the path to the module is relative to the current file and begins with a `./`.
@@ -1228,7 +1229,7 @@ f := || {
   }
 }
 ```,
-  caption: [Dynamic importing.],
+  caption: [Dynamic importing],
 ) <fig:dynamic-import>
 
 Modules can be imported dynamically/lazily, and import functions doesn't have to be in the top-level of the file, which is useful for code that is only needed under certain conditions.
@@ -1260,3 +1261,10 @@ These efforts will ensure Weaver continues to grow as a practical and modern scr
 = Conclusion
 
 Weaver demonstrates that a scripting language can be both simple and powerful, combining the flexibility of dynamic typing with the safety and predictability of a strong type system. Its functional style, robust error handling, and modern concurrency model set it apart from existing languages like Python and Node.js. Ongoing work on the standard library, tooling, and documentation will further enhance its usability and reach. Weaver is positioned to become a practical choice for developers seeking clarity, performance, and expressiveness in their everyday programming tasks.
+
+#pagebreak()
+
+#outline(
+  title: "Table of Figures",
+  target: figure,
+)

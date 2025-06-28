@@ -23,7 +23,6 @@ colorSchema: dark
 addons:
   - slidev-component-spotlight
   - slidev-addon-excalidraw
-download: true
 ---
 
 # Weaver

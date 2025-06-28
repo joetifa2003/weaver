@@ -1190,6 +1190,51 @@ raylib.closeWindow()
 
 #pagebreak()
 
+= Modules
+
+Weaver treats each file as a module, and each module can import other modules.
+
+Modules contains functions and variables, and can be used to organize code.
+
+#figure(
+```weaver
+// dir/
+//    foo.weaver
+//    bar.weaver
+
+// foo.weaver
+foo := |a, b| a + b
+
+// bar.weaver
+m := import("./foo")
+
+echo(m.foo(1, 2)) // 3
+```,
+  caption: [Importing a module in Weaver.],
+) <fig:modules>
+
+Modules are imported using the `import` function, and the path to the module is relative to the current file and begins with a `./`.
+
+Standard library is just collection of built-in modules, imported by the same import function.
+
+#figure(
+```weaver
+f := || {
+  if (someCondition) {
+    foo := import("./foo")
+    foo.bar()
+  }
+}
+```,
+  caption: [Dynamic importing.],
+) <fig:dynamic-import>
+
+Modules can be imported dynamically/lazily, and import functions doesn't have to be in the top-level of the file, which is useful for code that is only needed under certain conditions.
+
+Any module that is not imported will not be compiled, and once imported it will be compiled and cached, so it's fine to call `import` multiple times.
+
+#pagebreak()
+
 = Future Work and Limitations
 
 While Weaver already provides a robust foundation, several areas remain for future development:

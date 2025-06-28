@@ -121,7 +121,7 @@ The development of Weaver is guided by a set of core principles aimed at address
 - *Expressive Power through Pattern Matching:*
   To provide developers with powerful tools for handling complex data structures and control flow, Weaver includes a comprehensive pattern matching system. This feature allows for elegant destructuring, type matching, and conditional logic in a single, unified construct.
 
-- *High Performance:*
+- *Multi-threaded Runtime:*
   A key goal is to deliver a high-performance runtime that can compete with and, in some cases, surpass established platforms like Node.js. By building a multi-threaded runtime and using an efficient memory model, Weaver is designed to handle high-concurrency workloads with lower resource consumption.
 
 - *Comprehensive Standard Library:*
@@ -148,18 +148,13 @@ Weaver is designed in response to the strengths and weaknesses of popular script
 - Weaver treats errors as values, integrates error handling with pattern matching, and allows for concise, explicit error management.
 
 == Concurrency Model
-- Node.js uses an event loop and async/await, but requires explicit handling of asynchronous code and can be hard to reason about.
-- Python offers threads, asyncio, and multiprocessing, but concurrency is often complex and error-prone.
-- Weaver uses lightweight green threads (Fibers), allowing concurrent code to be written in a simple, sequential style without explicit async/await.
+- Node.js is single-threaded, uses an event loop and async/await, but requires explicit handling of asynchronous code and can be hard to reason about.
+- Python offers threads, asyncio, and multiprocessing, but concurrency is crippled by the GIL (Global Interpreter Lock) from full multi-threading potential.
+- Weaver is truly multi-threaded, uses lightweight green threads (Fibers), allowing concurrent code to be written in a simple, sequential style without explicit async/await, while having non-blocking I/O caipablity.
 
 == Pattern Matching
 - Python and JavaScript have limited pattern matching (Python 3.10+ adds match/case, JS has destructuring).
 - Weaver offers comprehensive pattern matching for values, types, destructuring, and guards, making complex control flow more expressive.
-
-== Performance
-- Node.js is fast for I/O-bound tasks but can be memory-intensive when scaling across cores.
-- Python is slower for concurrency and high-performance workloads.
-- Weaver is designed for high concurrency and low memory usage, as shown in benchmarks.
 
 #pagebreak()
 
@@ -797,11 +792,13 @@ Which reads as "fetch the user, if it fails, return user with name Unknown".
 
 The important distinction here between `try/catch` approach and error as values approach, is that the former treats errors as separate control flow, while the latter treats errors as normal values, which leads to simpler to reason about code.
 
-=== Fibers
+#pagebreak()
+
+= Fibers
 
 Weaver is a multi-threaded language, with support for non-blocking I/O operations.
 
-You may have noticed that in the example, there is no `await` or `async` keyword, that's because Weaver is built on the notion of "Green Threads", which are lightweight threads that are managed by the runtime, and handles non-blocking IO without explicit yield points with `await`.
+You may have noticed that in the examples, there is no `await` or `async` keyword, that's because Weaver is built on the notion of "Green Threads", which are lightweight threads that are managed by the runtime, and handles non-blocking IO without explicit yield points with `await`.
 
 #figure(
 ```javascript
@@ -841,6 +838,10 @@ io := import("io")
 
 paths := ["foo.txt", "bar.txt"]
 
+// Note that we are using variable paths, 
+// which is a variable outside fiber 1 and fiber 2 scope.
+// And this is possible because all fibers
+// have access to the same memory space.
 f1 := fiber.run(|| io.readFile(paths[0]))
 f2 := fiber.run(|| io.readFile(paths[1]))
 
@@ -861,7 +862,7 @@ echo(files[1]) // bar.txt
 
 The fibers scheduler distributes the fibers across the available cores, and when an I/O operation is performed on a fiber, the fiber is removed from the core it's running on and put back on the queue until the I/O operation finished, in the mean time another fiber takes it's place and so on, when the fiber gets the I/O data back from the OS, it continues where it left off, on any available core.
 
-That way you can start thousands of fibers, without worrying about the overhead of context switching in OS threads, and you also don't have to worry about async operations, they are all handled by the fibers scheduler.
+That way you can start thousands of fibers, without worrying about the overhead of context switching in OS threads, and the user also don't have to worry about async operations, they are all handled by the fibers scheduler.
 
 Fibers also share the same memory space together, because they are all living in the same process.
 
@@ -953,6 +954,239 @@ The benchmarks were run on a Lenovo Legion 5 pro with Ryzen 5 5800H (16 cores) a
 ) <fig:fibers-vs-node>
 
 Weaver is multi-threaded, and for each request it creates a new fiber, so it's using all the cores within a single process, and fibers share the same memory space. On the other hand, to utilize all cores in Node.js, we use `pm2` to run the server in cluster mode which creates a separate process for each core that doesn't share the same memory, each worker has it's own separate memory, and that explains why Node.js is using nearly 30x more memory that weaver (61MB vs 1.8GB), while also handling 4.65x more requests per second, and much better latency numbers.
+
+#pagebreak()
+
+= Standard Library
+
+Weaver aims to have a comprehensive standard library, which comes by default with the language distribution (Available on: Windows, Linux and MacOS).
+
+The goal of this is to have standard Weaver code, because the consecuince of not having a good standard library is that you have to write the same code over and over again across projects, or install a package from 100s of packages doing the same thing, this is the case with JavaScript.
+
+Weaver aims to be familiar, even across code bases, and to have a standard library that is easy to use, and easy to learn.
+
+We will highlight some of the standard library modules that are available in Weaver.
+
+== HTTP
+
+The HTTP module provides a simple HTTP server, with a ready to use router, and an HTTP client.
+
+#figure(
+```weaver
+// Weaver
+http := import("http");
+io := import("io");
+
+router := http.newRouter();
+
+router.get("/echo/{msg}", |req| {
+    msg := req.getParam("id");
+    return msg;
+});
+
+echo("starting server on port 8080");
+http.listenAndServe(":8080", router);
+```,
+  caption: [HTTP server in Weaver.],
+)
+
+#figure(
+  ```weaver
+  http := import("http");
+  json := import("json");
+
+  user := http.get("https://jsonplaceholder.typicode.com/users/1")
+          |> json.parse();
+
+  echo(user.name);
+  ```,
+  caption: [HTTP client in Weaver.],
+)
+
+#pagebreak()
+
+== Fiber
+
+The Fiber module provides a simple API for creating and managing fibers, and also for synchronization/locking and channel communication.
+
+#figure(
+```weaver
+fiber := import("fiber")
+
+count := 0
+tasks := []
+for i in 0..10 {
+  tasks |> push(
+    fiber.run(|| {
+      count++
+    })
+  )
+}
+
+fiber.wait(tasks) // wait for all tasks to finish
+
+echo(count) // could be any number between 0 and 10
+```,
+  caption: [Fiber module in Weaver.],
+)
+
+#figure(
+```weaver
+fiber := import("fiber")
+
+count := 0
+l := fiber.newLock()
+tasks := []
+for i in 0..10 {
+  t := fiber.run(|| {
+    l.lock(|| {
+      count++
+    })
+  })
+  tasks |> push(t)
+}
+
+fiber.wait(tasks) // wait for all tasks to finish
+
+echo(count) // guaranteed to be 10
+```,
+  caption: [Fiber module in Weaver.],
+)
+
+#pagebreak()
+
+== JSON
+
+The JSON module provides a simple API for parsing and serializing JSON.
+
+#figure(
+```weaver
+json := import("json")
+
+user := json.parse("{'name': 'John Doe', 'age': 30}") // parse JSON string to object
+
+echo(user.name)  // John Doe
+echo(user.age)   // 30
+
+json.stringify(user) 
+  |> echo() // stringify object back to JSON string
+```,
+  caption: [JSON module in Weaver.],
+) <fig:json>
+
+== IO
+
+The IO module provides a simple API for reading and writing files, executing shell commands, and more.
+
+#figure(
+```weaver
+io := import("io")
+content := io.readFile("foo.txt")       // read file
+echo(content)                     
+io.writeFile("foo.txt", "Hello World!") // write file
+```,
+  caption: [Reading/Writing a file in Weaver.],
+)
+
+#figure(
+```weaver
+io := import("io")
+io.exec("ls")
+  |> echo() // prints the output of the command
+```,
+  caption: [Executing a shell command in Weaver.],
+)
+
+And much more OS and filesystem related functionality.
+
+#pagebreak()
+
+== Strings
+
+The Strings module provides a simple API for working with strings.
+
+#figure(
+```weaver
+strings := import("strings")
+
+strings.split("foo,bar,baz", ",")
+  |> echo() // ["foo", "bar", "baz"]
+
+strings.concat("a", "b", "c")
+  |> echo() // "abc"
+
+strings.trim("  foo  ")
+  |> echo() // "foo"
+
+strings.toLower("FOO")
+  |> echo() // "foo"
+
+strings.toUpper("foo")
+  |> echo() // "FOO"
+
+strings.fmt("Hello {}", "World")
+  |> echo() // "Hello World"
+```,
+  caption: [Strings module in Weaver.],
+)
+
+== Time
+
+The Time module provides a simple API for working with and manipulating/formatting time.
+
+#figure(
+```weaver
+time := import("time")
+
+time.now()
+  |> echo() // 2023-01-01T00:00:00Z
+
+time.now().format("2006-01-02")
+  |> echo() // 2023-01-01
+
+t1 := time.now()
+t2 := t1 |> time.add(time.Hour * 24)
+
+t2 |> time.sub(t1)
+  |> echo() // 1h0m0s
+
+
+time.now() 
+  |> time.inLocation("America/New_York")
+  |> echo() // prints current time in New York
+```,
+  caption: [Time module in Weaver.],
+)
+
+#pagebreak()
+
+== Raylib (Graphics Library)
+
+The Raylib module provides a simple API for working with the raylib graphics library.
+
+#figure(
+```weaver
+raylib := import("rl")
+
+raylib.initWindow(800, 600, "Weaver")
+raylib.setTargetFPS(60)
+
+while (raylib.windowShouldClose() == false) {
+  raylib.beginDrawing()
+  raylib.clearBackground(raylib.colorBlack)
+  raylib.drawText("Hello World!", 100, 100, 20, raylib.colorWhite)
+  raylib.endDrawing()
+}
+
+raylib.closeWindow()
+```,
+  caption: [Raylib module in Weaver.],
+) <fig:raylib>
+
+#figure(
+  image("./assets/gol.png", width: 80%),
+  caption: [Game of Life in Weaver.],
+) <fig:summary-comparison>
 
 #pagebreak()
 

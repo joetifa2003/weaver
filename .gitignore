@@ -2,3 +2,5 @@ node_modules/
 .next
 # Added by goreleaser init:
 dist/
+weaver
+*.deb

@@ -13,6 +13,7 @@ import (
 	"github.com/joetifa2003/weaver/builtin"
 	"github.com/joetifa2003/weaver/compiler"
 	"github.com/joetifa2003/weaver/ir"
+	"github.com/joetifa2003/weaver/jit"
 	"github.com/joetifa2003/weaver/parser"
 	"github.com/joetifa2003/weaver/vm"
 )
@@ -82,6 +83,24 @@ func main() {
 					}
 
 					return nil
+				},
+			},
+			{
+				Name:        "jit",
+				Usage:       "run a file with the JIT compiler",
+				Description: "jit [file]",
+				Action: func(ctx context.Context, cc *cli.Command) error {
+					srcData, err := os.ReadFile(cc.Args().Get(0))
+					if err != nil {
+						return err
+					}
+
+					src := string(srcData)
+					if len(src) == 0 {
+						return errors.New("empty file")
+					}
+
+					return jit.Run(src)
 				},
 			},
 		},

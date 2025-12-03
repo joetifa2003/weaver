@@ -340,8 +340,8 @@ FLOAT       : [0-9]+ '.' [0-9]+ ;
 INT         : [0-9]+ ;
 STRING      : '"' (~["\\\r\n] | '\\' .)* '"' ;
 
-// Identifiers (after keywords for proper matching)
-IDENT       : [a-zA-Z_][a-zA-Z0-9_]* ;
+// Identifiers - matches the original lexer pattern: letters/underscores followed by optional digits
+IDENT       : [a-zA-Z_]+ [0-9]* ;
 
 // Whitespace and Comments
 WS          : [ \t\r\n]+ -> skip ;

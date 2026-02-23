@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -53,11 +52,11 @@ func main() {
 					if err != nil {
 						return err
 					}
-					f, err := os.Create("ir.wvr")
-					if err != nil {
-						return err
-					}
-					f.WriteString(ircr.String())
+					// f, err := os.Create("ir.wvr")
+					// if err != nil {
+					// 	return err
+					// }
+					// f.WriteString(ircr.String())
 
 					c := compiler.New(builtin.StdReg)
 					instructions, vars, constants, err := c.Compile(ircr)
@@ -78,7 +77,7 @@ func main() {
 						}),
 					)
 					if val.VType == vm.ValueTypeError {
-						fmt.Println(val.String())
+						return cli.Exit(val.String(), 1)
 					}
 
 					return nil

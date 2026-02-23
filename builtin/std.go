@@ -22,6 +22,7 @@ func init() {
 	registerTimeModule(builder)
 	registerModuleRL(builder)
 	registerHtmlModule(builder)
+	registerPluginModule(builder)
 
 	StdReg = builder.Build()
 }

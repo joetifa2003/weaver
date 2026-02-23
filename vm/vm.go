@@ -810,23 +810,31 @@ func (v *VM) raise(val Value) bool {
 	prevFrame := v.curFrame
 	v.popFrame() // pop the current frame
 
-	for v.fp >= 0 {
+	for {
+		if prevFrame.HaltAfter {
+			v.sp = prevFrame.returnAddr
+			v.stack[v.sp] = val
+			return false
+		}
+
+		if v.fp < 0 {
+			break
+		}
+
 		if v.callStack[v.fp].hasTry {
 			v.sp = prevFrame.returnAddr
 			v.stack[v.sp] = val
 			return true
 		}
 
-		if v.curFrame.HaltAfter {
-			v.sp = v.curFrame.returnAddr
-			v.stack[v.sp] = val
-			return false
-		}
-
 		prevFrame = v.curFrame
 		v.popFrame()
 	}
 
+	if prevFrame != nil {
+		v.sp = prevFrame.returnAddr
+		v.stack[v.sp] = val
+	}
 	return false
 }
 

@@ -1,0 +1,19 @@
+plugin := import("plugin");
+io := import("io");
+
+my_plugin := plugin.load("plugin.wasm");
+
+io.println("Calling greet...");
+str := my_plugin.greet("Weaver");
+io.println("Result:");
+io.println(str);
+
+io.println("Calling sum...");
+n := my_plugin.sum(5, 10);
+io.println("Result:");
+io.println(n);
+
+io.println("Calling create_user...");
+user := my_plugin.create_user("John", 30);
+io.println("Result:");
+io.println(user);
